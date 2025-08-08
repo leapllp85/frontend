@@ -2,7 +2,7 @@
 import nookies from "nookies";
 
 export async function login(username: string, password: string) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
     const res = await fetch(`${apiUrl}/api/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
