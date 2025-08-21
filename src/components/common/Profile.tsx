@@ -89,8 +89,9 @@ export const Profile = ({
   };
 
   useEffect(() => {
-    
-    fetchUserProfile(username);
+    if (username) {
+      fetchUserProfile(username);
+    }
     fetchActionItems();
     fetchProjects();
   }, [username]);
@@ -148,7 +149,7 @@ export const Profile = ({
           <Avator />
           <Heading size="md">
             <HStack>
-              {profileData?.fullname || toTitleCase(username)}
+              {profileData?.fullname || (username ? toTitleCase(username) : 'Unknown User')}
               <Box
                 className={`!text-sm !px-3 !py-1 !font-medium !${
                   profileData?.is_verified

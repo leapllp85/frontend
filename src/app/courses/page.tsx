@@ -84,10 +84,9 @@ export default function CoursesPage() {
     }));
 
     // Filter courses by category
-    // @ts-ignore
     const filteredCourses = selectedCategory === 'all' 
         ? courses 
-        : courses.filter(course => course.category_names.includes(selectedCategory));
+        : courses.filter(course => course.category.name === selectedCategory);
 
     if (loading) {
         return (

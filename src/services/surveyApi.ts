@@ -7,6 +7,10 @@ export interface Survey {
     survey_type: string;
     is_anonymous: boolean;
     end_date: string;
+    created_at: string;
+    updated_at: string;
+    status: 'draft' | 'active' | 'closed';
+    responses_count: number;
 }
 
 export interface SurveyQuestion {

@@ -130,7 +130,7 @@ export default function Dashboard() {
         if (dashboardData && dashboardData.top_talent) {
             return dashboardData.top_talent.slice(0, 3).map(talent => ({
                 id: talent.id.toString(),
-                name: `${talent.first_name} ${talent.last_name}` || talent.username,
+                name: `${talent.user.first_name} ${talent.user.last_name}` || talent.user.username,
                 age: talent.age,
                 mentalHealth: talent.mental_health,
                 utilization: Math.floor(Math.random() * 30) + 70,

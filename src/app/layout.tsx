@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 import { Provider } from "@/components/ui/provider"
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
@@ -37,7 +38,9 @@ export default function RootLayout({
           <LoadingProvider>
             <AuthProvider>
               <AuthWrapper>{children}</AuthWrapper>
-              <AppLoader />
+              <Suspense fallback={null}>
+                <AppLoader />
+              </Suspense>
             </AuthProvider>
           </LoadingProvider>
         </Provider>
