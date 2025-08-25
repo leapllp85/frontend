@@ -3,28 +3,36 @@ import { useState } from "react";
 import { chatApi } from "../../services/chatApi";
 
 interface DashboardChatSidebarProps {
-    handleAiResponse: (response: string) => void;
+    handleAiResponse: (response: string, question?: string) => void;
     handleLoading: (loading: boolean) => void;
     handleError?: (error: string) => void;
+    setHasQueried: (hasQueried: boolean) => void;
+    setTeamCriticalityView: (teamCriticalityView: boolean) => void;
+    hasQueried: boolean;
+    teamCriticalityView: boolean;
+    currentUser: string;
 }
 
-export default function DashboardChatSidebar({handleAiResponse, handleLoading, handleError}: DashboardChatSidebarProps) {
+export default function DashboardChatSidebar({handleAiResponse, handleLoading, handleError, setHasQueried, setTeamCriticalityView, hasQueried, teamCriticalityView, currentUser}: DashboardChatSidebarProps) {
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [localError, setLocalError] = useState<string | null>(null);
+    const [activeButton, setActiveButton] = useState<'team-criticality' | 'my-space' | 'my-profile' | null>(null);
 
     const sendMessageToAPI = async (prompt: string) => {
         try {
             setLocalError(null);
             if (handleError) handleError(''); // Clear parent error
-            const response = await chatApi.sendMessage(prompt);
-            handleAiResponse(response.response);
+            const userMessage = `${currentUser}: ${prompt}`;
+            const response = await chatApi.sendMessage(userMessage);
+            console.log(response);
+            handleAiResponse(response.response, prompt);
         } catch (err) {
             console.error('Chat API error:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
             setLocalError(errorMessage);
             handleError?.(errorMessage);
-            handleAiResponse('Sorry, I encountered an error. Please try again.');
+            handleAiResponse('Sorry, I encountered an error. Please try again.', prompt);
         }
     }
 
@@ -60,15 +68,18 @@ export default function DashboardChatSidebar({handleAiResponse, handleLoading, h
             {/* Main Content Area */}
             <Box flex="1" display="flex" flexDirection="column">
                 <Text fontSize="xl" fontWeight="bold" mb={8} lineHeight="1.4">
-                    Hi there, what can I help you with today?
+                    Hi {currentUser}, what can I help you with today?
                 </Text>
                 {/* Quick Action Buttons */}
                 <Flex direction="column" gap={3} mb={6}>
                     <Button 
-                        bg="whiteAlpha.200" 
-                        color="white" 
-                        border="1px solid whiteAlpha.300"
-                        _hover={{ 
+                        bg={teamCriticalityView ? "white" : "whiteAlpha.200"}
+                        color={teamCriticalityView ? "purple.600" : "white"}
+                        border={teamCriticalityView ? "2px solid white" : "1px solid whiteAlpha.300"}
+                        _hover={teamCriticalityView ? {
+                            bg: "gray.50",
+                            transform: "none"
+                        } : { 
                             bg: "whiteAlpha.300",
                             transform: "translateY(-1px)",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
@@ -78,15 +89,27 @@ export default function DashboardChatSidebar({handleAiResponse, handleLoading, h
                         borderRadius="lg"
                         py={6}
                         fontSize="md"
-                        fontWeight="medium"
+                        fontWeight={teamCriticalityView ? "bold" : "medium"}
+                        cursor={teamCriticalityView ? "default" : "pointer"}
+                        onClick={() => {
+                            if (!teamCriticalityView) {
+                                setActiveButton('team-criticality');
+                                setTeamCriticalityView(true);
+                                setHasQueried(true);
+                            }
+                        }}
+                        disabled={teamCriticalityView}
                     >
                         Team Criticality
                     </Button>
                     <Button 
-                        bg="whiteAlpha.200" 
-                        color="white" 
-                        border="1px solid whiteAlpha.300"
-                        _hover={{ 
+                        bg={activeButton === 'my-space' ? "white" : "whiteAlpha.200"}
+                        color={activeButton === 'my-space' ? "purple.600" : "white"}
+                        border={activeButton === 'my-space' ? "2px solid white" : "1px solid whiteAlpha.300"}
+                        _hover={activeButton === 'my-space' ? {
+                            bg: "gray.50",
+                            transform: "none"
+                        } : { 
                             bg: "whiteAlpha.300",
                             transform: "translateY(-1px)",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
@@ -96,34 +119,28 @@ export default function DashboardChatSidebar({handleAiResponse, handleLoading, h
                         borderRadius="lg"
                         py={6}
                         fontSize="md"
-                        fontWeight="medium"
-                    >
-                        My Team
-                    </Button>
-                    <Button 
-                        bg="whiteAlpha.200" 
-                        color="white" 
-                        border="1px solid whiteAlpha.300"
-                        _hover={{ 
-                            bg: "whiteAlpha.300",
-                            transform: "translateY(-1px)",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                        fontWeight={activeButton === 'my-space' ? "bold" : "medium"}
+                        cursor={activeButton === 'my-space' ? "default" : "pointer"}
+                        onClick={() => {
+                            if (activeButton !== 'my-space') {
+                                setActiveButton('my-space');
+                                setTeamCriticalityView(false);
+                                setHasQueried(true);
+                                handleAiResponse('');
+                            }
                         }}
-                        _active={{ transform: "translateY(0)" }}
-                        transition="all 0.2s ease"
-                        borderRadius="lg"
-                        py={6}
-                        fontSize="md"
-                        fontWeight="medium"
-                        onClick={() => handleAiResponse('')}
+                        disabled={activeButton === 'my-space'}
                     >
                         My Space
                     </Button>
                     <Button 
-                        bg="whiteAlpha.200" 
-                        color="white" 
-                        border="1px solid whiteAlpha.300"
-                        _hover={{ 
+                        bg={(!hasQueried && !teamCriticalityView) ? "white" : "whiteAlpha.200"}
+                        color={(!hasQueried && !teamCriticalityView) ? "purple.600" : "white"}
+                        border={(!hasQueried && !teamCriticalityView) ? "2px solid white" : "1px solid whiteAlpha.300"}
+                        _hover={(!hasQueried && !teamCriticalityView) ? {
+                            bg: "gray.50",
+                            transform: "none"
+                        } : { 
                             bg: "whiteAlpha.300",
                             transform: "translateY(-1px)",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
@@ -133,9 +150,18 @@ export default function DashboardChatSidebar({handleAiResponse, handleLoading, h
                         borderRadius="lg"
                         py={6}
                         fontSize="md"
-                        fontWeight="medium"
+                        fontWeight={(!hasQueried && !teamCriticalityView) ? "bold" : "medium"}
+                        cursor={(!hasQueried && !teamCriticalityView) ? "default" : "pointer"}
+                        onClick={() => {
+                            if (hasQueried || teamCriticalityView) {
+                                setActiveButton('my-profile');
+                                setHasQueried(false);
+                                setTeamCriticalityView(false);
+                            }
+                        }}
+                        disabled={!hasQueried && !teamCriticalityView}
                     >
-                        My Projects
+                        My Profile
                     </Button>
                 </Flex>
             </Box>

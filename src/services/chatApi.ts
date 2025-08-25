@@ -21,7 +21,18 @@ export interface ChatResponse {
 export class ChatApiService {
   // Send chat message and get AI response
   async sendMessage(prompt: string): Promise<ChatResponse> {
-    return await apiService.post<ChatResponse>('/chat/', { prompt });
+    try {
+      // Use apiService.postText to handle HTML response
+      const htmlContent = await apiService.postText('/chat/', { prompt });
+      
+      return {
+        response: htmlContent,
+        message_id: Date.now() // Generate a temporary ID
+      };
+    } catch (error) {
+      console.error('Chat API error:', error);
+      throw error;
+    }
   }
 
   // Get chat history

@@ -122,7 +122,8 @@ export async function loginWithProfile(username: string, password: string) {
         // Return both login response and profile data
         return {
             ...loginResponse,
-            user: profileData
+            user: profileData.user,
+            profile: profileData.profile
         };
     } catch (error) {
         console.error('Login with profile error:', error);

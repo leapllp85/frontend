@@ -10,7 +10,7 @@ export default function ProfileListComponent({heading, children}: {heading: stri
                     {heading}
                 </Heading>
             </Box>
-            <VStack gap={4} overflowY={"scroll"} scrollBehavior={"smooth"}>
+            <VStack w="full" gap={4} overflowY={"scroll"} scrollBehavior={"smooth"}>
                 {children}
             </VStack>
         </VStack>

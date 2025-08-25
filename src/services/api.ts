@@ -18,7 +18,7 @@ export interface Project {
   description: string;
   start_date: string;
   go_live_date: string;
-  status: 'Active' | 'Inactive';
+  project_status: 'Active' | 'Inactive';
   criticality: 'High' | 'Medium' | 'Low';
   source: string;
   created_at: string;
@@ -139,6 +139,57 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  }
+
+  // POST request that returns text/HTML instead of JSON
+  async postText(endpoint: string, data: any): Promise<string> {
+    const url = `${this.baseURL}${endpoint}`;
+    
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    };
+
+    let token = localStorage.getItem("accessToken");
+    
+    try {
+      let response = await fetch(url, {
+        ...config,
+        headers: {
+          ...config.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        // Try to refresh token
+        const { refreshAccessToken } = await import('@/lib/apis/auth');
+        try {
+          token = await refreshAccessToken();
+          response = await fetch(url, {
+            ...config,
+            headers: {
+              ...config.headers,
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        } catch (refreshError) {
+          throw new Error(`Authentication failed: ${refreshError}`);
+        }
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.text();
+    } catch (error) {
+      console.error('API postText error:', error);
+      throw error;
+    }
   }
 
   // PUT request

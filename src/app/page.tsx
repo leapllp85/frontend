@@ -12,20 +12,27 @@ import {
 import { Profile } from '@/components/common/Profile';
 import { AIResponse } from '@/components/common/AIResponse';
 import DashboardChatSidebar from '@/components/pages/DashboardChatSidebar';
-import AuthDebug from '@/components/debug/AuthDebug';
-import ManagerTest from '@/components/debug/ManagerTest';
+import TeamCriticality from '@/components/common/TeamCriticality';
 
 export default function Home() {
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [teamCriticalityView, setTeamCriticalityView] = useState(false);
   const [currentUser, setCurrentUser] = useState('employee1');
   const [error, setError] = useState<string | null>(null);
   const [hasQueried, setHasQueried] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
+  const [graphData, setGraphData] = useState<any>(null);
+  const [userQuestion, setUserQuestion] = useState<string>('');
 
-  const handleAiResponse = (response: string) => {
+  const handleAiResponse = (response: string, question?: string) => {
     setAiResponse(response);
+    setTeamCriticalityView(false);
     setError(null); // Clear any previous errors
     setHasQueried(true); // Mark that a query has been made
+    if (question) {
+      setUserQuestion(question);
+    }
   };
 
   const handleLoading = (loading: boolean) => {
@@ -42,7 +49,7 @@ export default function Home() {
   // Get current user from localStorage or authentication context
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('currentUser');
+      const storedUser = localStorage.getItem('username');
       if (storedUser) {
         setCurrentUser(storedUser);
       }
@@ -53,29 +60,40 @@ export default function Home() {
 
   return (
     <Flex w="full" maxH="90vh" h="90vh" bg="gray.50">
-      {/* <AuthDebug /> */}
-      <ManagerTest />
+      {/* <AuthDebug />
+      <ManagerTest /> */}
       <Flex w="full" h="full" gap={0}>
         {/* Chat Sidebar */}
         <Box w="40%" h="full" borderRight="1px" borderColor="gray.200">
           <DashboardChatSidebar 
+            currentUser={currentUser}
             handleAiResponse={handleAiResponse}
             handleLoading={handleLoading}
             handleError={handleError}
+            hasQueried={hasQueried}
+            setHasQueried={setHasQueried}
+            setTeamCriticalityView={setTeamCriticalityView}
+            teamCriticalityView={teamCriticalityView}
           />
         </Box>
         
         {/* Profile/AI Response Section */}
         <Box w="60%" h="full" overflowY="auto">
-          {!hasQueried ? (
-            <Profile width="full" />
-          ) : (
-            <AIResponse 
-              aiResponse={aiResponse}
-              isLoading={isLoading}
-              error={error}
-            />
-          )}
+          {teamCriticalityView ? (
+            <TeamCriticality onShowGraph={(data) => {
+              setGraphData(data);
+              setShowGraph(true);
+            }} />
+          ) : !hasQueried ? (
+                <Profile width="full" />
+              ) : (
+                <AIResponse 
+                  aiResponse={aiResponse}
+                  isLoading={isLoading}
+                  error={error}
+                  userQuestion={userQuestion}
+                />
+              )}
         </Box>
       </Flex>
     </Flex>
