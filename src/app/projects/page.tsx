@@ -187,7 +187,7 @@ export default function ProjectsPage() {
                                         </Box>
                                         <Text fontSize="sm" color="gray.600" fontWeight="medium">Active Projects</Text>
                                     </HStack>
-                                    <Text fontSize="3xl" fontWeight="bold" color="gray.800">{projects.filter(p => p.status === 'Active').length}</Text>
+                                    <Text fontSize="3xl" fontWeight="bold" color="gray.800">{projects.filter(p => p.project_status === 'Active').length}</Text>
                                 </VStack>
                             </Card.Body>
                         </Card.Root>
@@ -252,12 +252,12 @@ export default function ProjectsPage() {
                                                         {project.name}
                                                     </Heading>
                                                     <Badge
-                                                        colorPalette={getRiskColor(project.status === 'Active' ? 'Low' : 'High')}
+                                                        colorPalette={getRiskColor(project.project_status === 'Active' ? 'Low' : 'High')}
                                                         variant="solid"
                                                         px={3}
                                                         py={1}
                                                     >
-                                                        {project.status}
+                                                        {project.project_status}
                                                     </Badge>
                                                     <Text color="purple.100" fontSize="md" maxW="full" lineHeight="1.5" fontWeight="medium" truncate={true}>
                                                         {project.description}

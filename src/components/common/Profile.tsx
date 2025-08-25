@@ -7,7 +7,6 @@ import ProfileListComponent from "./ProfileListComponent";
 import ProjectListingItem from "./ProjectListingItem";
 import ActionListingItem from "./ActionListingItem";
 import TeamCriticality from "./TeamCriticality";
-import TeamCriticalityGraph from "./TeamCriticalityGraph";
 import { userApi, actionItemApi, projectApi } from "../../services";
 import type { UserProfile } from "../../services/userApi";
 
