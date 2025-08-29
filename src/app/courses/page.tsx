@@ -19,6 +19,7 @@ import {
 } from '@chakra-ui/react';
 import { BookOpen, Plus, Tag, Calendar, ExternalLink, Clock } from 'lucide-react';
 import { courseApi, Course, CourseCategory } from '@/services';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function CoursesPage() {
     const [courses, setCourses] = useState<Course[]>([]);
@@ -90,7 +91,7 @@ export default function CoursesPage() {
 
     if (loading) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Spinner size="xl" color="purple.500" />
@@ -99,13 +100,13 @@ export default function CoursesPage() {
                         </Text>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     if (error) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Text color="red.600" fontSize="lg">
@@ -116,13 +117,14 @@ export default function CoursesPage() {
                         </Button>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     return (
-        <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
-            <VStack gap={8} align="stretch" maxW="7xl" mx="auto">
+        <AppLayout>
+            <Box py={8} px={4}>
+                <VStack gap={8} align="stretch" maxW="7xl" mx="auto">
                 {/* Header */}
                 <Box textAlign="center">
                     <Heading size="2xl" color="gray.800" mb={3} fontWeight="bold">
@@ -290,7 +292,8 @@ export default function CoursesPage() {
                         </SimpleGrid>
                     )}
                 </Box>
-            </VStack>
-        </Box>
+                </VStack>
+            </Box>
+        </AppLayout>
     );
 }

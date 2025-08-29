@@ -123,7 +123,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
     // For authenticated pages, show header
     return (
         <VStack w="full" p={0} gap={0}>
-            <Header />
+            {/* <Header /> */}
             {children}
         </VStack>
     );

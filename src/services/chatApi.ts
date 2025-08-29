@@ -22,15 +22,39 @@ export class ChatApiService {
   // Send chat message and get AI response
   async sendMessage(prompt: string): Promise<ChatResponse> {
     try {
+      // Validate input
+      if (!prompt || prompt.trim().length === 0) {
+        throw new Error('Message cannot be empty');
+      }
+
       // Use apiService.postText to handle HTML response
-      const htmlContent = await apiService.postText('/chat/', { prompt });
+      const htmlContent = await apiService.postText('/chat/', { prompt: prompt.trim() });
       
+      // Validate response
+      if (!htmlContent) {
+        throw new Error('Empty response received from server');
+      }
+
       return {
         response: htmlContent,
         message_id: Date.now() // Generate a temporary ID
       };
     } catch (error) {
       console.error('Chat API error:', error);
+      
+      // Provide user-friendly error messages
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('Authentication')) {
+          throw new Error('Authentication failed. Please log in again.');
+        } else if (error.message.includes('403')) {
+          throw new Error('Access denied. You do not have permission to use the AI Assistant.');
+        } else if (error.message.includes('500')) {
+          throw new Error('Server error. Please try again later.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          throw new Error('Network error. Please check your connection and try again.');
+        }
+      }
+      
       throw error;
     }
   }

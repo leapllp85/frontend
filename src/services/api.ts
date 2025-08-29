@@ -8,8 +8,9 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
 }
 
 export interface Project {
@@ -27,7 +28,7 @@ export interface Project {
 
 export interface EmployeeProfile {
   id: number;
-  user: User;
+  user_info: User;
   profile_pic?: string;
   age: number;
   mental_health: 'High' | 'Medium' | 'Low';

@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation';
 import { projectApi, teamApi } from '@/services';
 import { Employee, EmployeeProfile, Project } from '@/types';
 import { RequireProjectCreate } from '@/components/RoleGuard';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 interface CreateProjectFormData {
     name: string;
@@ -69,7 +70,7 @@ export default function CreateProject() {
                 // Transform EmployeeProfile to Employee format
                 const employees: Employee[] = teamMembers.map((member: EmployeeProfile) => ({
                     id: member.id.toString(),
-                    name: `${member.user.first_name} ${member.user.last_name}`,
+                    name: (member.user?.first_name && member.user?.last_name) ? `${member.user.first_name} ${member.user.last_name}` : member.user?.username || 'Unknown User',
                     email: member.user.email,
                     role: member.user.role || 'Employee',
                     department: 'General' // EmployeeProfile doesn't have department, using default
@@ -200,8 +201,8 @@ export default function CreateProject() {
                     id: c.id,
                     username: c.email.split('@')[0], // Generate username from email
                     email: c.email,
-                    first_name: c.name.split(' ')[0] || c.name,
-                    last_name: c.name.split(' ').slice(1).join(' ') || '',
+                    first_name: c.name?.split(' ')[0] || c.name || 'Unknown',
+                    last_name: c.name?.split(' ').slice(1).join(' ') || '',
                     role: c.role
                 }))
             };
@@ -227,7 +228,8 @@ export default function CreateProject() {
 
     return (
         <RequireProjectCreate>
-            <Box w="full" p={6}>
+            <AppLayout>
+                <Box py={8} px={4}>
                 <VStack gap={6} align="stretch">
                     {/* Header */}
                     <HStack gap={4}>
@@ -563,7 +565,8 @@ export default function CreateProject() {
                         </VStack>
                     </Grid>
                 </VStack>
-            </Box>
+                </Box>
+            </AppLayout>
         </RequireProjectCreate>
     );
 }

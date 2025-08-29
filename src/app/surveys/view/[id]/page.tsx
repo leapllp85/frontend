@@ -20,6 +20,7 @@ import {
 import { ArrowLeft, Users, BarChart3, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { surveyApi, Survey } from '@/services';
 import { RequireTeamManagement } from '@/components/RoleGuard';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 interface SurveyStats {
     total_responses: number;
@@ -148,8 +149,9 @@ export default function ViewSurveyPage() {
     }
 
     return (
-        <RequireTeamManagement showAccessDenied={true}>
-            <Box p={8} maxW="1200px" mx="auto">
+        <RequireTeamManagement>
+            <AppLayout>
+                <Box py={8} px={4} maxW="1200px" mx="auto">
                 {/* Header */}
                 <VStack align="stretch" gap={6}>
                     <HStack justify="space-between" align="start">
@@ -340,7 +342,8 @@ export default function ViewSurveyPage() {
                         </Card.Body>
                     </Card.Root>
                 </VStack>
-            </Box>
+                </Box>
+            </AppLayout>
         </RequireTeamManagement>
     );
 }

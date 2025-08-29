@@ -279,8 +279,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
         {/* Header Section */}
         <Box 
           bg="linear-gradient(135deg, #4d3384 0%, #9557d1 100%)"
-          p={8}
-          pb={12}
+          p={{ base: 4, md: 6, lg: 8 }}
+          pb={{ base: 8, md: 10, lg: 12 }}
           position="relative"
           overflow="hidden"
         >
@@ -312,23 +312,23 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               border="1px solid"
               borderColor="whiteAlpha.300"
               shadow="xl"
-              p={2}
+              p={{ base: 1, md: 2 }}
             >
               <Card.Body>
-                <HStack gap={3}>
+                <HStack gap={{ base: 2, md: 3 }} align="center">
                   <Box 
-                    p={2} 
+                    p={{ base: 1.5, md: 2 }} 
                     bg="whiteAlpha.200" 
                     borderRadius="xl"
                     backdropFilter="blur(10px)"
                   >
-                    <AlertTriangle size={28} color="white" />
+                    <AlertTriangle size={24} color="white" />
                   </Box>
                   <VStack align="start" gap={1}>
-                    <Text fontSize="xl" fontWeight="black" letterSpacing="tight" color="white">
+                    <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="black" letterSpacing="tight" color="white">
                       Team Criticality Analytics
                     </Text>
-                    <Text fontSize="md" color="whiteAlpha.900" fontWeight="medium">
+                    <Text fontSize={{ base: "sm", md: "md" }} color="whiteAlpha.900" fontWeight="medium" display={{ base: "none", md: "block" }}>
                       Comprehensive risk analysis and distribution insights
                     </Text>
                   </VStack>
@@ -339,8 +339,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
         </Box>
 
         {/* Content Section */}
-        <Box w="full" mx="auto" p={6} position="relative" flex="1" overflow="hidden">
-          <SimpleGrid columns={{ base: 1, xl: 2 }} gap={6} h="fit-content">
+        <Box w="full" mx="auto" p={{ base: 4, md: 6 }} position="relative" flex="1" overflow="hidden">
+          <SimpleGrid columns={{ base: 1, lg: 2 }} gap={{ base: 4, md: 6 }} h="fit-content">
             {/* Bar Chart */}
             <Card.Root 
               bg="white"
@@ -353,32 +353,31 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               overflow="hidden"
             >
               <Card.Header 
-                p={4} 
-                // pb={3}
+                p={{ base: 3, md: 4 }} 
                 bg="linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
                 color="white"
               >
-                <HStack gap={3}>
+                <HStack gap={{ base: 2, md: 3 }}>
                   <Box 
-                    p={2} 
+                    p={{ base: 1.5, md: 2 }} 
                     bg="whiteAlpha.200" 
                     borderRadius="lg"
                     backdropFilter="blur(10px)"
                   >
-                    <BarChart3 size={24} />
+                    <BarChart3 size={20} />
                   </Box>
                   <VStack align="start" gap={0}>
-                    <Text fontSize="lg" fontWeight="black" letterSpacing="tight">
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="black" letterSpacing="tight">
                       Risk Level Breakdown
                     </Text>
-                    <Text fontSize="sm" color="whiteAlpha.900">
+                    <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.900" display={{ base: "none", md: "block" }}>
                       Individual risk category analysis
                     </Text>
                   </VStack>
                 </HStack>
               </Card.Header>
-              <Card.Body p={4} pt={2}>
-                <Box w="full" h="280px" bg="white" borderRadius="xl" p={4}>
+              <Card.Body p={{ base: 3, md: 4 }} pt={2}>
+                <Box w="full" h={{ base: "240px", md: "280px" }} bg="white" borderRadius="xl" p={{ base: 2, md: 4 }}>
                   {graphData ? (
                     <Bar data={graphData.barData} options={chartOptions} />
                   ) : (
@@ -411,34 +410,33 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               overflow="hidden"
             >
               <Card.Header 
-                p={4} 
-                // pb={4}
+                p={{ base: 3, md: 4 }} 
                 bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                 color="white"
               >
-                <HStack gap={3}>
+                <HStack gap={{ base: 2, md: 3 }}>
                   <Box 
-                    p={2} 
+                    p={{ base: 1.5, md: 2 }} 
                     bg="whiteAlpha.200" 
                     borderRadius="lg"
                     backdropFilter="blur(10px)"
                   >
-                    <PieChart size={24} />
+                    <PieChart size={20} />
                   </Box>
                   <VStack align="start" gap={0}>
-                    <Text fontSize="lg" fontWeight="black" letterSpacing="tight">
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="black" letterSpacing="tight">
                       Risk Distribution
                     </Text>
-                    <Text fontSize="sm" color="whiteAlpha.900">
+                    <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.900" display={{ base: "none", md: "block" }}>
                       Proportional risk overview
                     </Text>
                   </VStack>
                 </HStack>
               </Card.Header>
-              <Card.Body p={6} pt={2}>
-                <Box w="full" h="280px" bg="white" borderRadius="xl" p={4} display="flex" alignItems="center" justifyContent="center">
+              <Card.Body p={{ base: 3, md: 6 }} pt={2}>
+                <Box w="full" h={{ base: "240px", md: "280px" }} bg="white" borderRadius="xl" p={{ base: 2, md: 4 }} display="flex" alignItems="center" justifyContent="center">
                   {graphData ? (
-                    <Box w="240px" h="240px">
+                    <Box w={{ base: "200px", md: "240px" }} h={{ base: "200px", md: "240px" }}>
                       <Doughnut data={graphData.doughnutData} options={doughnutOptions} />
                     </Box>
                   ) : (
@@ -461,7 +459,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
           </SimpleGrid>
 
           {/* Summary Statistics */}
-          <Box mt={6}>
+          <Box mt={{ base: 4, md: 6 }}>
             <Card.Root 
               bg="white"
               borderRadius="2xl"
@@ -473,32 +471,31 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               overflow="hidden"
             >
               <Card.Header 
-                // p={6} 
-                p={4}
+                p={{ base: 3, md: 4 }}
                 bg="linear-gradient(135deg, #4d3384 0%, #9557d1 100%)"
                 color="white"
               >
-                <HStack gap={3}>
+                <HStack gap={{ base: 2, md: 3 }}>
                   <Box 
-                    p={2} 
+                    p={{ base: 1.5, md: 2 }} 
                     bg="whiteAlpha.200" 
                     borderRadius="lg"
                     backdropFilter="blur(10px)"
                   >
-                    <TrendingUp size={24} />
+                    <TrendingUp size={20} />
                   </Box>
                   <VStack align="start" gap={0}>
-                    <Text fontSize="lg" fontWeight="black" letterSpacing="tight">
+                    <Text fontSize={{ base: "md", md: "lg" }} fontWeight="black" letterSpacing="tight">
                       Key Insights
                     </Text>
-                    <Text fontSize="sm" color="whiteAlpha.900">
+                    <Text fontSize={{ base: "xs", md: "sm" }} color="whiteAlpha.900" display={{ base: "none", md: "block" }}>
                       Critical team risk metrics at a glance
                     </Text>
                   </VStack>
                 </HStack>
               </Card.Header>
-              <Card.Body p={3}>
-                <SimpleGrid columns={{ base: 1, md: 3 }} gap={3}>
+              <Card.Body p={{ base: 2, md: 3 }}>
+                <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 2, md: 3 }}>
                   <Card.Root 
                     bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
                     borderRadius="xl"
@@ -506,15 +503,15 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
-                    <Card.Body p={4} textAlign="center">
+                    <Card.Body p={{ base: 3, md: 4 }} textAlign="center">
                       <VStack gap={1}>
-                        <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1">
+                        <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="black" color="white" lineHeight="1">
                           {criticalityData.high}
                         </Text>
-                        <Text fontSize="xs" color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
+                        <Text fontSize={{ base: "2xs", md: "xs" }} color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
                           HIGH RISK MEMBERS
                         </Text>
-                        <Text fontSize="2xs" color="whiteAlpha.700">
+                        <Text fontSize={{ base: "3xs", md: "2xs" }} color="whiteAlpha.700">
                           {getCriticalityPercentage(criticalityData.high)}% of team
                         </Text>
                       </VStack>
@@ -528,15 +525,15 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
-                    <Card.Body p={4} textAlign="center">
+                    <Card.Body p={{ base: 3, md: 4 }} textAlign="center">
                       <VStack gap={1}>
-                        <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1">
+                        <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="black" color="white" lineHeight="1">
                           {criticalityData.medium}
                         </Text>
-                        <Text fontSize="xs" color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
+                        <Text fontSize={{ base: "2xs", md: "xs" }} color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
                           MEDIUM RISK MEMBERS
                         </Text>
-                        <Text fontSize="2xs" color="whiteAlpha.700">
+                        <Text fontSize={{ base: "3xs", md: "2xs" }} color="whiteAlpha.700">
                           {getCriticalityPercentage(criticalityData.medium)}% of team
                         </Text>
                       </VStack>
@@ -550,15 +547,15 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
-                    <Card.Body p={4} textAlign="center">
+                    <Card.Body p={{ base: 3, md: 4 }} textAlign="center">
                       <VStack gap={1}>
-                        <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1">
+                        <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="black" color="white" lineHeight="1">
                           {criticalityData.low}
                         </Text>
-                        <Text fontSize="xs" color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
+                        <Text fontSize={{ base: "2xs", md: "xs" }} color="whiteAlpha.900" fontWeight="semibold" letterSpacing="wide">
                           LOW RISK MEMBERS
                         </Text>
-                        <Text fontSize="2xs" color="whiteAlpha.700">
+                        <Text fontSize={{ base: "3xs", md: "2xs" }} color="whiteAlpha.700">
                           {getCriticalityPercentage(criticalityData.low)}% of team
                         </Text>
                       </VStack>

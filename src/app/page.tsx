@@ -13,6 +13,7 @@ import { Profile } from '@/components/common/Profile';
 import { AIResponse } from '@/components/common/AIResponse';
 import DashboardChatSidebar from '@/components/pages/DashboardChatSidebar';
 import TeamCriticality from '@/components/common/TeamCriticality';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function Home() {
   const [aiResponse, setAiResponse] = useState('');
@@ -59,43 +60,8 @@ export default function Home() {
   }, []);
 
   return (
-    <Flex w="full" maxH="90vh" h="90vh" bg="gray.50">
-      {/* <AuthDebug />
-      <ManagerTest /> */}
-      <Flex w="full" h="full" gap={0}>
-        {/* Chat Sidebar */}
-        <Box w="40%" h="full" borderRight="1px" borderColor="gray.200">
-          <DashboardChatSidebar 
-            currentUser={currentUser}
-            handleAiResponse={handleAiResponse}
-            handleLoading={handleLoading}
-            handleError={handleError}
-            hasQueried={hasQueried}
-            setHasQueried={setHasQueried}
-            setTeamCriticalityView={setTeamCriticalityView}
-            teamCriticalityView={teamCriticalityView}
-          />
-        </Box>
-        
-        {/* Profile/AI Response Section */}
-        <Box w="60%" h="full" overflowY="auto">
-          {teamCriticalityView ? (
-            <TeamCriticality onShowGraph={(data) => {
-              setGraphData(data);
-              setShowGraph(true);
-            }} />
-          ) : !hasQueried ? (
-                <Profile width="full" />
-              ) : (
-                <AIResponse 
-                  aiResponse={aiResponse}
-                  isLoading={isLoading}
-                  error={error}
-                  userQuestion={userQuestion}
-                />
-              )}
-        </Box>
-      </Flex>
-    </Flex>
+    <AppLayout>
+        <Profile width="full" />
+    </AppLayout>
   );
 }

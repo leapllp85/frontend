@@ -21,6 +21,7 @@ import {
 import { CheckCircle, Clock, Plus, User, Calendar } from 'lucide-react';
 import { actionItemApi, ActionItem } from '@/services';
 import router from 'next/router';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function ActionItemsPage() {
     const [actionItems, setActionItems] = useState<ActionItem[]>([]);
@@ -112,7 +113,7 @@ export default function ActionItemsPage() {
 
     if (loading) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Spinner size="xl" color="purple.500" />
@@ -121,13 +122,13 @@ export default function ActionItemsPage() {
                         </Text>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     if (error) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Text color="red.600" fontSize="lg">
@@ -138,14 +139,28 @@ export default function ActionItemsPage() {
                         </Button>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     return (
-        <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
-            <VStack gap={8} align="stretch" maxW="7xl" mx="auto">
-                {/* Analytics Cards */}
+        <AppLayout>
+                {/* Header */}
+                <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack align="start" gap={2}>
+                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
+                            Action Items
+                        </Heading>
+                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
+                            Track and manage your action items
+                        </Text>
+                    </VStack>
+                </Box>
+
+                {/* Content */}
+                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack gap={8} align="stretch" w="full">
+                        {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
                     <Card.Root bg="white" shadow="lg" borderRadius="xl">
                         <Card.Body p={6}>
@@ -247,7 +262,7 @@ export default function ActionItemsPage() {
                                                     <HStack gap={4} fontSize="xs" color="gray.500">
                                                         <HStack gap={1}>
                                                             <User size={14} />
-                                                            <Text>{item.assigned_to.first_name} {item.assigned_to.last_name}</Text>
+                                                            <Text>{(item.assigned_to?.first_name && item.assigned_to?.last_name) ? `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : item.assigned_to?.username || 'Unknown User'}</Text>
                                                         </HStack>
                                                         <HStack gap={1}>
                                                             <Calendar size={14} />
@@ -279,7 +294,8 @@ export default function ActionItemsPage() {
                         </VStack>
                     </Card.Body>
                 </Card.Root>
-            </VStack>
-        </Box>
+                    </VStack>
+                </Box>
+        </AppLayout>
     );
 }

@@ -11,6 +11,7 @@ import {
     Badge,
     SimpleGrid,
     Button,
+    Flex,
 } from '@chakra-ui/react';
 import { 
     Users, 
@@ -24,6 +25,7 @@ import {
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 interface TeamMember {
     id: string;
@@ -66,12 +68,12 @@ export default function Dashboard() {
                 // @ts-ignore
                 const transformedTeamMembers: TeamMember[] = teamArray.map(member => ({
                     id: member.id.toString(),
-                    name: `${member.first_name} ${member.last_name}` || member.username,
-                    age: member.age,
-                    mentalHealth: member.mental_health,
+                    name: (member.first_name && member.last_name) ? `${member.first_name} ${member.last_name}` : member.username || 'Unknown User',
+                    age: member.age || 0,
+                    mentalHealth: member.mental_health || 'Medium',
                     utilization: Math.floor(Math.random() * 30) + 70, // TODO: Get from allocations API
-                    projectCriticality: member.manager_assessment_risk, // Using manager assessment as project criticality
-                    attritionRisk: member.manager_assessment_risk
+                    projectCriticality: member.manager_assessment_risk || 'Medium', // Using manager assessment as project criticality
+                    attritionRisk: member.manager_assessment_risk || 'Medium'
                 }));
                 
                 setTeamMembers(transformedTeamMembers);
@@ -130,12 +132,12 @@ export default function Dashboard() {
         if (dashboardData && dashboardData.top_talent) {
             return dashboardData.top_talent.slice(0, 3).map(talent => ({
                 id: talent.id.toString(),
-                name: `${talent.user.first_name} ${talent.user.last_name}` || talent.user.username,
-                age: talent.age,
-                mentalHealth: talent.mental_health,
+                name: talent.user_info?.name || 'Unknown User',
+                age: talent.age || 0,
+                mentalHealth: talent.mental_health || 'Medium',
                 utilization: Math.floor(Math.random() * 30) + 70,
-                projectCriticality: talent.manager_assessment_risk,
-                attritionRisk: talent.manager_assessment_risk
+                projectCriticality: talent.manager_assessment_risk || 'Medium',
+                attritionRisk: talent.manager_assessment_risk || 'Medium'
             }));
         }
         return teamMembers
@@ -155,18 +157,22 @@ export default function Dashboard() {
 
 
     return (
-        <Box w="full" className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-            <Box className="w-full mx-auto px-6 py-12">
-                <VStack gap={10} align="stretch" px={12} py={4}>
-                    {/* Header */}
-                    <Box textAlign="center" mb={3}>
-                        <Heading size="3xl" color="gray.900" mb={4} fontWeight="black" letterSpacing="tight">
+        <AppLayout>
+                {/* Header */}
+                <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack align="start" gap={2}>
+                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
                             Team Dashboard
                         </Heading>
-                        <Text color="gray.700" fontSize="xl" maxW="2xl" mx="auto" fontWeight="medium" lineHeight="relaxed">
+                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
                             Quick insights and analytics for your team performance
                         </Text>
-                    </Box>
+                    </VStack>
+                </Box>
+
+                {/* Content */}
+                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack gap={8} align="stretch" w="full">
 
                     {/* Loading State */}
                     {loading && (
@@ -719,8 +725,8 @@ export default function Dashboard() {
                             </SimpleGrid>
                         </Card.Body>
                     </Card.Root>
-                </VStack>
-            </Box>
-        </Box>
+                    </VStack>
+                </Box>
+        </AppLayout>
     );
 }

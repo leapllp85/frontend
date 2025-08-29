@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Badge, Box, Heading, Stack, Text, Flex, HStack, VStack, Avatar, Card } from "@chakra-ui/react";
-import { User, Briefcase, CheckCircle, Calendar } from "lucide-react";
+import { Badge, Box, Heading, Stack, Text, Flex, HStack, VStack, Avatar, Card, Grid, GridItem, Button, Input, Textarea } from "@chakra-ui/react";
+import { User, Briefcase, CheckCircle, Calendar, Home, FolderOpen, FileText, Users, BarChart3, Settings, LogOut, Send, MessageCircle } from "lucide-react";
 import { ProgressBar } from "../ui/progress";
 import ProfileListComponent from "./ProfileListComponent";
 import ProjectListingItem from "./ProjectListingItem";
@@ -33,6 +33,9 @@ export const Profile = ({
   const [error, setError] = useState<string | null>(null);
   const [showGraph, setShowGraph] = useState(false);
   const [graphData, setGraphData] = useState<any>(null);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   function toTitleCase(str: string) {
     return str
@@ -185,291 +188,274 @@ export const Profile = ({
     );
   }
 
+  const navigationItems = [
+    { icon: Home, label: "Home", href: "/dashboard", active: true },
+    { icon: FolderOpen, label: "Projects", href: "/projects" },
+    { icon: FileText, label: "Surveys", href: "/surveys" },
+    { icon: CheckCircle, label: "Action Items", href: "/action-items" },
+    { icon: BarChart3, label: "Dashboard", href: "/dashboard" },
+    { icon: Users, label: "My Team", href: "/my-team" },
+  ];
+
+  const handleSendMessage = () => {
+    if (chatMessage.trim()) {
+      setChatHistory(prev => [...prev, { role: 'user', content: chatMessage }]);
+      setChatMessage("");
+      // Add AI response simulation
+      setTimeout(() => {
+        setChatHistory(prev => [...prev, { role: 'assistant', content: 'I can help you with that. What specific information are you looking for?' }]);
+      }, 1000);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('username');
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   return (
-    <Box 
-      w={width} 
-      h="full" 
-      bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
-      overflow="hidden"
-    >
-      {/* Header Section */}
-      <Box 
-        bg="linear-gradient(135deg, #4d3384 0%, #9557d1 100%)"
-        p={4}
-        pb={6}
-        position="relative"
-        overflow="hidden"
-      >
-        {/* Background decoration */}
-        <Box 
-          position="absolute" 
-          top="-20" 
-          right="-20" 
-          w="40" 
-          h="40" 
-          bg="whiteAlpha.200" 
-          borderRadius="full" 
-        />
-        <Box 
-          position="absolute" 
-          bottom="-10" 
-          left="-10" 
-          w="32" 
-          h="32" 
-          bg="whiteAlpha.100" 
-          borderRadius="full" 
-        />
+    <Box w={width} h="100vh" display="flex" bg="gray.50">
+      {/* Sidebar */}
+      {/* Main Content */}
+      <Box flex="1" h="full" overflow="auto">
+        {/* Welcome Header */}
+        <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={{ base: 4, md: 6 }}>
+          <Flex justify="space-between" align="center" direction={{ base: "column", md: "row" }} gap={{ base: 4, md: 0 }}>
+            <HStack gap={4}>
+              <Heading size={{ base: "md", md: "lg" }} color="gray.800" textAlign={{ base: "center", md: "left" }}>
+                Welcome, {profileData?.user && profileData.user.first_name && profileData.user.last_name ? `${profileData.user.first_name} ${profileData.user.last_name}` : profileData?.user?.username || 'Manager User'} 👋
+              </Heading>
+            </HStack>
+            <Avatar.Root size={{ base: "lg", md: "md" }}>
+              <Avatar.Image src={profileData?.user?.profile_pic || profileData?.profile?.profile_pic} />
+              <Avatar.Fallback bg="purple.100" color="purple.600" fontWeight="bold">
+                {profileData?.user && profileData.user.first_name && profileData.user.last_name ? 
+                  `${profileData.user.first_name[0]}${profileData.user.last_name[0]}` : 
+                  profileData?.user?.username?.[0]?.toUpperCase() || 'MU'
+                }
+              </Avatar.Fallback>
+            </Avatar.Root>
+          </Flex>
+        </Box>
         
-        <Box maxW="6xl" mx="auto" position="relative">
-          <Card.Root
-            bg="whiteAlpha.200"
-            backdropFilter="blur(10px)"
-            borderRadius="2xl"
-            border="1px solid"
-            borderColor="whiteAlpha.300"
-            shadow="xl"
-            p={4}
-          >
-            <Card.Body>
-              <Flex direction={{ base: "column", md: "row" }} align="center" gap={6}>
-                <Box position="relative">
-                  <Avatar.Root size="2xl" shadow="xl">
-                    <Avatar.Image 
-                      src={profileData?.user?.profile_pic || profileData?.profile?.profile_pic} 
-                    />
-                    <Avatar.Fallback bg="white" color="purple.600" fontSize="2xl" fontWeight="bold">
-                      {profileData?.user ? 
-                        `${profileData.user.first_name?.[0] || ''}${profileData.user.last_name?.[0] || ''}` : 
-                        'U'
-                      }
-                    </Avatar.Fallback>
-                  </Avatar.Root>
-                  <Box 
-                    position="absolute"
-                    bottom="-2"
-                    right="-2"
-                    w="6"
-                    h="6"
-                    bg="green.400"
-                    borderRadius="full"
-                    border="3px solid"
-                    borderColor="white"
-                  />
-                </Box>
-                
-                <VStack align={{ base: "center", md: "start" }} gap={3} flex="1">
-                  <VStack align={{ base: "center", md: "start" }} gap={1}>
-                    <Heading 
-                      size="2xl" 
-                      color="white" 
-                      fontWeight="black" 
-                      letterSpacing="tight"
-                      textAlign={{ base: "center", md: "left" }}
-                    >
-                      {profileData?.user ? `${profileData.user.first_name} ${profileData.user.last_name}` : 'Unknown User'}
-                    </Heading>
-                    <HStack gap={2}>
-                      <Badge 
-                        bg="whiteAlpha.300" 
-                        color="white" 
-                        variant="solid" 
-                        px={3} 
-                        py={1} 
-                        borderRadius="full"
-                        fontSize="sm"
-                        fontWeight="semibold"
-                      >
-                        <User size={14} style={{ marginRight: '6px' }} />
-                        {toTitleCase(profileData?.user?.role || "Employee")}
-                      </Badge>
-                    </HStack>
-                  </VStack>
+        {/* Dashboard Content */}
+        <Box p={{ base: 4, md: 6 }}>
+          <Grid templateColumns={{ base: "1fr", lg: "repeat(12, 1fr)" }} gap={{ base: 4, md: 6 }} h="full">
+            {/* Left Column - Stats and Action Items */}
+            <GridItem colSpan={{ base: 1, lg: 8 }}>
+              <VStack gap={6} align="stretch">
+                {/* Stats Cards */}
+                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={4}>
+                  <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                    <Card.Body p={4}>
+                      <VStack align="start" gap={2}>
+                        <HStack gap={2}>
+                          <Box p={{ base: 1.5, md: 2 }} bg="orange.100" borderRadius="md">
+                            <CheckCircle size={16} color="#ea580c" />
+                          </Box>
+                          <Text fontSize="sm" color="gray.600" fontWeight="medium">Total Projects</Text>
+                        </HStack>
+                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">{projectCount}</Text>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
                   
-                  <HStack gap={6} mt={2}>
-                    <VStack gap={0}>
-                      <Text fontSize="2xl" fontWeight="black" color="white">
-                        {actionItemsCount}
-                      </Text>
-                      <Text fontSize="sm" color="whiteAlpha.800" fontWeight="medium">
-                        Action Items
-                      </Text>
+                  <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                    <Card.Body p={4}>
+                      <VStack align="start" gap={2}>
+                        <HStack gap={2}>
+                          <Box p={2} bg="green.100" borderRadius="md">
+                            <Users size={16} color="#16a34a" />
+                          </Box>
+                          <Text fontSize="sm" color="gray.600" fontWeight="medium">Active Projects</Text>
+                        </HStack>
+                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">{projects.filter(p => p.project_status === 'Active').length}</Text>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
+                  
+                  <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                    <Card.Body p={4}>
+                      <VStack align="start" gap={2}>
+                        <HStack gap={2}>
+                          <Box p={2} bg="red.100" borderRadius="md">
+                            <FileText size={16} color="#dc2626" />
+                          </Box>
+                          <Text fontSize="sm" color="gray.600" fontWeight="medium">At Risk</Text>
+                        </HStack>
+                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">2</Text>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
+                </Grid>
+                
+                {/* Action Items */}
+                <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                  <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+                    <Heading size="md" color="gray.800">Action Items</Heading>
+                  </Card.Header>
+                  <Card.Body p={4}>
+                    <VStack gap={3} align="stretch">
+                      {actionItems.length > 0 ? (
+                        actionItems.map((item, index) => (
+                          <Box key={index} p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
+                            <HStack justify="space-between">
+                              <VStack align="start" gap={1}>
+                                <Text fontWeight="medium" color="gray.800">{item.title}</Text>
+                                <Text fontSize="sm" color="gray.600">{item.action}</Text>
+                              </VStack>
+                              <Badge 
+                                colorPalette={item.status === 'Completed' ? 'green' : item.status === 'Pending' ? 'orange' : 'gray'}
+                                variant="solid"
+                                size="sm"
+                              >
+                                {item.status}
+                              </Badge>
+                            </HStack>
+                          </Box>
+                        ))
+                      ) : (
+                        <Text color="gray.500" textAlign="center" py={8}>
+                          No action items found
+                        </Text>
+                      )}
                     </VStack>
-                    <VStack gap={0}>
-                      <Text fontSize="2xl" fontWeight="black" color="white">
-                        {projectCount}
-                      </Text>
-                      <Text fontSize="sm" color="whiteAlpha.800" fontWeight="medium">
-                        Projects
-                      </Text>
+                  </Card.Body>
+                </Card.Root>
+                
+                {/* Projects */}
+                <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                  <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+                    <Heading size="md" color="gray.800">Projects</Heading>
+                  </Card.Header>
+                  <Card.Body p={4}>
+                    <VStack gap={3} align="stretch">
+                      {projects.length > 0 ? (
+                        projects.map((project, index) => (
+                          <Box key={index} p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
+                            <HStack justify="space-between">
+                              <VStack align="start" gap={1}>
+                                <Text fontWeight="medium" color="gray.800">{project.title}</Text>
+                                <Text fontSize="sm" color="gray.600">{project.description}</Text>
+                              </VStack>
+                              <VStack align="end" gap={1}>
+                                <Badge 
+                                  colorPalette={project.project_status === 'Active' ? 'green' : 'gray'}
+                                  variant="solid"
+                                  size="sm"
+                                >
+                                  {project.project_status}
+                                </Badge>
+                                <Text fontSize="xs" color="gray.500">
+                                  {formatDate(project.go_live_date)}
+                                </Text>
+                              </VStack>
+                            </HStack>
+                          </Box>
+                        ))
+                      ) : (
+                        <Text color="gray.500" textAlign="center" py={8}>
+                          No projects found
+                        </Text>
+                      )}
                     </VStack>
-                  </HStack>
-                </VStack>
-              </Flex>
-            </Card.Body>
-          </Card.Root>
-        </Box>
-      </Box>
-
-      {/* Content Section */}
-      <Box w="full" h="full" mx="auto" my="auto" p={12} mt="-6" position="relative" flex="1" overflow="hidden">
-        <Box
-          display={{ base: "block", lg: "grid" }}
-          gridTemplateColumns={{ lg: "1fr 1fr" }}
-          gap={8}
-        >
-          {/* Action Items Section */}
-          <Card.Root
-            bg="white"
-            borderRadius="2xl"
-            shadow="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            _hover={{ transform: "translateY(-2px)", shadow: "2xl" }}
-            transition="all 0.3s ease"
-            overflow="hidden"
-          >
-            <Card.Header 
-              p={6} 
-              pb={4}
-              bg="linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)"
-              color="white"
-            >
-              <HStack gap={3}>
-                <Box 
-                  p={2} 
-                  bg="whiteAlpha.200" 
-                  borderRadius="lg"
-                  backdropFilter="blur(10px)"
-                >
-                  <CheckCircle size={24} />
-                </Box>
-                <VStack align="start" gap={0}>
-                  <Heading size="lg" fontWeight="black" letterSpacing="tight">
-                    Latest Action Items
-                  </Heading>
-                  <Text fontSize="sm" color="whiteAlpha.900">
-                    {actionItemsCount} Action Items
-                  </Text>
-                </VStack>
-              </HStack>
-            </Card.Header>
-            <Card.Body p={6}>
-              <VStack gap={4} w="full">
-                {actionItems.length > 0 ? (
-                  actionItems.slice(0, 2).map((item, index) => (
-                    <ActionListingItem
-                      key={item.id || index}
-                      title={item.title}
-                      status={item.status}
-                      action={item.action}
-                      actionUrl={item.action}
-                      createdAt={formatDate(item.created_at)}
-                      updatedAt={formatDate(item.updated_at)}
-                    />
-                  ))
-                ) : (
-                  <VStack gap={3} py={8}>
-                    <Box p={3} bg="gray.100" borderRadius="full" color="gray.500">
-                      <CheckCircle size={32} />
-                    </Box>
-                    <Text color="gray.500" textAlign="center">
-                      No Action Items found
-                    </Text>
-                  </VStack>
-                )}
-                {actionItems.length > 2 && (
-                  <Text fontSize="sm" color="gray.500" textAlign="center" mt={2}>
-                    +{actionItems.length - 2} more Action Items
-                  </Text>
-                )}
+                  </Card.Body>
+                </Card.Root>
               </VStack>
-            </Card.Body>
-          </Card.Root>
-
-          {/* Projects Section */}
-          <Card.Root
-            bg="white"
-            borderRadius="2xl"
-            shadow="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            _hover={{ transform: "translateY(-2px)", shadow: "2xl" }}
-            transition="all 0.3s ease"
-            overflow="hidden"
-          >
-            <Card.Header 
-              p={6} 
-              pb={4}
-              bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
-              color="white"
-            >
-              <HStack justify="space-between" w="full">
-                <HStack gap={3}>
-                  <Box 
-                    p={2} 
-                    bg="whiteAlpha.200" 
-                    borderRadius="lg"
-                    backdropFilter="blur(10px)"
-                  >
-                    <Briefcase size={24} />
-                  </Box>
-                  <VStack align="start" gap={0}>
-                    <Heading size="lg" fontWeight="black" letterSpacing="tight">
-                      My Projects
-                    </Heading>
-                    <Text fontSize="sm" color="whiteAlpha.900">
-                      {projectCount} Projects
-                    </Text>
-                  </VStack>
-                </HStack>
-                <Link href="/projects">
-                  <Box 
-                    p={2} 
-                    bg="whiteAlpha.200" 
-                    borderRadius="lg"
-                    _hover={{ bg: "whiteAlpha.300" }}
-                    transition="all 0.2s ease"
-                    cursor="pointer"
-                  >
-                    <Calendar size={20} />
-                  </Box>
-                </Link>
-              </HStack>
-            </Card.Header>
-            <Card.Body p={6}>
-              <VStack gap={4} w="full">
-                {projects.length > 0 ? (
-                  projects.slice(0, 2).map((project, index) => (
-                    <ProjectListingItem
-                      key={index}
-                      name={project.title}
-                      description={project.description}
-                      source={project.source || '#'}
-                      timeline={`${formatDate(project.start_date)} - ${formatDate(project.go_live_date)}`}
-                      progress={0}
-                      status={project.project_status}
-                    />
-                  ))
-                ) : (
-                  <VStack gap={3} py={8}>
-                    <Box p={3} bg="gray.100" borderRadius="full" color="gray.500">
-                      <Briefcase size={32} />
-                    </Box>
-                    <Text color="gray.500" textAlign="center">
-                      No Projects found
-                    </Text>
-                  </VStack>
-                )}
-                {projects.length > 2 && (
-                  <Text fontSize="sm" color="gray.500" textAlign="center" mt={2}>
-                    +{projects.length - 2} more Projects
-                  </Text>
-                )}
+            </GridItem>
+            
+            {/* Right Column - Projects */}
+            <GridItem colSpan={{ base: 1, lg: 4 }}>
+              <VStack gap={6} align="stretch">
+                <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                  <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+                    <Heading size="md" color="gray.800">Criticality Metrics</Heading>
+                  </Card.Header>
+                  <Card.Body p={4}>
+                    <VStack gap={4}>
+                      {/* Placeholder for charts - you can add actual chart components here */}
+                      <Box w="full" h="200px" bg="gray.50" borderRadius="md" display="flex" alignItems="center" justifyContent="center">
+                        <VStack gap={2}>
+                          <BarChart3 size={32} color="#6b7280" />
+                          <Text color="gray.500" fontSize="sm">Chart visualization</Text>
+                        </VStack>
+                      </Box>
+                      
+                      <VStack gap={3} w="full">
+                        <HStack justify="space-between" w="full">
+                          <Text fontSize="sm" color="gray.600">Mental Health</Text>
+                          <Badge colorPalette="red" variant="solid" size="sm">High Risk</Badge>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <Text fontSize="sm" color="gray.600">Attrition Risk</Text>
+                          <Badge colorPalette="orange" variant="solid" size="sm">Medium</Badge>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <Text fontSize="sm" color="gray.600">Projects at Risk</Text>
+                          <Badge colorPalette="blue" variant="solid" size="sm">Low</Badge>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <Text fontSize="sm" color="gray.600">Avg Utilization</Text>
+                          <Badge colorPalette="yellow" variant="solid" size="sm">High</Badge>
+                        </HStack>
+                      </VStack>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+                
+                <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+                  <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+                    <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
+                  </Card.Header>
+                  <Card.Body p={4}>
+                    <VStack gap={3}>
+                      <Box w="full" h="150px" bg="gray.50" borderRadius="md" display="flex" alignItems="center" justifyContent="center">
+                        <VStack gap={2}>
+                          <BarChart3 size={24} color="#6b7280" />
+                          <Text color="gray.500" fontSize="xs">Risk analysis chart</Text>
+                        </VStack>
+                      </Box>
+                      
+                      <VStack gap={2} w="full">
+                        <HStack justify="space-between" w="full">
+                          <HStack gap={2}>
+                            <Box w="3" h="3" bg="red.500" borderRadius="full" />
+                            <Text fontSize="xs" color="gray.600">High Risk</Text>
+                          </HStack>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <HStack gap={2}>
+                            <Box w="3" h="3" bg="green.500" borderRadius="full" />
+                            <Text fontSize="xs" color="gray.600">Work Wellness</Text>
+                          </HStack>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <HStack gap={2}>
+                            <Box w="3" h="3" bg="yellow.500" borderRadius="full" />
+                            <Text fontSize="xs" color="gray.600">Medium</Text>
+                          </HStack>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <HStack gap={2}>
+                            <Box w="3" h="3" bg="orange.500" borderRadius="full" />
+                            <Text fontSize="xs" color="gray.600">Career Growth</Text>
+                          </HStack>
+                        </HStack>
+                        <HStack justify="space-between" w="full">
+                          <HStack gap={2}>
+                            <Box w="3" h="3" bg="gray.400" borderRadius="full" />
+                            <Text fontSize="xs" color="gray.600">Low Risk</Text>
+                          </HStack>
+                        </HStack>
+                      </VStack>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
               </VStack>
-            </Card.Body>
-          </Card.Root>
+            </GridItem>
+          </Grid>
         </Box>
-
       </Box>
     </Box>
   );

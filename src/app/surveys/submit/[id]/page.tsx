@@ -20,6 +20,7 @@ import {
 import { ArrowLeft, FileText, Send, CheckCircle, Clock } from 'lucide-react';
 import { surveyApi, Survey } from '@/services';
 import { AssociateOnly } from '@/components/RoleGuard';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 interface SurveyQuestion {
     id: number;

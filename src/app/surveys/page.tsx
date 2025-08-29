@@ -20,6 +20,7 @@ import {
 import { FileText, Plus, Calendar, Users, BarChart3, Trash2 } from 'lucide-react';
 import { surveyApi, Survey, SurveyQuestion } from '@/services';
 import { RequireSurveyView, RequireSurveyCreate, RequireSurveyDelete, ManagerOnly, AssociateOnly } from '@/components/RoleGuard';
+import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function SurveysPage() {
     const router = useRouter();
@@ -152,7 +153,7 @@ export default function SurveysPage() {
 
     if (loading) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Spinner size="xl" color="purple.500" />
@@ -161,13 +162,13 @@ export default function SurveysPage() {
                         </Text>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     if (error) {
         return (
-            <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
+            <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
                         <Text color="red.600" fontSize="lg">
@@ -178,22 +179,27 @@ export default function SurveysPage() {
                         </Button>
                     </VStack>
                 </Flex>
-            </Box>
+            </AppLayout>
         );
     }
 
     return (
-        <Box w="full" minH="100vh" bg="gray.50" py={8} px={4}>
-            <VStack gap={8} align="stretch" maxW="7xl" mx="auto">
+        <AppLayout>
                 {/* Header */}
-                <Box textAlign="center">
-                    <Heading size="2xl" color="gray.800" mb={3} fontWeight="bold">
-                        Employee Surveys
-                    </Heading>
-                    <Text color="gray.600" fontSize="lg">
-                        Create and manage employee surveys and feedback
-                    </Text>
+                <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack align="start" gap={2}>
+                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
+                            Employee Surveys
+                        </Heading>
+                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
+                            Create and manage employee surveys and feedback
+                        </Text>
+                    </VStack>
                 </Box>
+
+                {/* Content */}
+                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                    <VStack gap={8} align="stretch" w="full">
 
                 {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
@@ -445,7 +451,8 @@ export default function SurveysPage() {
                         </VStack>
                     </Card.Body>
                 </Card.Root>
-            </VStack>
-        </Box>
+                    </VStack>
+                </Box>
+        </AppLayout>
     );
 }
