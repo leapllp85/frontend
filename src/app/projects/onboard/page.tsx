@@ -66,14 +66,18 @@ export default function CreateProject() {
         const fetchEmployees = async () => {
             try {
                 setEmployeesLoading(true);
-                const teamMembers = await teamApi.getTeamMembers();
+                const teamMembersResponse = await teamApi.getTeamMembers();
+                // @ts-ignore - API response has nested structure
+                const teamMembers = Array.isArray(teamMembersResponse.team_members) ? teamMembersResponse.team_members : [];
+                
                 // Transform EmployeeProfile to Employee format
-                const employees: Employee[] = teamMembers.map((member: EmployeeProfile) => ({
+                const employees: Employee[] = teamMembers.map((member: any) => ({
                     id: member.id.toString(),
-                    name: (member.user?.first_name && member.user?.last_name) ? `${member.user.first_name} ${member.user.last_name}` : member.user?.username || 'Unknown User',
-                    email: member.user.email,
-                    role: member.user.role || 'Employee',
-                    department: 'General' // EmployeeProfile doesn't have department, using default
+                    name: (member.first_name && member.last_name) ? `${member.first_name} ${member.last_name}` : member.username || 'Unknown User',
+                    email: member.email || '',
+                    role: member.role || 'Associate',
+                    avatar: member.profile_pic || undefined,
+                    department: 'General'
                 }));
                 setAvailableEmployees(employees);
             } catch (error) {

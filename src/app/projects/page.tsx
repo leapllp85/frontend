@@ -239,7 +239,19 @@ export default function ProjectsPage() {
                                                         {project.project_status}
                                                     </Badge>
                                                 </HStack>
-                                                <Text color="purple.100" fontSize="md" lineHeight="1.5" fontWeight="medium" noOfLines={2}>
+                                                <Text 
+                                                    color="purple.100" 
+                                                    fontSize="md" 
+                                                    lineHeight="1.5" 
+                                                    fontWeight="medium"
+                                                    overflow="hidden"
+                                                    textOverflow="ellipsis"
+                                                    display="-webkit-box"
+                                                    css={{
+                                                        WebkitLineClamp: 2,
+                                                        WebkitBoxOrient: 'vertical'
+                                                    }}
+                                                >
                                                     {project.description}
                                                 </Text>
                                             </VStack>

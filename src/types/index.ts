@@ -40,7 +40,7 @@ export interface Employee {
     email: string;
     avatar?: string;
     role: string;
-    department: string;
+    department?: string;
 }
 
 // Component-specific Employee type for compatibility
@@ -49,20 +49,28 @@ export interface ComponentEmployee {
     name: string;
     email?: string;
     role: string;
-    department: string;
+    department?: string;
 }
 
 export interface EmployeeProfile {
+    role: string;
     id: number;
-    user: User;
-    age: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    profile_pic: string;
     mental_health: 'High' | 'Medium' | 'Low';
     motivation_factor: 'High' | 'Medium' | 'Low';
     career_opportunities: 'High' | 'Medium' | 'Low';
     personal_reason: 'High' | 'Medium' | 'Low';
+    suggested_risk: 'High' | 'Medium' | 'Low';
+    project_criticality: 'High' | 'Medium' | 'Low';
     manager_assessment_risk: 'High' | 'Medium' | 'Low';
     all_triggers?: string;
-    primary_trigger?: 'MH' | 'MT' | 'CO' | 'PR';
+    primary_trigger: 'MH' | 'MT' | 'CO' | 'PR';
+    age: number;
+    email: string;
+    total_allocation: number;
 }
 
 // Project Types
@@ -72,7 +80,7 @@ export interface Contributor {
     email: string;
     avatar?: string;
     role: string;
-    department: string;
+    department?: string;
     criticality: 'High' | 'Medium' | 'Low';
     projectCriticality: 'High' | 'Medium' | 'Low';
     allocationPercentage: number;
