@@ -1,9 +1,10 @@
 import { Box, Button, Flex, Input, Text, Spinner } from "@chakra-ui/react";
 import { useState } from "react";
 import { chatApi } from "../../services/chatApi";
+import { RAGApiResponse } from "../../types/ragApi";
 
 interface DashboardChatSidebarProps {
-    handleAiResponse: (response: string, question?: string) => void;
+    handleAiResponse: (response: string | RAGApiResponse, question?: string) => void;
     handleLoading: (loading: boolean) => void;
     handleError?: (error: string) => void;
     setHasQueried: (hasQueried: boolean) => void;

@@ -9,6 +9,7 @@ export * from './courseApi';
 export * from './surveyApi';
 export * from './chatApi';
 export * from './userApi';
+export * from './criticalityApi';
 
 // Re-export all API service instances for easy import
 export { projectApi } from './projectApi';
@@ -20,3 +21,4 @@ export { courseApi } from './courseApi';
 export { surveyApi } from './surveyApi';
 export { chatApi } from './chatApi';
 export { userApi } from './userApi';
+export { criticalityApi } from './criticalityApi';

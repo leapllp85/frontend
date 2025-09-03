@@ -52,14 +52,6 @@ export default function CoursesPage() {
         fetchData();
     }, []);
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
     const getCategoryColor = (categoryName: string) => {
         const colors = ['blue', 'green', 'purple', 'orange', 'pink', 'teal'];
         const index = categoryName.length % colors.length;

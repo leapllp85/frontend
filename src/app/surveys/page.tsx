@@ -21,6 +21,7 @@ import { FileText, Plus, Calendar, Users, BarChart3, Trash2 } from 'lucide-react
 import { surveyApi, Survey, SurveyQuestion } from '@/services';
 import { RequireSurveyView, RequireSurveyCreate, RequireSurveyDelete, ManagerOnly, AssociateOnly } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { formatDate } from '@/utils/date';
 
 export default function SurveysPage() {
     const router = useRouter();
@@ -124,14 +125,6 @@ export default function SurveysPage() {
             case 'draft': return 'gray';
             default: return 'gray';
         }
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
     };
 
     const getStatusLabel = (status: string) => {

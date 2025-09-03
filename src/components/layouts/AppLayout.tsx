@@ -5,13 +5,15 @@ import { Flex, Box } from '@chakra-ui/react';
 import { Sidebar } from '@/components/common/Sidebar';
 import AIResponse from '../common/AIResponse';
 import { chatApi } from '@/services/chatApi';
+import { useChatContext } from '@/contexts/ChatContext';
+import { RAGApiResponse } from '@/types/ragApi';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const [aiResponse, setAiResponse] = useState('');
+  const { addMessage, currentConversation } = useChatContext();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userQuestion, setUserQuestion] = useState<string>('');
@@ -20,24 +22,35 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   useEffect(() => {
     if (hasQueried && userQuestion.trim()) {
       setIsLoading(true);
-      setError(null); // Clear previous errors
+      setError(null);
+      
+      // Add user message to conversation
+      addMessage(userQuestion, 'user');
       
       chatApi
-        .sendMessage(userQuestion)
+        .sendMessageAsync(userQuestion, currentConversation?.id)
         .then((response) => {
-          setAiResponse(response.response);
+          // Add assistant response to conversation
+          if (typeof response.response === 'string') {
+            addMessage(response.response, 'assistant');
+          } else {
+            // For RAG responses, add with structured data
+            const content = response.response.raw_response || 'AI generated response';
+            addMessage(content, 'assistant', response.response as RAGApiResponse);
+          }
         })
         .catch((error) => {
           setError(error.message);
+          addMessage(`Error: ${error.message}`, 'assistant');
         })
         .finally(() => {
           setIsLoading(false);
         });
     }
-  }, [hasQueried, userQuestion]);
+  }, [hasQueried, userQuestion, addMessage, currentConversation?.id]);
 
   return (
-    <Flex w="full" h="full" bg="gray.50">
+    <Flex w="full" h="100vh" bg="gray.50">
       <Sidebar setHasQueried={setHasQueried} setUserQuestion={setUserQuestion} />
       
       {/* Main Content Area */}
@@ -46,7 +59,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         children
       ) : (
         <AIResponse 
-          aiResponse={aiResponse}
           isLoading={isLoading}
           error={error}
           userQuestion={userQuestion}

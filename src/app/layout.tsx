@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { Provider } from "@/components/ui/provider"
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LoadingProvider } from "@/contexts/LoadingContext";
+import { ChatProvider } from "@/contexts/ChatContext";
 import AuthWrapper from "@/components/AuthWrapper";
 import AppLoader from "@/components/common/AppLoader";
 
@@ -37,10 +38,12 @@ export default function RootLayout({
         <Provider>
           <LoadingProvider>
             <AuthProvider>
-              <AuthWrapper>{children}</AuthWrapper>
-              <Suspense fallback={null}>
-                <AppLoader />
-              </Suspense>
+              <ChatProvider>
+                <AuthWrapper>{children}</AuthWrapper>
+                <Suspense fallback={null}>
+                  <AppLoader />
+                </Suspense>
+              </ChatProvider>
             </AuthProvider>
           </LoadingProvider>
         </Provider>

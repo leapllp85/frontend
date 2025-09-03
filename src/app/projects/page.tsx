@@ -102,14 +102,6 @@ export default function ProjectsPage() {
         router.push(`/projects/edit/${projectId}`);
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
     return (
         <AppLayout>
                 {/* Header */}

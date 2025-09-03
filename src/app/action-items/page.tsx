@@ -20,7 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { CheckCircle, Clock, Plus, User, Calendar } from 'lucide-react';
 import { actionItemApi, ActionItem } from '@/services';
-import router from 'next/router';
+import { formatDate } from '@/utils/date';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function ActionItemsPage() {
@@ -96,14 +96,6 @@ export default function ActionItemsPage() {
 
     const getStatusColor = (status: string) => {
         return status === 'Completed' ? 'green' : 'orange';
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
     };
 
     // Analytics

@@ -139,6 +139,32 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
               <MessageCircle size={18} color="white" />
               <Text color="white" fontSize={{ base: "sm", md: "md" }} fontWeight="bold">AI Assistant</Text>
             </HStack>
+            <HStack
+              p={{ base: 3, md: 4 }}
+              // bg="linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)"
+              borderRadius="xl"
+              border="1px solid"
+              borderColor="whiteAlpha.200"
+              w="full"
+              gap={0}
+            >
+              <Text 
+                fontSize={{ base: "sm", md: "md" }} 
+                color="white" 
+                textAlign="center"
+                fontWeight="medium"
+              >
+                💡
+              </Text>
+              <Text 
+                fontSize={{ base: "xs", md: "sm" }} 
+                color="white" 
+                textAlign="center"
+                fontWeight="medium"
+              >
+                Tip: Ask me anything about your projects, action items, or team insights!
+              </Text>
+            </HStack>
             
             {/* Chat Input */}
             <HStack gap={2}>

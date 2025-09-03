@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   env: {
     BASE_URL: 'http://localhost:8000',
   },
+  // Disable React StrictMode to prevent double API calls in development
+  reactStrictMode: false,
 };
 
 export default nextConfig;

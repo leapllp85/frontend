@@ -19,7 +19,7 @@ export interface Project {
   description: string;
   start_date: string;
   go_live_date: string;
-  project_status: 'Active' | 'Inactive';
+  status: 'Active' | 'Inactive';
   criticality: 'High' | 'Medium' | 'Low';
   source: string;
   created_at: string;
