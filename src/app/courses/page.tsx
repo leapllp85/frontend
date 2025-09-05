@@ -116,14 +116,14 @@ export default function CoursesPage() {
             <Box py={8} px={4}>
                 <VStack gap={8} align="stretch" maxW="7xl" mx="auto">
                 {/* Header */}
-                <Box textAlign="center">
+                {/* <Box textAlign="center">
                     <Heading size="2xl" color="gray.800" mb={3} fontWeight="bold">
                         Learning Courses
                     </Heading>
                     <Text color="gray.600" fontSize="lg">
                         Discover and manage learning resources for your team
                     </Text>
-                </Box>
+                </Box> */}
 
                 {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>

@@ -25,16 +25,7 @@ import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { insights } from './constants';
-
-interface TeamMember {
-    id: string;
-    name: string;
-    age: number;
-    mentalHealth: 'High' | 'Medium' | 'Low';
-    utilization: number;
-    projectCriticality: 'High' | 'Medium' | 'Low';
-    attritionRisk: 'High' | 'Medium' | 'Low';
-}
+import { TeamMember } from '@/types';
 
 export default function Dashboard() {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -68,11 +59,23 @@ export default function Dashboard() {
                 const transformedTeamMembers: TeamMember[] = teamArray.map(member => ({
                     id: member.id.toString(),
                     name: (member.first_name && member.last_name) ? `${member.first_name} ${member.last_name}` : member.username || 'Unknown User',
+                    email: member.email || `${member.username}@company.com`,
                     age: member.age || 0,
                     mentalHealth: member.mental_health || 'Medium',
+                    motivationFactor: member.motivation_factor || 'Medium',
+                    careerOpportunities: member.career_opportunities || 'Medium',
+                    personalReason: member.personal_reason || 'Medium',
+                    managerAssessmentRisk: member.manager_assessment_risk || 'Medium',
                     utilization: Math.floor(Math.random() * 30) + 70, // TODO: Get from allocations API
-                    projectCriticality: member.manager_assessment_risk || 'Medium', // Using manager assessment as project criticality
-                    attritionRisk: member.manager_assessment_risk || 'Medium'
+                    projectCriticality: member.manager_assessment_risk || 'Medium',
+                    attritionRisk: member.manager_assessment_risk || 'Medium',
+                    primaryTrigger: member.primary_trigger || 'MH',
+                    triggers: {
+                        mentalHealth: member.mental_health === 'Low',
+                        motivation: member.motivation_factor === 'Low',
+                        career: member.career_opportunities === 'Low',
+                        personal: member.personal_reason === 'Low'
+                    }
                 }));
                 
                 setTeamMembers(transformedTeamMembers);
@@ -98,7 +101,8 @@ export default function Dashboard() {
         }
         if (teamMembers.length === 0) return 0;
         const riskCounts = teamMembers.reduce((acc, member) => {
-            acc[member.attritionRisk] = (acc[member.attritionRisk] || 0) + 1;
+            const risk = member.attritionRisk || 'Medium';
+            acc[risk] = (acc[risk] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
         
@@ -124,19 +128,31 @@ export default function Dashboard() {
         }
         if (teamMembers.length === 0) return 0;
         return Math.round(teamMembers.reduce((sum, member) => 
-            sum + member.utilization, 0) / teamMembers.length);
+            sum + (member.utilization || 0), 0) / teamMembers.length);
     };
 
     const topTalent = () => {
         if (dashboardData && dashboardData.top_talent) {
-            return dashboardData.top_talent.slice(0, 3).map(talent => ({
+            return dashboardData.top_talent.slice(0, 3).map((talent: any) => ({
                 id: talent.id.toString(),
-                name: talent.user_info?.name || 'Unknown User',
+                name: `${talent.first_name || ''} ${talent.last_name || ''}`.trim() || talent.username || 'Unknown User',
+                email: talent.email || 'unknown@company.com',
                 age: talent.age || 0,
                 mentalHealth: talent.mental_health || 'Medium',
+                motivationFactor: talent.motivation_factor || 'High',
+                careerOpportunities: talent.career_opportunities || 'High',
+                personalReason: talent.personal_reason || 'Medium',
+                managerAssessmentRisk: talent.manager_assessment_risk || 'Medium',
                 utilization: Math.floor(Math.random() * 30) + 70,
-                projectCriticality: talent.manager_assessment_risk || 'Medium',
-                attritionRisk: talent.manager_assessment_risk || 'Medium'
+                projectCriticality: talent.project_criticality || 'Medium',
+                attritionRisk: talent.manager_assessment_risk || 'Medium',
+                primaryTrigger: talent.primary_trigger || 'MT',
+                triggers: {
+                    mentalHealth: talent.mental_health === 'Low',
+                    motivation: talent.motivation_factor === 'Low',
+                    career: talent.career_opportunities === 'Low',
+                    personal: talent.personal_reason === 'Low'
+                }
             }));
         }
         return teamMembers
@@ -158,7 +174,7 @@ export default function Dashboard() {
     return (
         <AppLayout>
                 {/* Header */}
-                <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
                     <VStack align="start" gap={2}>
                         <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
                             Team Dashboard
@@ -167,7 +183,7 @@ export default function Dashboard() {
                             Quick insights and analytics for your team performance
                         </Text>
                     </VStack>
-                </Box>
+                </Box> */}
 
                 {/* Content */}
                 <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
@@ -293,7 +309,7 @@ export default function Dashboard() {
                                             <VStack gap={4}>
                                                 <HStack justify="flex-end" w="full">
                                                     <Badge 
-                                                        colorPalette={getRiskColor(member.attritionRisk)} 
+                                                        colorPalette={getRiskColor(member.attritionRisk || 'Medium')} 
                                                         size="md" 
                                                         fontWeight="semibold"
                                                         variant="solid"
@@ -353,23 +369,23 @@ export default function Dashboard() {
                     </Card.Root>
 
                     {/* Team Overview */}
-                    <Card.Root 
-                        bg="linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
-                        border="none"
-                        borderRadius="2xl"
-                        shadow="2xl"
-                        _hover={{ transform: "translateY(-4px)", shadow: "3xl" }}
-                        transition="all 0.4s ease"
-                    >
-                        <Card.Header p={6} pb={4}>
+                    {/* <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}
+                        // bg="gray.50"
+                        // border="none"
+                        // borderRadius="2xl"
+                        // shadow="2xl"
+                        // _hover={{ transform: "translateY(-4px)", shadow: "3xl" }}
+                        // transition="all 0.4s ease"
+                    > */}
+                        {/* <Card.Header p={6} pb={4}>
                             <HStack gap={3}>
                                 <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
                                     <Users size={24} color="white" />
                                 </Box>
                                 <Heading size="xl" color="white" fontWeight="black" letterSpacing="tight">Team Overview</Heading>
                             </HStack>
-                        </Card.Header>
-                        <Card.Body p={6} pt={2}>
+                        </Card.Header> */}
+                        {/* <Card.Body p={6} pt={2}> */}
                             <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} gap={{ base: 4, md: 6 }}>
                                 {/* Total Team Members */}
                                 <Card.Root 
@@ -515,8 +531,6 @@ export default function Dashboard() {
                                     </Card.Body>
                                 </Card.Root>
                             </SimpleGrid>
-                        </Card.Body>
-                    </Card.Root>
                     </VStack>
                 </Box>
         </AppLayout>

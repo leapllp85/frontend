@@ -179,7 +179,7 @@ export default function SurveysPage() {
     return (
         <AppLayout>
                 {/* Header */}
-                <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
                     <VStack align="start" gap={2}>
                         <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
                             Employee Surveys
@@ -188,7 +188,7 @@ export default function SurveysPage() {
                             Create and manage employee surveys and feedback
                         </Text>
                     </VStack>
-                </Box>
+                </Box> */}
 
                 {/* Content */}
                 <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>

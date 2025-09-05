@@ -181,7 +181,7 @@ export const Profile = ({
       {/* Main Content */}
       <Box flex="1" h="full" overflow="auto">
         {/* Welcome Header */}
-        <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={{ base: 4, md: 6 }}>
+        {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={{ base: 4, md: 6 }}>
           <Flex justify="space-between" align="center" direction={{ base: "column", md: "row" }} gap={{ base: 4, md: 0 }}>
             <HStack gap={4}>
               <Heading size={{ base: "md", md: "lg" }} color="gray.800" textAlign={{ base: "center", md: "left" }}>
@@ -199,7 +199,7 @@ export const Profile = ({
             </Avatar.Root>
           </Flex>
         </Box>
-        
+         */}
         {/* Dashboard Content */}
         <Box p={{ base: 4, md: 6 }}>
           <Grid templateColumns={{ base: "1fr", lg: "repeat(12, 1fr)" }} gap={{ base: 4, md: 6 }} h="full">

@@ -1,11 +1,15 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { Box, Text, VStack, HStack, Button, Input, Spinner, Badge, IconButton } from "@chakra-ui/react";
+import { Box, Text, VStack, HStack, Button, Input, Spinner, Badge, IconButton, Avatar, Heading } from "@chakra-ui/react";
 import { Home, FolderOpen, FileText, Users, BarChart3, CheckCircle, LogOut, Send, MessageCircle, Zap, X } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { useAuth, useRBAC } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
 import { useChatContext } from '@/contexts/ChatContext';
+import { userApi } from "@/services";
+import { UserProfile } from "../../services/userApi"
+
+type ProfileData = UserProfile;
 
 interface SidebarProps {
   onSendMessage?: (message: string) => Promise<void>;
@@ -23,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   enableStreaming = true
 }) => {
   const [chatMessage, setChatMessage] = useState("");
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
   
   const {
     sendMessage: contextSendMessage,
@@ -71,6 +76,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [handleSendMessage]);
 
+  const fetchUserProfile = async () => {
+      const data = await userApi.getCurrentUserProfile();
+      setProfileData(data);
+    };
+
 
   const { logout: authLogout } = useAuth();
   
@@ -84,6 +94,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onResetView();
     }
   }, [onResetView]);
+
+
+    useEffect(() => {
+      fetchUserProfile();
+    }, []);
   
   return (
     <VStack 
@@ -97,9 +112,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       justify="space-between"
     >
       {/* Welcome message */}
-      <VStack p={{ base: 4, md: 5, lg: 6 }} gap={{ base: 2, md: 4, lg: 6 }} pt={{ base: 8, md: 10, lg: 12 }} w="full">
+      <VStack p={{ base: 4, md: 5, lg: 6 }} gap={{ base: 2, md: 4, lg: 6 }} pt={{ base: 4, md: 6, lg: 8 }} w="full">
         {/* Decorative dots - visible only on 15.6+ inch screens */}
-        <HStack gap={2} display={{ base: "none", "2xl": "flex" }}>
+        {/* <HStack gap={2} display={{ base: "none", "2xl": "flex" }}>
           {[...Array(4)].map((_, i) => (
             <Box 
               key={i}
@@ -109,15 +124,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               borderRadius="full" 
             />
           ))}
-        </HStack>
+        </HStack> */}
         
         <VStack gap={2}>
-          <Text color="whiteAlpha.800" fontSize={{ base: "xs", md: "sm" }} mb={1}>
+          <Avatar.Root size={{ base: "lg", md: "xl" }}>
+            <Avatar.Image src={profileData?.user?.profile_pic || profileData?.profile?.profile_pic} />
+            <Avatar.Fallback bg="purple.100" color="purple.600" fontWeight="bold">
+              {profileData?.user && profileData.user.first_name && profileData.user.last_name ? 
+                `${profileData.user.first_name[0]}${profileData.user.last_name[0]}` : 
+                profileData?.user?.username?.[0]?.toUpperCase() || 'MU'
+              }
+            </Avatar.Fallback>
+          </Avatar.Root>
+          <Heading size={{ base: "md", md: "lg" }} color="whiteAlpha.800" fontSize={{ base: "md", md: "lg" }} textAlign="center">
+            {profileData?.user && profileData.user.first_name && profileData.user.last_name ? `${profileData.user.first_name} ${profileData.user.last_name}` : profileData?.user?.username || 'Manager User'}
+          </Heading>
+          {/* <Text color="whiteAlpha.800" fontSize={{ base: "xs", md: "sm" }} mb={1}>
             Hello, {user?.first_name || 'User'}!,
           </Text>
           <Text color="white" fontSize={{ base: "md", md: "lg" }} fontWeight="medium">
             {hasRole('Manager') ? 'How can I help you' : 'Welcome to Corporate MVP'}
-          </Text>
+          </Text> */}
         </VStack>
       </VStack>
     
