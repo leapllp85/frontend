@@ -10,6 +10,22 @@ export interface ComponentConfig {
     groupBy?: string;
     aggregation?: 'sum' | 'count' | 'avg' | 'max' | 'min';
     filters?: string[];
+    data_field?: string;
+    colors?: Record<string, string>;
+    metrics?: Array<{
+      label: string;
+      field: string;
+      filter?: string;
+      aggregation: string;
+    }>;
+    columns?: Array<{
+      field: string;
+      label: string;
+    }>;
+    sortable?: boolean;
+    searchable?: boolean;
+    exportable?: boolean;
+    sections?: string[];
   };
 }
 
@@ -31,12 +47,22 @@ export interface DataProcessing {
   transformations: string[];
   calculations: string[];
   formatting: string[];
+  components?: AsyncComponent[];
+  layout?: AsyncLayout;
+  dataset?: Record<string, DatasetResult>;
+  insights?: {
+    key_findings?: string[];
+    recommendations?: string[];
+    next_steps?: string[];
+    alerts?: string[];
+  };
 }
 
 export interface Insights {
-  key_findings: string[];
-  recommendations: string[];
-  next_steps: string[];
+  key_findings?: string[];
+  recommendations?: string[];
+  next_steps?: string[];
+  alerts?: string[];
 }
 
 export interface DatasetResult {
@@ -47,6 +73,35 @@ export interface DatasetResult {
   error?: string;
 }
 
+// Async response component types
+export interface AsyncComponent {
+  id: string;
+  type: string;
+  title: string;
+  description?: string;
+  properties: any;
+}
+
+export interface AsyncLayout {
+  type: string;
+  columns: number;
+  rows: number;
+  responsive: boolean;
+  spacing: string;
+  component_arrangement: Array<{
+    component_id: string;
+    position: {
+      row: number;
+      col: number;
+      span_col: number;
+      span_row: number;
+    };
+    size: string;
+    span_col?: number;
+    span_row?: number;
+  }>;
+}
+
 export interface RAGApiResponse {
   success: boolean;
   error?: string;
@@ -55,7 +110,17 @@ export interface RAGApiResponse {
   queries?: QueryInfo[];
   data_processing?: DataProcessing;
   insights?: Insights;
-  dataset?: DatasetResult[];
+  dataset?: DatasetResult[] | Record<string, DatasetResult>;
+  
+  // New async response properties
+  status?: string;
+  task_id?: string;
+  user_id?: number;
+  completed_at?: string;
+  conversation_id?: string;
+  message_id?: string;
+  layout?: AsyncLayout;
+  components?: AsyncComponent[];
 }
 
 // Chat conversation types

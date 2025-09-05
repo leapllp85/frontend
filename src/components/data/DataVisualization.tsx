@@ -36,21 +36,114 @@ interface DataVisualizationProps {
 export const DataVisualization: React.FC<DataVisualizationProps> = ({ config, dataset }) => {
   const primaryData = dataset[0];
 
+  console.log('DataVisualization - primaryData:', primaryData);
+  console.log('DataVisualization - dataset:', dataset);
+  
   if (!primaryData || !primaryData.data || primaryData.data.length === 0) {
     return (
-      <Card.Root bg="red.50" borderColor="red.200" borderWidth="1px">
+      <Card.Root bg="gray.50" borderColor="gray.200" borderWidth="1px">
         <Card.Body p={6}>
-          <Text color="red.600">No data available for visualization</Text>
+          <VStack gap={2} align="center" justify="center" minH="200px">
+            <Text color="gray.500" fontSize="lg" fontWeight="medium">No data available</Text>
+            <Text color="gray.400" fontSize="sm">
+              {primaryData ? `Dataset has ${primaryData.data?.length || 0} rows` : 'No dataset provided'}
+            </Text>
+          </VStack>
         </Card.Body>
       </Card.Root>
     );
   }
 
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          color: 'black'
+        }
+      },
+      title: {
+        display: true,
+        text: config.title,
+        color: 'black'
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: 'black'
+        }
+      },
+      x: {
+        ticks: {
+          color: 'black'
+        }
+      }
+    }
+  };
+
+  const pieChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          color: 'black',
+          padding: 20
+        }
+      },
+      title: {
+        display: true,
+        text: config.title,
+        color: 'black'
+      },
+    }
+  };
+
   const renderChart = () => {
     const { type, properties } = config;
-    const { x_axis, y_axis, aggregation } = properties;
+    const { data_field, aggregation, colors, x_axis, y_axis } = properties;
 
-    // Prepare chart data
+    // For pie charts, we need to aggregate data by the specified field
+    if (type.includes('pie')) {
+      const fieldToAggregate = data_field || 'mental_health';
+      
+      // Count occurrences of each value in the field
+      const aggregatedData: Record<string, number> = {};
+      primaryData.data.forEach(row => {
+        const value = row[fieldToAggregate];
+        if (value) {
+          aggregatedData[value] = (aggregatedData[value] || 0) + 1;
+        }
+      });
+
+      const labels = Object.keys(aggregatedData);
+      const values = Object.values(aggregatedData);
+      
+      // Use colors from properties if available
+      const backgroundColors = labels.map(label => 
+        colors?.[label] || `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.8)`
+      );
+
+      const pieChartData = {
+        labels,
+        datasets: [{
+          label: config.title,
+          data: values,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color.replace('0.8', '1')),
+          borderWidth: 2,
+        }],
+      };
+
+      return <Pie data={pieChartData} options={pieChartOptions} />;
+    }
+
+    // For other chart types, use original logic
     const labels = primaryData.data.map(row => row[x_axis || primaryData.columns[0]]);
     const values = primaryData.data.map(row => {
       const value = row[y_axis || primaryData.columns[1]];
@@ -63,9 +156,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ config, da
         {
           label: config.title,
           data: values,
-          backgroundColor: type.includes('bar') 
+          backgroundColor: config.type.includes('bar') 
             ? 'rgba(59, 130, 246, 0.8)'
-            : type.includes('line')
+            : config.type.includes('line')
             ? 'rgba(59, 130, 246, 0.2)'
             : [
                 'rgba(59, 130, 246, 0.8)',
@@ -76,84 +169,51 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ config, da
               ],
           borderColor: 'rgba(59, 130, 246, 1)',
           borderWidth: 2,
-          fill: type.includes('line') ? true : false,
+          fill: config.type.includes('line') ? true : false,
         },
       ],
     };
 
-    const chartOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top' as const,
-          labels: {
-            color: 'black'
-          }
-        },
-        title: {
-          display: true,
-          text: config.title,
-          color: 'black'
-        },
-      },
-      scales: type.includes('pie') ? {} : {
-        x: {
-          ticks: {
-            color: 'black'
-          }
-        },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: 'black'
-          }
-        },
-      },
-    };
-
-    switch (type) {
-      case 'bar_chart':
-        return <Bar data={chartData} options={chartOptions} />;
-      case 'line_chart':
-        return <Line data={chartData} options={chartOptions} />;
-      case 'pie_chart':
-        return <Pie data={chartData} options={chartOptions} />;
-      default:
-        return <Bar data={chartData} options={chartOptions} />;
+    // Chart rendering logic
+    if (config.type.includes('line')) {
+      return <Line data={chartData} options={chartOptions} />;
+    } else {
+      return <Bar data={chartData} options={chartOptions} />;
     }
   };
 
   return (
-    <Card.Root bg="white" borderColor="gray.200" borderWidth="1px" borderRadius="xl" shadow="lg">
-      <Card.Header p={6} pb={4}>
-        <VStack align="start" gap={2}>
+    <Box w="full" h="full" p={4}>
+      <VStack align="start" gap={3} w="full" h="full">
+        <Box w="full" pb={3} borderBottom="1px solid" borderColor="gray.200">
           <HStack justify="space-between" w="full">
-            <Heading size="lg" color="black">
-              {config.title}
-            </Heading>
+            <Box>
+              <Text fontSize="md" fontWeight="semibold" color="gray.800">
+                {config.title}
+              </Text>
+              {config.description && (
+                <Text fontSize="xs" color="gray.600" mt={1}>
+                  {config.description}
+                </Text>
+              )}
+            </Box>
             <Badge colorScheme="blue" variant="solid" px={3} py={1} borderRadius="full">
-              {config.type.replace('_', ' ').toUpperCase()}
+              CHART
             </Badge>
           </HStack>
-          {config.description && (
-            <Text color="black" fontSize="sm">
-              {config.description}
-            </Text>
-          )}
-        </VStack>
-      </Card.Header>
-      <Card.Body p={6} pt={0}>
-        <Box h="400px" w="full">
+        </Box>
+        
+        <Box h="300px" w="full">
           {renderChart()}
         </Box>
-        <Box mt={4} p={4} bg="white" border="1px solid" borderColor="gray.100" borderRadius="lg">
-          <Text fontSize="sm" color="black">
+        
+        <Box w="full" p={3} bg="gray.50" borderRadius="lg">
+          <Text fontSize="xs" color="gray.700">
             <strong>Data Points:</strong> {primaryData.row_count} | 
             <strong> Source:</strong> {primaryData.description}
           </Text>
         </Box>
-      </Card.Body>
-    </Card.Root>
+      </VStack>
+    </Box>
   );
 };

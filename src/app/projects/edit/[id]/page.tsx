@@ -75,7 +75,7 @@ export default function EditProject() {
                     id: projectData.id.toString(),
                     name: projectData.title,
                     criticality: projectData.criticality,
-                    isActive: projectData.project_status === 'Active',
+                    isActive: projectData.status === 'Active',
                     description: projectData.description,
                     startDate: projectData.start_date,
                     endDate: projectData.go_live_date,
@@ -137,7 +137,7 @@ export default function EditProject() {
             const updatedProject = await projectApi.updateProject(Number(project.id), {
                 title: project.name,
                 criticality: project.criticality,
-                project_status: project.isActive ? 'Active' : 'Inactive',
+                status: project.isActive ? 'Active' : 'Inactive',
                 description: project.description,
                 start_date: project.startDate,
                 go_live_date: project.endDate

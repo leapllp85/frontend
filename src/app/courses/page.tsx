@@ -60,8 +60,7 @@ export default function CoursesPage() {
 
     // Get unique categories from all courses
     const allCategories = courses.reduce((acc: string[], course) => {
-        // @ts-ignore
-        course.category_names.forEach(category => {
+        course.category_names?.forEach(category => {
             if (!acc.includes(category)) {
                 acc.push(category);
             }
@@ -72,14 +71,13 @@ export default function CoursesPage() {
     const totalCategories = allCategories.length;
     const coursesByCategory = allCategories.map(category => ({
         category: category,
-        // @ts-ignore
-        count: courses.filter(course => course.category_names.includes(category)).length
+        count: courses.filter(course => course.category_names?.includes(category)).length
     }));
 
     // Filter courses by category
     const filteredCourses = selectedCategory === 'all' 
         ? courses 
-        : courses.filter(course => course.category.name === selectedCategory);
+        : courses.filter(course => course.category_names?.includes(selectedCategory));
 
     if (loading) {
         return (
@@ -250,8 +248,7 @@ export default function CoursesPage() {
                                         <VStack align="start" gap={4}>
                                             <HStack justify="space-between" w="full" wrap="wrap">
                                                 <HStack gap={2} wrap="wrap">
-                                                    {/* @ts-ignore */}
-                                                    {course.category_names.map((categoryName, index) => (
+                                                    {course.category_names?.map((categoryName, index) => (
                                                         <Badge key={index} colorPalette={getCategoryColor(categoryName)} size="sm">
                                                             {categoryName}
                                                         </Badge>

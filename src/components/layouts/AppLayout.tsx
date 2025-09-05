@@ -1,69 +1,104 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Flex, Box } from '@chakra-ui/react';
 import { Sidebar } from '@/components/common/Sidebar';
 import AIResponse from '../common/AIResponse';
-import { chatApi } from '@/services/chatApi';
 import { useChatContext } from '@/contexts/ChatContext';
-import { RAGApiResponse } from '@/types/ragApi';
 
 interface AppLayoutProps {
   children: React.ReactNode;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
-  const { addMessage, currentConversation } = useChatContext();
-  const [isLoading, setIsLoading] = useState(false);
+  const { 
+    sendMessage, 
+    sendMessageAsync, 
+    sendMessageStreaming, 
+    currentConversation, 
+    isLoading, 
+    progress, 
+    progressMessage, 
+    activeTasks, 
+    cancelActiveTask, 
+    cancelAllTasks 
+  } = useChatContext();
   const [error, setError] = useState<string | null>(null);
-  const [userQuestion, setUserQuestion] = useState<string>('');
   const [hasQueried, setHasQueried] = useState(false);
+  const [currentUserQuestion, setCurrentUserQuestion] = useState<string>('');
+  const [sendMode, setSendMode] = useState<'sync' | 'async' | 'streaming'>('async');
+  
+  // Track the last processed question to prevent duplicates
+  const lastProcessedQuestionRef = useRef<string>('');
+  const isProcessingRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    if (hasQueried && userQuestion.trim()) {
-      setIsLoading(true);
-      setError(null);
-      
-      // Add user message to conversation
-      addMessage(userQuestion, 'user');
-      
-      chatApi
-        .sendMessageAsync(userQuestion, currentConversation?.id)
-        .then((response) => {
-          // Add assistant response to conversation
-          if (typeof response.response === 'string') {
-            addMessage(response.response, 'assistant');
-          } else {
-            // For RAG responses, add with structured data
-            const content = response.response.raw_response || 'AI generated response';
-            addMessage(content, 'assistant', response.response as RAGApiResponse);
-          }
-        })
-        .catch((error) => {
-          setError(error.message);
-          addMessage(`Error: ${error.message}`, 'assistant');
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
+  const handleSendMessage = useCallback(async (question: string, mode?: 'sync' | 'async' | 'streaming') => {
+    // Only prevent if currently loading or empty question
+    if (!question.trim() || isLoading) {
+      return;
     }
-  }, [hasQueried, userQuestion, addMessage, currentConversation?.id]);
+
+    // Only set current question if this is the first query or we're starting fresh
+    if (!hasQueried) {
+      setCurrentUserQuestion(question);
+      setHasQueried(true);
+    }
+    
+    setError(null);
+
+    const actualMode = mode || sendMode;
+
+    try {
+      // Use the appropriate send method based on mode
+      if (actualMode === 'async') {
+        await sendMessageAsync(question);
+      } else if (actualMode === 'streaming') {
+        await sendMessageStreaming(question);
+      } else {
+        await sendMessage(question);
+      }
+    } catch (error: any) {
+      console.error('Failed to send message:', error);
+      setError(error.message || 'Failed to send message');
+    }
+  }, [sendMessage, sendMessageAsync, sendMessageStreaming, sendMode, isLoading, hasQueried]);
+
+  const resetView = useCallback(() => {
+    setHasQueried(false);
+    setCurrentUserQuestion('');
+    setError(null);
+    lastProcessedQuestionRef.current = '';
+    isProcessingRef.current = false;
+  }, []);
 
   return (
     <Flex w="full" h="100vh" bg="gray.50">
-      <Sidebar setHasQueried={setHasQueried} setUserQuestion={setUserQuestion} />
+      <Sidebar 
+        onSendMessage={(message) => handleSendMessage(message)}
+        onResetView={resetView}
+        disabled={false}
+        enableAsync={true}
+        enableStreaming={true}
+      />
       
       {/* Main Content Area */}
-      <Box h="100vh" flex={1} overflowY="scroll">
-      {!hasQueried ? (
-        children
-      ) : (
-        <AIResponse 
-          isLoading={isLoading}
-          error={error}
-          userQuestion={userQuestion}
-        />
-      )}
+      <Box 
+        h="100vh" 
+        flex={1} 
+        overflowY="auto"
+        position="relative"
+      >
+        {!hasQueried ? 
+            children
+        : (
+            <AIResponse 
+              isLoading={isLoading}
+              error={error}
+              userQuestion={currentUserQuestion}
+              onRetry={() => handleSendMessage(currentUserQuestion)}
+              onReset={resetView}
+            />
+        )}
       </Box>
     </Flex>
   );

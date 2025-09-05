@@ -9,9 +9,15 @@ import { ComponentConfig, DatasetResult } from '../../types/ragApi';
 interface ComponentRendererProps {
   config: ComponentConfig;
   dataset: DatasetResult[];
+  insights?: {
+    key_findings?: string[];
+    recommendations?: string[];
+    next_steps?: string[];
+    alerts?: string[];
+  };
 }
 
-export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, dataset }) => {
+export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, dataset, insights }) => {
   const renderComponent = () => {
     const { type } = config;
 
@@ -28,6 +34,84 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, da
     // Metric/card components
     if (type.includes('metric') || type.includes('card') || type.includes('stat')) {
       return <MetricCard config={config} dataset={dataset} />;
+    }
+
+    // Insights panel component
+    if (type.includes('insights_panel') || type.includes('insights')) {
+      return (
+        <Card.Root bg="blue.50" borderColor="blue.200" borderWidth="1px" borderRadius="xl" shadow="lg" w="full">
+          <Card.Header p={6} pb={4}>
+            <VStack align="start" gap={2} w="full">
+              <HStack justify="space-between" w="full">
+                <Heading size="lg" color="blue.800">
+                  {config.title}
+                </Heading>
+                <Badge colorScheme="blue" variant="solid" px={3} py={1} borderRadius="full">
+                  INSIGHTS
+                </Badge>
+              </HStack>
+              {config.description && (
+                <Text color="blue.600" fontSize="sm">
+                  {config.description}
+                </Text>
+              )}
+            </VStack>
+          </Card.Header>
+          <Card.Body p={6} pt={0} w="full">
+            <VStack align="start" gap={4} w="full">
+              {insights?.key_findings && insights.key_findings.length > 0 && (
+                <Box w="full">
+                  <Text fontWeight="semibold" color="blue.800" mb={3}>Key Findings</Text>
+                  <VStack align="start" gap={2}>
+                    {insights.key_findings.map((finding, index) => (
+                      <Text key={index} fontSize="sm" color="blue.700">• {finding}</Text>
+                    ))}
+                  </VStack>
+                </Box>
+              )}
+              
+              {insights?.recommendations && insights.recommendations.length > 0 && (
+                <Box w="full">
+                  <Text fontWeight="semibold" color="blue.800" mb={3}>Recommendations</Text>
+                  <VStack align="start" gap={2}>
+                    {insights.recommendations.map((rec, index) => (
+                      <Text key={index} fontSize="sm" color="blue.700">• {rec}</Text>
+                    ))}
+                  </VStack>
+                </Box>
+              )}
+
+              {insights?.next_steps && insights.next_steps.length > 0 && (
+                <Box w="full">
+                  <Text fontWeight="semibold" color="blue.800" mb={3}>Next Steps</Text>
+                  <VStack align="start" gap={2}>
+                    {insights.next_steps.map((step, index) => (
+                      <Text key={index} fontSize="sm" color="blue.700">• {step}</Text>
+                    ))}
+                  </VStack>
+                </Box>
+              )}
+
+              {insights?.alerts && insights.alerts.length > 0 && (
+                <Box w="full">
+                  <Text fontWeight="semibold" color="red.800" mb={3}>Alerts</Text>
+                  <VStack align="start" gap={2}>
+                    {insights.alerts.map((alert, index) => (
+                      <Text key={index} fontSize="sm" color="red.700">⚠️ {alert}</Text>
+                    ))}
+                  </VStack>
+                </Box>
+              )}
+
+              {(!insights || (!insights.key_findings?.length && !insights.recommendations?.length && !insights.next_steps?.length && !insights.alerts?.length)) && (
+                <Text color="blue.700" fontSize="sm">
+                  No insights available for this component.
+                </Text>
+              )}
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      );
     }
 
     // List component (render as simple list)

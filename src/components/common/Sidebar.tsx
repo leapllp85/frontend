@@ -1,22 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import Link from "next/link";
-import { Box, Text, VStack, HStack, Button, Input } from "@chakra-ui/react";
-import { Home, FolderOpen, FileText, Users, BarChart3, CheckCircle, LogOut, Send, MessageCircle } from "lucide-react";
+import { Box, Text, VStack, HStack, Button, Input, Spinner, Badge, IconButton } from "@chakra-ui/react";
+import { Home, FolderOpen, FileText, Users, BarChart3, CheckCircle, LogOut, Send, MessageCircle, Zap, X } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { useAuth, useRBAC } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
+import { useChatContext } from '@/contexts/ChatContext';
 
 interface SidebarProps {
-  setHasQueried: React.Dispatch<React.SetStateAction<boolean>>;
-  setUserQuestion: React.Dispatch<React.SetStateAction<string>>;
+  onSendMessage?: (message: string) => Promise<void>;
+  onResetView?: () => void;
+  disabled?: boolean;
+  enableAsync?: boolean;
+  enableStreaming?: boolean;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  onSendMessage, 
+  onResetView,
+  disabled = false,
+  enableAsync = true,
+  enableStreaming = true
+}) => {
   const [chatMessage, setChatMessage] = useState("");
-  const [activeRoute, setActiveRoute] = useState("/");
+  
+  const {
+    sendMessage: contextSendMessage,
+    sendMessageAsync,
+    sendMessageStreaming,
+    isLoading,
+    progress,
+    progressMessage,
+    cancelActiveTask
+  } = useChatContext();
 
   const pathname = usePathname();
-  const { hasRole } = useRBAC();
+  const { hasRole, user } = useRBAC();
 
   const navigationItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -27,30 +46,50 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
     { icon: Users, label: "My Team", href: "/my-team" },
   ];
 
-  useEffect(() => { 
-    setActiveRoute(pathname);
-  }, [pathname]);
+  const handleSendMessage = useCallback(async () => {
+    const message = chatMessage.trim();
+    if (!message || isLoading || disabled) return;
 
-  const handleSendMessage = () => {
-    setHasQueried(true);
-    if (chatMessage.trim()) {
-      setUserQuestion(chatMessage);
-      setChatMessage("");
+    setChatMessage("");
+    
+    try {
+      // Always use async mode internally for seamless experience
+      if (onSendMessage) {
+        await onSendMessage(message);
+      } else {
+        await sendMessageAsync(message);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
-  };
+  }, [chatMessage, onSendMessage, sendMessageAsync, isLoading, disabled]);
 
-  const { user, logout: authLogout } = useAuth();
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
+
+
+  const { logout: authLogout } = useAuth();
   
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     authLogout();
-  };
+  }, [authLogout]);
+
+  const handleNavClick = useCallback(() => {
+    if (onResetView) {
+      onResetView();
+    }
+  }, [onResetView]);
   
   return (
     <VStack 
-      w={{ base: "280px", md: "320px", lg: "25vw", xl: "22vw", "2xl": "20vw" }}
-      minW="280px"
-      maxW="25vw"
+      w={{ base: "260px", md: "280px", lg: "300px", xl: "320px", "2xl": "340px" }}
+      minW={{ base: "260px", md: "280px" }}
+      maxW={{ base: "260px", md: "280px", lg: "300px", xl: "320px", "2xl": "340px" }}
       h="100vh" 
       bg="linear-gradient(180deg, #a4489e 0%, #8b5a9d 100%)"
       overflow="hidden"
@@ -58,62 +97,59 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
       justify="space-between"
     >
       {/* Welcome message */}
-      <VStack p={6} gap={8} pt={16} w="full">
-        {/* Decorative dots */}
-        <HStack gap={2}>
-          <Box w="3" h="3" bg="whiteAlpha.400" borderRadius="full" />
-          <Box w="3" h="3" bg="whiteAlpha.400" borderRadius="full" />
-          <Box w="3" h="3" bg="whiteAlpha.400" borderRadius="full" />
-          <Box w="3" h="3" bg="whiteAlpha.400" borderRadius="full" />
+      <VStack p={{ base: 4, md: 5, lg: 6 }} gap={{ base: 2, md: 4, lg: 6 }} pt={{ base: 8, md: 10, lg: 12 }} w="full">
+        {/* Decorative dots - visible only on 15.6+ inch screens */}
+        <HStack gap={2} display={{ base: "none", "2xl": "flex" }}>
+          {[...Array(4)].map((_, i) => (
+            <Box 
+              key={i}
+              w="3" 
+              h="3" 
+              bg="whiteAlpha.400" 
+              borderRadius="full" 
+            />
+          ))}
         </HStack>
-        {hasRole('Manager') ? (
-          <VStack gap={2}>
-            <Text color="whiteAlpha.800" fontSize="sm" mb={1}>
-              Hi There,
-            </Text>
-            <Text color="white" fontSize="lg" fontWeight="medium">
-              How can I help you
-            </Text>
-          </VStack>
-        ) : (
-          <VStack gap={2}>
-            <Text color="whiteAlpha.800" fontSize="sm" mb={1}>
-              Hi There,
-            </Text>
-            <Text color="white" fontSize="lg" fontWeight="medium">
-              Welcome to Corporate MVP
-            </Text>
-          </VStack>
-        )}
+        
+        <VStack gap={2}>
+          <Text color="whiteAlpha.800" fontSize={{ base: "xs", md: "sm" }} mb={1}>
+            Hello, {user?.first_name || 'User'}!,
+          </Text>
+          <Text color="white" fontSize={{ base: "md", md: "lg" }} fontWeight="medium">
+            {hasRole('Manager') ? 'How can I help you' : 'Welcome to Corporate MVP'}
+          </Text>
+        </VStack>
       </VStack>
     
       {/* Navigation */}
-      <VStack w="full" gap={2} px={{ base: 4, md: 6 }} mt={{ base: 4, md: 8 }}>
+      <VStack w="full" gap={{ base: 1, md: 1, lg: 2 }} px={{ base: 3, md: 4, lg: 5 }}>
         {navigationItems.map((item, index) => (
           <Link key={index} href={item.href} style={{ width: '100%' }}>
             <Button
               w="full"
-              h={{ base: "10", md: "12" }}
-              bg={activeRoute === item.href ? "whiteAlpha.200" : "transparent"}
+              h={{ base: "9", md: "10", lg: "11" }}
+              bg={pathname === item.href ? "whiteAlpha.200" : "transparent"}
               color="white"
               _hover={{ bg: "whiteAlpha.200" }}
               justifyContent="flex-start"
               variant="ghost"
               fontWeight="medium"
               borderRadius="lg"
-              fontSize={{ base: "sm", md: "md" }}
+              fontSize={{ base: "xs", md: "sm", lg: "md" }}
+              onClick={handleNavClick}
             >
               <HStack gap={2}>
-                <item.icon size={18} />
+                <item.icon size={16} />
                 <Text>{item.label}</Text>
               </HStack>
             </Button>
           </Link>
         ))}
-        {/* Logout Button at Bottom */}
+        
+        {/* Logout Button */}
         <Button
           w="full"
-          h={{ base: "10", md: "12" }}
+          h={{ base: "9", md: "10", lg: "11" }}
           bg="transparent"
           color="white"
           _hover={{ bg: "red.500" }}
@@ -122,10 +158,10 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
           fontWeight="medium"
           borderRadius="lg"
           onClick={handleLogout}
-          fontSize={{ base: "sm", md: "md" }}
+          fontSize={{ base: "xs", md: "sm", lg: "md" }}
         >
           <HStack gap={2}>
-            <LogOut size={18} />
+            <LogOut size={16} />
             <Text>Logout</Text>
           </HStack>
         </Button>
@@ -133,39 +169,87 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
       
       {/* AI Assistant Chat Section - Manager Only */}
       {hasRole('Manager') && (
-        <Box px={{ base: 4, md: 6 }} mt={{ base: 4, md: 8 }} pb={{ base: 4, md: 6 }} display="flex" flexDirection="column" w="full">
+        <Box 
+          px={{ base: 3, md: 4, lg: 5 }} 
+          mt={{ base: 3, md: 5, lg: 6 }} 
+          pb={{ base: 3, md: 4, lg: 5, "2xl": 12 }} 
+          w="full"
+        >
           <VStack gap={3} align="stretch" h="full">
             <HStack gap={2} align="center">
               <MessageCircle size={18} color="white" />
-              <Text color="white" fontSize={{ base: "sm", md: "md" }} fontWeight="bold">AI Assistant</Text>
+              <Text color="white" fontSize={{ base: "xs", md: "sm", lg: "md" }} fontWeight="bold">
+                AI Assistant
+              </Text>
             </HStack>
+            
             <HStack
-              p={{ base: 3, md: 4 }}
-              // bg="linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)"
+              p={{ base: 2, md: 3, lg: 4 }}
               borderRadius="xl"
               border="1px solid"
               borderColor="whiteAlpha.200"
               w="full"
-              gap={0}
+              gap={2}
             >
               <Text 
-                fontSize={{ base: "sm", md: "md" }} 
+                fontSize={{ base: "xs", md: "sm", lg: "md" }} 
                 color="white" 
-                textAlign="center"
                 fontWeight="medium"
               >
                 💡
               </Text>
               <Text 
-                fontSize={{ base: "xs", md: "sm" }} 
+                fontSize={{ base: "2xs", md: "xs", lg: "sm" }} 
                 color="white" 
-                textAlign="center"
                 fontWeight="medium"
+                textAlign="left"
               >
-                Tip: Ask me anything about your projects, action items, or team insights!
+                Ask me anything about your projects, action items, or team insights!
               </Text>
             </HStack>
             
+            {/* Progress Indicator */}
+            {(isLoading || progress !== null) && (
+              <Box w="full" p={{ base: 2, md: 3 }} bg="whiteAlpha.100" borderRadius="lg" border="1px solid" borderColor="whiteAlpha.200">
+                <VStack gap={2} align="start">
+                  <HStack justify="space-between" w="full">
+                    <Text fontSize={{ base: "2xs", md: "xs" }} color="white" fontWeight="medium">
+                      {progressMessage || 'Processing...'}
+                    </Text>
+                    {isLoading && (
+                      <IconButton
+                        size="xs"
+                        variant="ghost"
+                        colorScheme="whiteAlpha"
+                        onClick={() => cancelActiveTask()}
+                        aria-label="Cancel"
+                      >
+                        <X size={10} />
+                      </IconButton>
+                    )}
+                  </HStack>
+                  {progress !== null && (
+                    <Box
+                      w="full"
+                      h="2"
+                      bg="whiteAlpha.200"
+                      borderRadius="full"
+                      overflow="hidden"
+                    >
+                      <Box
+                        h="full"
+                        bg="purple.400"
+                        borderRadius="full"
+                        width={`${progress}%`}
+                        transition="width 0.3s ease"
+                      />
+                    </Box>
+                  )}
+                </VStack>
+              </Box>
+            )}
+            
+
             {/* Chat Input */}
             <HStack gap={2}>
               <Input
@@ -177,20 +261,33 @@ export const Sidebar: React.FC<SidebarProps> = ({setHasQueried, setUserQuestion}
                 borderColor="whiteAlpha.200"
                 color="white"
                 _placeholder={{ color: "whiteAlpha.600" }}
-                _focus={{ borderColor: "whiteAlpha.400" }}
-                size="sm"
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                _focus={{ 
+                  borderColor: "whiteAlpha.400",
+                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.4)"
+                }}
+                size={{ base: "xs", md: "sm" }}
+                onKeyPress={handleKeyPress}
+                disabled={disabled || isLoading}
               />
               <Button
-                size="sm"
+                size={{ base: "xs", md: "sm" }}
                 bg="whiteAlpha.200"
                 color="white"
                 _hover={{ bg: "whiteAlpha.300" }}
+                _disabled={{ 
+                  opacity: 0.6,
+                  cursor: "not-allowed"
+                }}
                 onClick={handleSendMessage}
                 minW="auto"
                 px={3}
+                disabled={disabled || isLoading || !chatMessage.trim()}
               >
-                <Send size={14} />
+                {isLoading ? (
+                  <Spinner size="xs" />
+                ) : (
+                  <Send size={14} />
+                )}
               </Button>
             </HStack>
           </VStack>

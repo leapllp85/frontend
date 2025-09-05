@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { TrendingUp, TrendingDown, Minus, Users, DollarSign, Activity, Target } from 'lucide-react';
 import { ComponentConfig, DatasetResult } from '../../types/ragApi';
+import { toTitleCase } from '../../utils/formatter';
 
 interface MetricCardProps {
   config: ComponentConfig;
@@ -23,16 +24,121 @@ export const MetricCard: React.FC<MetricCardProps> = ({ config, dataset }) => {
 
   if (!primaryData || !primaryData.data || primaryData.data.length === 0) {
     return (
-      <Card.Root bg="red.50" borderColor="red.200" borderWidth="1px">
-        <Card.Body p={6}>
-          <Text color="red.600">No data available for metric</Text>
-        </Card.Body>
-      </Card.Root>
+      <Box w="full" h="full" p={4} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="lg">
+        <Text color="red.600">No data available for metric</Text>
+      </Box>
     );
   }
 
-  // Calculate metric value based on aggregation
+  // For metric cards with multiple metrics, render each metric separately
+  if (config.properties.metrics && config.properties.metrics.length > 0) {
+    return (
+      <Box w="full" h="full" p={4}>
+        <VStack align="start" gap={3} w="full" h="full">
+          <Box w="full" pb={3} borderBottom="1px solid" borderColor="gray.200">
+            <HStack justify="space-between" w="full">
+              <Box>
+                <Text fontSize="md" fontWeight="semibold" color="gray.800">
+                  {config.title}
+                </Text>
+                {config.description && (
+                  <Text fontSize="xs" color="gray.600" mt={1}>
+                    {config.description}
+                  </Text>
+                )}
+              </Box>
+              <Badge colorScheme="purple" variant="solid" px={3} py={1} borderRadius="full">
+                METRICS
+              </Badge>
+            </HStack>
+          </Box>
+          <VStack gap={4} w="full">
+            {config.properties.metrics.map((metric, index) => {
+              // Handle both string metrics and object metrics
+              const metricName = typeof metric === 'string' ? metric : metric.label;
+              
+              // Find corresponding data for this metric
+              let metricData = primaryData.data.find(row => 
+                row.label === metricName || 
+                (row.field && typeof metric === 'object' && metric.field && row.field === metric.field)
+              );
+              
+              // If no direct match, try to find by index for simple cases
+              if (!metricData && index < primaryData.data.length) {
+                metricData = primaryData.data[index];
+              }
+              
+              let value = 0;
+              let label = metricName;
+              
+              if (metricData) {
+                if (typeof metricData.value === 'number') {
+                  value = metricData.value;
+                }
+                if (metricData.label) {
+                  label = metricData.label;
+                }
+              } else if (typeof metric === 'object' && metric.filter) {
+                // Parse filter and calculate
+                const filterMatch = metric.filter.match(/(\w+)='(\w+)'/);
+                if (filterMatch) {
+                  const [, field, filterValue] = filterMatch;
+                  value = primaryData.data.filter(row => row[field] === filterValue).length;
+                }
+              }
+
+              return (
+                <Box key={index} w="full" p={4} bg="gray.50" borderRadius="lg">
+                  <HStack justify="space-between" w="full">
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="xs" color="gray.600" fontWeight="medium">
+                        {toTitleCase(label)}
+                      </Text>
+                      <Heading size="lg" color="gray.800">
+                        {value.toLocaleString()}
+                      </Heading>
+                    </VStack>
+                    <Box p={2} bg="blue.50" borderRadius="md" color="blue.600">
+                      <Icon>
+                        <TrendingUp size={20} />
+                      </Icon>
+                    </Box>
+                  </HStack>
+                </Box>
+              );
+            })}
+          </VStack>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // Calculate metric value based on configuration
   const calculateMetric = () => {
+    // Check if we have metrics configuration (new format)
+    if (config.properties.metrics && config.properties.metrics.length > 0) {
+      // For metric cards with multiple metrics, use the data directly
+      const metricData = primaryData.data.find(row => row.label || row.field);
+      if (metricData && typeof metricData.value === 'number') {
+        return metricData.value;
+      }
+      
+      // If no direct value, calculate based on filter
+      const metric = config.properties.metrics[0];
+      if (metric.filter) {
+        // Parse filter like "mental_health='High'"
+        const filterMatch = metric.filter.match(/(\w+)='(\w+)'/);
+        if (filterMatch) {
+          const [, field, value] = filterMatch;
+          const count = primaryData.data.filter(row => row[field] === value).length;
+          return count;
+        }
+      }
+      
+      return primaryData.data.length;
+    }
+
+    // Fallback to original logic
     const { aggregation, y_axis } = config.properties;
     const field = y_axis || primaryData.columns[1];
     const values = primaryData.data.map(row => {
@@ -77,7 +183,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({ config, dataset }) => {
 
   // Calculate trend if we have historical data
   const getTrend = () => {
-    if (primaryData.data.length < 2) return null;
+    // For metric cards, don't show trend if we don't have meaningful historical data
+    if (config.properties.metrics || primaryData.data.length < 2) return null;
     
     const values = primaryData.data.map(row => {
       const field = config.properties.y_axis || primaryData.columns[1];
@@ -87,6 +194,9 @@ export const MetricCard: React.FC<MetricCardProps> = ({ config, dataset }) => {
 
     const current = values[values.length - 1];
     const previous = values[values.length - 2];
+    
+    if (previous === 0) return null; // Avoid division by zero
+    
     const change = ((current - previous) / previous) * 100;
 
     return {

@@ -14,18 +14,17 @@ import {
     Flex,
 } from '@chakra-ui/react';
 import { 
+    Icon,
     Users, 
-    Brain, 
     TrendingUp, 
     Star, 
-    Calendar,
     AlertTriangle,
-    Activity,
     Target
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
-import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
+import { dashboardApi, teamApi, DashboardQuickData } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { insights } from './constants';
 
 interface TeamMember {
     id: string;
@@ -192,261 +191,54 @@ export default function Dashboard() {
                     )}
 
                     {/* Quick Data Widgets */}
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} gap={6}>
-                        {/* Team Attrition Risk */}
-                        <Card.Root 
-                            bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
-                            border="none"
-                            borderRadius="2xl"
-                            shadow="xl"
-                            _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
-                            transition="all 0.3s ease"
-                            position="relative"
-                            overflow="hidden"
-                        >
-                            <Box 
-                                position="absolute" 
-                                top="0" 
-                                right="0" 
-                                w="20" 
-                                h="20" 
-                                bg="whiteAlpha.200" 
-                                borderRadius="full" 
-                                transform="translate(8px, -8px)"
-                            />
-                            <Card.Body p={6}>
-                                <VStack gap={4} align="start">
-                                    <HStack justify="space-between" w="full">
-                                        <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                            <AlertTriangle size={24} color="white" />
-                                        </Box>
-                                        <Badge 
-                                            bg="whiteAlpha.300"
-                                            color="white"
-                                            variant="solid"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="full"
-                                        >
-                                            {teamAttritionRisk() > 30 ? 'HIGH RISK' : teamAttritionRisk() > 15 ? 'MEDIUM' : 'LOW RISK'}
-                                        </Badge>
-                                    </HStack>
-                                    <VStack gap={1} align="start" w="full">
-                                        <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                            {teamAttritionRisk()}%
-                                        </Text>
-                                        <Text fontSize="md" color="white" fontWeight="semibold" letterSpacing="wide">
-                                            Team Attrition Risk
-                                        </Text>
+                    <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}>
+                        {insights({
+                            teamAttritionRisk,
+                            teamMentalHealth,
+                            avgUtilization,
+                            topTalent,
+                            averageAge
+                        }).map((insight, index) => (
+                            <Card.Root 
+                                key={index}
+                                bg={insight.bg}
+                                border="none"
+                                borderRadius="2xl"
+                                shadow="xl"
+                                _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
+                                transition="all 0.3s ease"
+                                w="full"
+                            >
+                                <Card.Body p={{ base: 2, md: 4 }}>
+                                    <VStack gap={4} align="start" w="full">
+                                        <HStack justify="space-between" w="full">
+                                            <Box p={{ base: 2, md: 3 }} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
+                                                {React.createElement(insight.icon, { size: 20, color: "white" })}
+                                            </Box>
+                                            <Badge
+                                                bg="whiteAlpha.300"
+                                                color="white"
+                                                variant="solid"
+                                                fontSize={{ base: "2xs", md: "xs" }}
+                                                px={{ base: 2, md: 3 }}
+                                                py={{ base: 1, md: 2 }}
+                                                borderRadius="full"
+                                            >
+                                                {insight.badge}
+                                            </Badge>
+                                        </HStack>
+                                        <VStack gap={1} align="start" w="full">
+                                            <Text fontSize={{ base: "md", md: "xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                                {insight.value}
+                                            </Text>
+                                            <Text fontSize={{ base: "sm", md: "md" }} color="white" fontWeight="semibold" letterSpacing="wide">
+                                                {insight.title}
+                                            </Text>
+                                        </VStack>
                                     </VStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
-
-                        {/* Team Mental Health */}
-                        <Card.Root 
-                            bg="linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)"
-                            border="none"
-                            borderRadius="2xl"
-                            shadow="xl"
-                            _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
-                            transition="all 0.3s ease"
-                            position="relative"
-                            overflow="hidden"
-                        >
-                            <Box 
-                                position="absolute" 
-                                top="0" 
-                                right="0" 
-                                w="20" 
-                                h="20" 
-                                bg="whiteAlpha.200" 
-                                borderRadius="full" 
-                                transform="translate(8px, -8px)"
-                            />
-                            <Card.Body p={6}>
-                                <VStack gap={4} align="start">
-                                    <HStack justify="space-between" w="full">
-                                        <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                            <Brain size={24} color="white" />
-                                        </Box>
-                                        <Badge 
-                                            bg="whiteAlpha.300"
-                                            color="white"
-                                            variant="solid"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="full"
-                                        >
-                                            {teamMentalHealth() > 80 ? 'EXCELLENT' : teamMentalHealth() > 60 ? 'GOOD' : 'NEEDS ATTENTION'}
-                                        </Badge>
-                                    </HStack>
-                                    <VStack gap={1} align="start" w="full">
-                                        <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                            {teamMentalHealth()}%
-                                        </Text>
-                                        <Text fontSize="md" color="white" fontWeight="semibold" letterSpacing="wide">
-                                            Team Mental Health
-                                        </Text>
-                                    </VStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
-
-                        {/* Average Utilization */}
-                        <Card.Root 
-                            bg="linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
-                            border="none"
-                            borderRadius="2xl"
-                            shadow="xl"
-                            _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
-                            transition="all 0.3s ease"
-                            position="relative"
-                            overflow="hidden"
-                        >
-                            <Box 
-                                position="absolute" 
-                                top="0" 
-                                right="0" 
-                                w="20" 
-                                h="20" 
-                                bg="whiteAlpha.200" 
-                                borderRadius="full" 
-                                transform="translate(8px, -8px)"
-                            />
-                            <Card.Body p={6}>
-                                <VStack gap={4} align="start">
-                                    <HStack justify="space-between" w="full">
-                                        <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                            <Activity size={24} color="white" />
-                                        </Box>
-                                        <Badge 
-                                            bg="whiteAlpha.300"
-                                            color="white"
-                                            variant="solid"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="full"
-                                        >
-                                            {avgUtilization() > 90 ? 'OVERLOADED' : avgUtilization() > 80 ? 'OPTIMAL' : 'UNDERUTILIZED'}
-                                        </Badge>
-                                    </HStack>
-                                    <VStack gap={1} align="start" w="full">
-                                        <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                            {avgUtilization()}%
-                                        </Text>
-                                        <Text fontSize="md" color="white" fontWeight="semibold" letterSpacing="wide">
-                                            Avg Utilization
-                                        </Text>
-                                    </VStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
-
-                        {/* Top Talent Count */}
-                        <Card.Root 
-                            bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-                            border="none"
-                            borderRadius="2xl"
-                            shadow="xl"
-                            _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
-                            transition="all 0.3s ease"
-                            position="relative"
-                            overflow="hidden"
-                        >
-                            <Box 
-                                position="absolute" 
-                                top="0" 
-                                right="0" 
-                                w="20" 
-                                h="20" 
-                                bg="whiteAlpha.200" 
-                                borderRadius="full" 
-                                transform="translate(8px, -8px)"
-                            />
-                            <Card.Body p={6}>
-                                <VStack gap={4} align="start">
-                                    <HStack justify="space-between" w="full">
-                                        <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                            <Star size={24} color="white" />
-                                        </Box>
-                                        <Badge 
-                                            bg="whiteAlpha.300"
-                                            color="white"
-                                            variant="solid"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="full"
-                                        >
-                                            STARS
-                                        </Badge>
-                                    </HStack>
-                                    <VStack gap={1} align="start" w="full">
-                                        <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                            {topTalent().length}
-                                        </Text>
-                                        <Text fontSize="md" color="white" fontWeight="semibold" letterSpacing="wide">
-                                            Top Talent
-                                        </Text>
-                                    </VStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
-
-                        {/* Average Age */}
-                        <Card.Root 
-                            bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                            border="none"
-                            borderRadius="2xl"
-                            shadow="xl"
-                            _hover={{ transform: "translateY(-4px)", shadow: "2xl" }}
-                            transition="all 0.3s ease"
-                            position="relative"
-                            overflow="hidden"
-                        >
-                            <Box 
-                                position="absolute" 
-                                top="0" 
-                                right="0" 
-                                w="20" 
-                                h="20" 
-                                bg="whiteAlpha.200" 
-                                borderRadius="full" 
-                                transform="translate(8px, -8px)"
-                            />
-                            <Card.Body p={6}>
-                                <VStack gap={4} align="start">
-                                    <HStack justify="space-between" w="full">
-                                        <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                            <Calendar size={24} color="white" />
-                                        </Box>
-                                        <Badge 
-                                            bg="whiteAlpha.300"
-                                            color="white"
-                                            variant="solid"
-                                            fontSize="xs"
-                                            px={3}
-                                            py={1}
-                                            borderRadius="full"
-                                        >
-                                            YEARS
-                                        </Badge>
-                                    </HStack>
-                                    <VStack gap={1} align="start" w="full">
-                                        <Text fontSize="4xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                            {averageAge()}
-                                        </Text>
-                                        <Text fontSize="md" color="white" fontWeight="semibold" letterSpacing="wide">
-                                            Average Age
-                                        </Text>
-                                    </VStack>
-                                </VStack>
-                            </Card.Body>
-                        </Card.Root>
+                                </Card.Body>
+                            </Card.Root>
+                        ))}
                     </SimpleGrid>
 
                     {/* Top Talent Details */}
@@ -464,11 +256,11 @@ export default function Dashboard() {
                                 <Box p={3} bg="whiteAlpha.200" borderRadius="xl">
                                     <Star size={24} color="white" />
                                 </Box>
-                                <Heading size="xl" color="white" fontWeight="black" letterSpacing="tight">Top 3 Talent</Heading>
+                                <Heading size={{ base: "lg", md: "xl" }} color="white" fontWeight="black" letterSpacing="tight">Top 3 Talent</Heading>
                             </HStack>
                         </Card.Header>
                         <Card.Body p={6} pt={2}>
-                            <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
+                            <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 4, md: 6 }}>
                                 {topTalent().map((member, index) => (
                                     <Card.Root 
                                         key={member.id} 
@@ -497,8 +289,8 @@ export default function Dashboard() {
                                         >
                                             {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
                                         </Badge>
-                                        <Card.Body p={5} pl={16}>
-                                            <VStack gap={3}>
+                                        <Card.Body w="full" p={{ base: 2, md: 4 }}>
+                                            <VStack gap={4}>
                                                 <HStack justify="flex-end" w="full">
                                                     <Badge 
                                                         colorPalette={getRiskColor(member.attritionRisk)} 
@@ -513,19 +305,19 @@ export default function Dashboard() {
                                                     </Badge>
                                                 </HStack>
                                                 <VStack gap={1} align="center">
-                                                    <Text fontWeight="black" fontSize="xl" color="gray.900" letterSpacing="tight">
+                                                    <Text fontWeight="black" fontSize={{ base: "lg", md: "xl" }} color="gray.900" letterSpacing="tight">
                                                         {member.name}
                                                     </Text>
-                                                    <Text fontSize="md" color="gray.700" fontWeight="medium">
+                                                    <Text fontSize={{ base: "sm", md: "md" }} color="gray.700" fontWeight="medium">
                                                         {member.age} years old
                                                     </Text>
                                                 </VStack>
                                                 <HStack justify="space-between" w="full">
                                                     <VStack gap={0} align="center">
-                                                        <Text fontSize="xl" fontWeight="black" color="#a5489f" letterSpacing="tight">
+                                                        <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="black" color="#a5489f" letterSpacing="tight">
                                                             {member.utilization}%
                                                         </Text>
-                                                        <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                                                        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" fontWeight="medium">
                                                             Utilization
                                                         </Text>
                                                     </VStack>
@@ -547,7 +339,7 @@ export default function Dashboard() {
                                                              member.mentalHealth === 'Medium' ? '😐 ' + member.mentalHealth :
                                                              '😟 ' + member.mentalHealth}
                                                         </Badge>
-                                                        <Text fontSize="sm" color="gray.600" fontWeight="medium">
+                                                        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" fontWeight="medium">
                                                             Mental Health
                                                         </Text>
                                                     </VStack>
@@ -578,7 +370,7 @@ export default function Dashboard() {
                             </HStack>
                         </Card.Header>
                         <Card.Body p={6} pt={2}>
-                            <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
+                            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} gap={{ base: 4, md: 6 }}>
                                 {/* Total Team Members */}
                                 <Card.Root 
                                     bg="linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
@@ -600,15 +392,15 @@ export default function Dashboard() {
                                         borderRadius="full" 
                                         transform="translate(6px, -6px)"
                                     />
-                                    <Card.Body p={5}>
+                                    <Card.Body p={{ base: 3, md: 5 }}>
                                         <VStack gap={3} align="center">
                                             <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
                                                 <Users size={20} color="white" />
                                             </Box>
-                                            <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
                                                 {teamMembers.length}
                                             </Text>
-                                            <Text fontSize="sm" color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
+                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
                                                 Total Team Members
                                             </Text>
                                         </VStack>
@@ -641,10 +433,10 @@ export default function Dashboard() {
                                             <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
                                                 <Target size={20} color="white" />
                                             </Box>
-                                            <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
                                                 {teamMembers.filter(m => m.attritionRisk === 'Low').length}
                                             </Text>
-                                            <Text fontSize="sm" color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
+                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
                                                 Low Risk Members
                                             </Text>
                                         </VStack>
@@ -677,10 +469,10 @@ export default function Dashboard() {
                                             <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
                                                 <TrendingUp size={20} color="white" />
                                             </Box>
-                                            <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
                                                 {teamMembers.filter(m => m.attritionRisk === 'Medium').length}
                                             </Text>
-                                            <Text fontSize="sm" color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
+                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
                                                 Medium Risk Members
                                             </Text>
                                         </VStack>
@@ -713,10 +505,10 @@ export default function Dashboard() {
                                             <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
                                                 <AlertTriangle size={20} color="white" />
                                             </Box>
-                                            <Text fontSize="3xl" fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
                                                 {teamMembers.filter(m => m.attritionRisk === 'High').length}
                                             </Text>
-                                            <Text fontSize="sm" color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
+                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
                                                 High Risk Members
                                             </Text>
                                         </VStack>

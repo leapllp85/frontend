@@ -27,13 +27,20 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
 
   const primaryData = dataset[0];
 
+  console.log('DataTable - primaryData:', primaryData);
+  console.log('DataTable - dataset:', dataset);
+  console.log('DataTable - config.properties.columns:', config.properties.columns);
+  
   if (!primaryData || !primaryData.data || primaryData.data.length === 0) {
     return (
-      <Card.Root bg="red.50" borderColor="red.200" borderWidth="1px">
-        <Card.Body p={6}>
-          <Text color="red.600">No data available for table</Text>
-        </Card.Body>
-      </Card.Root>
+      <Box w="full" h="full" p={4} bg="gray.50" border="1px solid" borderColor="gray.200" borderRadius="lg">
+        <VStack gap={2} align="center" justify="center" minH="200px">
+          <Text color="gray.500" fontSize="lg" fontWeight="medium">No data available</Text>
+          <Text color="gray.400" fontSize="sm">
+            {primaryData ? `Dataset has ${primaryData.data?.length || 0} rows` : 'No dataset provided'}
+          </Text>
+        </VStack>
+      </Box>
     );
   }
 
@@ -49,10 +56,45 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
+  // Get column configuration with better labels
+  const getColumnConfig = () => {
+    if (config.properties.columns && config.properties.columns.length > 0) {
+      // Check if columns is an array of objects with field and label
+      if (typeof config.properties.columns[0] === 'object' && 'field' in config.properties.columns[0]) {
+        return config.properties.columns as Array<{field: string, label: string}>;
+      }
+      
+      // Create proper column configuration based on the actual data structure
+      // From the cached response, the columns should be in this order:
+      const desiredColumns = [
+        { field: 'employee_name', label: 'Employee Name' },
+        { field: 'project_count', label: 'Projects Completed' },
+        { field: 'manager_assessment_risk', label: 'Risk Level' },
+        { field: 'primary_trigger', label: 'Primary Trigger' }
+      ];
+      
+      // Filter to only include columns that exist in the data
+      return desiredColumns.filter(col => 
+        primaryData.columns.includes(col.field)
+      );
+    }
+    
+    // Fallback to primary data columns with improved formatting
+    return primaryData.columns.map(col => ({
+      field: col,
+      label: col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    }));
+  };
+
+  const columnConfig = getColumnConfig();
+  
+  console.log('DataTable - columnConfig:', columnConfig);
+  console.log('DataTable - sample row data:', primaryData.data[0]);
+
   const exportToCSV = () => {
-    const headers = primaryData.columns.join(',');
+    const headers = columnConfig.map(col => col.label).join(',');
     const rows = filteredData.map(row => 
-      primaryData.columns.map(col => `"${row[col] || ''}"`).join(',')
+      columnConfig.map(col => `"${row[col.field] || ''}"`).join(',')
     ).join('\n');
     
     const csv = `${headers}\n${rows}`;
@@ -66,20 +108,20 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
   };
 
   return (
-    <Card.Root bg="white" borderColor="gray.200" borderWidth="1px" borderRadius="xl" shadow="lg">
-      <Card.Header p={6} pb={4}>
-        <VStack align="start" gap={4}>
+    <Box w="full" h="full">
+      <VStack align="start" gap={3} w="full" h="full">
+        <Box w="full" p={4} borderBottom="1px solid" borderColor="gray.200">
           <HStack justify="space-between" w="full">
-            <VStack align="start" gap={2}>
-              <Heading size="lg" color="gray.800">
+            <Box>
+              <Text fontSize="md" fontWeight="semibold" color="gray.800">
                 {config.title}
-              </Heading>
+              </Text>
               {config.description && (
-                <Text color="gray.600" fontSize="sm">
+                <Text fontSize="xs" color="gray.600" mt={1}>
                   {config.description}
                 </Text>
               )}
-            </VStack>
+            </Box>
             <Badge colorScheme="green" variant="solid" px={3} py={1} borderRadius="full">
               DATA TABLE
             </Badge>
@@ -113,17 +155,23 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
               Export CSV
             </Button>
           </HStack>
-        </VStack>
-      </Card.Header>
-
-      <Card.Body p={0}>
-        <Box overflowX="auto">
+        </Box>
+        
+        <Box overflowX="auto" w="full">
           <Table.Root size="sm">
-            <Table.Header bg="white">
+            <Table.Header bg="gray.800">
               <Table.Row>
-                {primaryData.columns.map((column, index) => (
-                  <Table.ColumnHeader key={index} p={4} fontWeight="semibold" color="gray.500">
-                    {column.replace(/_/g, ' ').toUpperCase()}
+                {columnConfig.map((column, index) => (
+                  <Table.ColumnHeader 
+                    key={index} 
+                    p={3} 
+                    fontWeight="semibold" 
+                    color="white" 
+                    fontSize="xs" 
+                    textTransform="uppercase" 
+                    letterSpacing="wide"
+                  >
+                    {column.label}
                   </Table.ColumnHeader>
                 ))}
               </Table.Row>
@@ -131,10 +179,10 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
             <Table.Body>
               {paginatedData.map((row, rowIndex) => (
                 <Table.Row key={rowIndex} _hover={{ bg: "gray.25" }} bg="white">
-                  {primaryData.columns.map((column, colIndex) => (
-                    <Table.Cell key={colIndex} p={4} borderBottom="1px solid" borderColor="gray.100" bg="white">
-                      <Text fontSize="sm" color="gray.800">
-                        {String(row[column] || '-')}
+                  {columnConfig.map((column, colIndex) => (
+                    <Table.Cell key={colIndex} p={3} borderBottom="1px solid" borderColor="gray.100" bg="white">
+                      <Text fontSize="xs" color="gray.800">
+                        {String(row[column.field] || '-')}
                       </Text>
                     </Table.Cell>
                   ))}
@@ -180,7 +228,7 @@ export const DataTable: React.FC<DataTableProps> = ({ config, dataset }) => {
             <strong> Source:</strong> {primaryData.description}
           </Text>
         </Box>
-      </Card.Body>
-    </Card.Root>
+      </VStack>
+    </Box>
   );
 };

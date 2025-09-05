@@ -2,18 +2,22 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { ChatMessage, ChatConversation, RAGApiResponse } from '../types/ragApi';
-import { generateChat, generateChatWithAbort } from '../lib/apis/llm';
-import { chatApi } from '../services/chatApi';
+import { asyncChatApi, AsyncChatOptions } from '../services/asyncChatApi';
 
 interface ChatContextType {
   currentConversation: ChatConversation | null;
   conversations: ChatConversation[];
   isLoading: boolean;
   isTyping: boolean;
-  progress: string | null;
+  progress: number | null;
+  progressMessage: string | null;
+  activeTasks: string[];
   addMessage: (content: string, type: 'user' | 'assistant', response?: RAGApiResponse) => void;
   sendMessage: (content: string, attachments?: File[]) => Promise<void>;
   sendMessageAsync: (content: string, attachments?: File[]) => Promise<void>;
+  sendMessageStreaming: (content: string, attachments?: File[]) => Promise<void>;
+  cancelActiveTask: (taskId?: string) => Promise<void>;
+  cancelAllTasks: () => Promise<void>;
   startNewConversation: () => void;
   loadConversation: (conversationId: string) => void;
   deleteConversation: (conversationId: string) => void;
@@ -37,17 +41,17 @@ interface ChatProviderProps {
   children: React.ReactNode;
 }
 
-export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Element => {
+export const ChatProvider: React.FC<ChatProviderProps> = ({ children }) => {
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<ChatConversation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
-  const [pendingRequest, setPendingRequest] = useState<string | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [progressMessage, setProgressMessage] = useState<string | null>(null);
+  const [activeTasks, setActiveTasks] = useState<string[]>([]);
 
   const generateId = (): string => {
-    // Generate a proper UUID v4
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       const r = Math.random() * 16 | 0;
       const v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -55,56 +59,22 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
     });
   };
 
-  // Load conversations from localStorage on mount (client-side only)
+  // Initialize with fresh conversation on mount (no persistence)
   useEffect(() => {
     setIsHydrated(true);
     
-    if (typeof window === 'undefined') return;
-    
-    const savedConversations = localStorage.getItem('chat_conversations');
-    if (savedConversations) {
-      try {
-        const parsed = JSON.parse(savedConversations);
-        // Convert timestamp strings back to Date objects
-        const conversationsWithDates = parsed.map((conv: any) => ({
-          ...conv,
-          created_at: new Date(conv.created_at),
-          updated_at: new Date(conv.updated_at),
-          messages: conv.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
-        setConversations(conversationsWithDates);
-        
-        // Set the most recent conversation as current if none exists
-        if (conversationsWithDates.length > 0 && !currentConversation) {
-          setCurrentConversation(conversationsWithDates[0]);
-        }
-      } catch (error) {
-        console.error('Failed to parse saved conversations:', error);
-      }
-    } else {
-      // Create initial conversation if none exists
-      const initialConversation = {
-        id: generateId(),
-        messages: [],
-        created_at: new Date(),
-        updated_at: new Date(),
-      };
-      setCurrentConversation(initialConversation);
-      setConversations([initialConversation]);
-    }
+    // Always start with a fresh conversation
+    const initialConversation = {
+      id: generateId(),
+      messages: [],
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    setCurrentConversation(initialConversation);
+    setConversations([initialConversation]);
   }, []);
 
-  // Save conversations to localStorage whenever they change (client-side only)
-  useEffect(() => {
-    if (!isHydrated || typeof window === 'undefined') return;
-    
-    if (conversations.length > 0) {
-      localStorage.setItem('chat_conversations', JSON.stringify(conversations));
-    }
-  }, [conversations, isHydrated]);
+  // No persistence - conversations are session-only
 
   const startNewConversation = useCallback(() => {
     const newConversation: ChatConversation = {
@@ -114,6 +84,7 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
       updated_at: new Date(),
     };
     
+    // Add to conversations instead of replacing
     setConversations(prev => [newConversation, ...prev]);
     setCurrentConversation(newConversation);
   }, []);
@@ -128,7 +99,6 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
         updated_at: new Date(),
       };
       
-      // Add the message to the new conversation
       const newMessage: ChatMessage = {
         id: generateId(),
         type,
@@ -148,14 +118,14 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
       return;
     }
 
-    // Check for duplicate messages (same content and type within last 5 seconds)
+    // Check for duplicate messages
     const lastMessage = currentConversation.messages[currentConversation.messages.length - 1];
     if (lastMessage && 
         lastMessage.content === content && 
         lastMessage.type === type &&
         (new Date().getTime() - new Date(lastMessage.timestamp).getTime()) < 5000) {
       console.log('Duplicate message prevented:', content);
-      return; // Skip duplicate message
+      return;
     }
 
     const newMessage: ChatMessage = {
@@ -180,98 +150,138 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
     );
   }, [currentConversation]);
 
+  // Simplified sendMessage that uses async internally but appears synchronous
   const sendMessage = useCallback(async (content: string, attachments?: File[]) => {
+    return await sendMessageAsync(content, attachments);
+  }, []);
+
+  const sendMessageAsync = useCallback(async (content: string, attachments?: File[]) => {
     if (!content.trim() || isLoading) return;
 
-    // Prevent duplicate requests for the same content
-    if (pendingRequest === content) {
-      console.log('Duplicate request prevented:', content);
-      return;
-    }
-    
-    // Cancel any existing request
-    if (abortControllerRef.current) {
-      console.log('Aborting previous request');
-      abortControllerRef.current.abort();
-    }
-    
-    const newAbortController = new AbortController();
-    abortControllerRef.current = newAbortController;
-    setPendingRequest(content);
-    
-    console.log('Starting new API request:', content);
-
-    // Ensure we have a conversation before adding message
+    // Ensure we have a conversation
     if (!currentConversation) {
       startNewConversation();
-      // Wait for conversation to be created
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     
     // Add user message
     addMessage(content, 'user');
     setIsLoading(true);
+    setProgress(0);
+    setProgressMessage('Processing your request...');
 
+    let hasCompleted = false;
+    
     try {
-      // Call the API with abort signal and timeout
-      const timeoutId = setTimeout(() => {
-        newAbortController.abort();
-        console.log('Request timed out after 30 seconds');
-      }, 30000);
-      
-      const response = await generateChatWithAbort(content, newAbortController.signal);
-      clearTimeout(timeoutId);
-      
-      // Check if request was aborted
-      if (newAbortController.signal.aborted) {
-        return;
-      }
-      
-      // Handle different response types
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Check if it's an error response
-        if (data.success === false && data.error) {
-          addMessage(`I apologize, but I encountered an error: ${data.error}`, 'assistant');
-          return;
+      const options: AsyncChatOptions = {
+        onProgress: (progress, message) => {
+          setProgress(progress);
+          setProgressMessage(message || 'Processing...');
+        },
+        onComplete: (response) => {
+          hasCompleted = true;
+          console.log('onComplete response:', response);
+          // Add the full structured response with meaningful content
+          const messageContent = response?.insights?.key_findings?.[0] || 'Dashboard generated successfully';
+          addMessage(messageContent, 'assistant', response);
+        },
+        onError: (error) => {
+          hasCompleted = true;
+          addMessage(`I apologize, but I encountered an error: ${error}`, 'assistant');
         }
-        
-        // Check if it's a structured RAG response
-        if (data.success !== undefined && data.response) {
-          // Use the nested response object for RAG responses
-          const ragResponse = data.response;
-          const messageText = ragResponse.insights?.key_findings?.[0] || ragResponse.analysis?.query_intent || 'Dashboard generated successfully';
-          addMessage(messageText, 'assistant', ragResponse);
-        } else if (data.success !== undefined) {
-          addMessage(data.raw_response || 'Response received', 'assistant', data);
-        } else {
-          // Handle simple string response
-          const responseText = typeof data === 'string' ? data : data.response || 'No response received';
-          addMessage(responseText, 'assistant');
-        }
-      } else {
-        // Handle HTTP error responses
-        const errorData = await response.json().catch(() => null);
-        if (errorData && errorData.error) {
-          addMessage(`I encountered an error: ${errorData.error}`, 'assistant');
-        } else {
-          throw new Error(`API request failed: ${response.status}`);
-        }
+      };
+
+      await asyncChatApi.sendMessageAsync(content, currentConversation?.id, options);
+    } catch (error) {
+      console.error('Chat error:', error);
+      if (!hasCompleted) {
+        addMessage('I apologize, but I encountered an error processing your request.', 'assistant');
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('Request was cancelled');
-        return;
-      }
-      console.error('Failed to send message:', error);
-      addMessage('Sorry, I encountered an error while processing your message. Please try again.', 'assistant');
     } finally {
       setIsLoading(false);
-      setPendingRequest(null);
-      abortControllerRef.current = null;
+      setProgress(null);
+      setProgressMessage(null);
     }
-  }, [addMessage, isLoading, pendingRequest, startNewConversation]);
+  }, [currentConversation, isLoading, addMessage, startNewConversation]);
+
+  const sendMessageStreaming = useCallback(async (content: string, attachments?: File[]) => {
+    if (!content.trim() || isLoading) return;
+
+    if (!currentConversation) {
+      startNewConversation();
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    addMessage(content, 'user');
+    setIsLoading(true);
+    setIsTyping(true);
+
+    try {
+      const options: AsyncChatOptions = {
+        onProgress: (progress, message) => {
+          setProgress(progress);
+          setProgressMessage(message || 'Streaming...');
+        },
+        onPartialResponse: (partialData) => {
+          // Handle partial responses for streaming
+        },
+        onComplete: (response) => {
+          const messageText = response.insights?.key_findings?.[0] || 
+                            response.analysis?.query_intent || 
+                            'Response generated successfully';
+          addMessage(messageText, 'assistant', response);
+          setIsTyping(false);
+        },
+        onError: (error) => {
+          addMessage(`I apologize, but I encountered an error: ${error}`, 'assistant');
+          setIsTyping(false);
+        }
+      };
+
+      await asyncChatApi.sendMessageStreaming(content, currentConversation?.id, options);
+    } catch (error) {
+      console.error('Streaming chat error:', error);
+      addMessage('I apologize, but I encountered an error processing your request.', 'assistant');
+      setIsTyping(false);
+    } finally {
+      setIsLoading(false);
+      setProgress(null);
+      setProgressMessage(null);
+    }
+  }, [currentConversation, isLoading, addMessage, startNewConversation]);
+
+  const cancelActiveTask = useCallback(async (taskId?: string) => {
+    try {
+      if (taskId) {
+        await asyncChatApi.cancelTask(taskId);
+        setActiveTasks(prev => prev.filter(id => id !== taskId));
+      } else {
+        // Cancel the most recent task
+        const tasks = await asyncChatApi.getActiveTasks();
+        if (tasks.length > 0) {
+          await asyncChatApi.cancelTask(tasks[0].task_id);
+        }
+      }
+      
+      setIsLoading(false);
+      setProgress(null);
+      setProgressMessage(null);
+    } catch (error) {
+      console.error('Failed to cancel task:', error);
+    }
+  }, []);
+
+  const cancelAllTasks = useCallback(async () => {
+    try {
+      await asyncChatApi.cancelAllTasks();
+      setActiveTasks([]);
+      setIsLoading(false);
+      setProgress(null);
+      setProgressMessage(null);
+    } catch (error) {
+      console.error('Failed to cancel all tasks:', error);
+    }
+  }, []);
 
   const loadConversation = useCallback((conversationId: string) => {
     const conversation = conversations.find(conv => conv.id === conversationId);
@@ -290,73 +300,52 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): JSX.Ele
   const renameConversation = useCallback((conversationId: string, title: string) => {
     setConversations(prev => 
       prev.map(conv => 
-        conv.id === conversationId 
-          ? { ...conv, title, updated_at: new Date() }
-          : conv
+        conv.id === conversationId ? { ...conv, title } : conv
       )
     );
-    if (currentConversation?.id === conversationId) {
-      setCurrentConversation(prev => prev ? { ...prev, title, updated_at: new Date() } : null);
-    }
-  }, [currentConversation]);
+  }, []);
 
   const archiveConversation = useCallback((conversationId: string) => {
     setConversations(prev => 
       prev.map(conv => 
-        conv.id === conversationId 
-          ? { ...conv, isArchived: true, updated_at: new Date() }
-          : conv
+        conv.id === conversationId ? { ...conv, archived: true } : conv
       )
     );
   }, []);
 
   const clearHistory = useCallback(() => {
-    // Cancel any pending requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    
-    // Clear state
     setConversations([]);
     setCurrentConversation(null);
-    setPendingRequest(null);
-    
-    // Clear localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('chat_conversations');
     }
   }, []);
-  
-  // Cleanup on unmount
-  useEffect((): (() => void) => {
-    return (): void => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
 
-  const setTyping = useCallback((typing: boolean) => {
-    setIsTyping(typing);
-  }, []);
+  const contextValue: ChatContextType = {
+    currentConversation,
+    conversations,
+    isLoading,
+    isTyping,
+    progress,
+    progressMessage,
+    activeTasks,
+    addMessage,
+    sendMessage,
+    sendMessageAsync,
+    sendMessageStreaming,
+    cancelActiveTask,
+    cancelAllTasks,
+    startNewConversation,
+    loadConversation,
+    deleteConversation,
+    renameConversation,
+    archiveConversation,
+    clearHistory,
+    setTyping: setIsTyping,
+  };
 
   return (
-    <ChatContext.Provider value={{
-      currentConversation,
-      conversations: isHydrated ? conversations : [],
-      isLoading,
-      isTyping,
-      addMessage,
-      sendMessage,
-      startNewConversation,
-      loadConversation,
-      deleteConversation,
-      renameConversation,
-      archiveConversation,
-      clearHistory,
-      setTyping,
-    }}>
+    <ChatContext.Provider value={contextValue}>
       {children}
     </ChatContext.Provider>
   );

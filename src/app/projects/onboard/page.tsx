@@ -197,7 +197,7 @@ export default function CreateProject() {
                 title: formData.name,
                 description: formData.description,
                 criticality: formData.criticality as 'High' | 'Medium' | 'Low',
-                project_status: 'Active' as 'Active' | 'Inactive',
+                status: 'Active' as 'Active' | 'Inactive',
                 start_date: new Date().toISOString().split('T')[0],
                 go_live_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
                 source: 'Internal',

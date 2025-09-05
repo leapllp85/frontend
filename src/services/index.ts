@@ -7,7 +7,6 @@ export * from './allocationApi';
 export * from './actionItemApi';
 export * from './courseApi';
 export * from './surveyApi';
-export * from './chatApi';
 export * from './userApi';
 export * from './criticalityApi';
 
@@ -19,6 +18,5 @@ export { allocationApi } from './allocationApi';
 export { actionItemApi } from './actionItemApi';
 export { courseApi } from './courseApi';
 export { surveyApi } from './surveyApi';
-export { chatApi } from './chatApi';
 export { userApi } from './userApi';
 export { criticalityApi } from './criticalityApi';

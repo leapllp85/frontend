@@ -70,6 +70,7 @@ export interface Course {
   title: string;
   description: string;
   category: CourseCategory;
+  category_names: string[];
   source: string;
   created_at: string;
 }
@@ -204,6 +205,18 @@ class ApiService {
   // DELETE request
   async delete<T>(endpoint: string): Promise<T> {
     return await this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  // Helper methods for AsyncChatApiService
+  getBaseUrl(): string {
+    return this.baseURL;
+  }
+
+  getAuthToken(): string {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('accessToken') || '';
+    }
+    return '';
   }
 }
 
