@@ -5,7 +5,8 @@ import {
   Box, 
   Heading,
   Spinner,
-  Text
+  Text,
+  useBreakpointValue
 } from '@chakra-ui/react';
 import { Bar, Line } from 'react-chartjs-2';
 import {
@@ -83,8 +84,14 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
     }
   }
 
+  // Responsive labels based on screen size
+  const useShortLabels = useBreakpointValue({ base: true, md: true, lg: true, xl: true, '2xl': false });
+  
+  const fullLabels = ['Mental Health', 'Attrition Risk', 'Projects at Risk', 'Avg Utilization'];
+  const shortLabels = ['MH', 'AR', 'PAR', 'AU'];
+  
   const barData = {
-    labels: ['Mental Health', 'Attrition Risk', 'Projects at Risk', 'Avg Utilization'],
+    labels: useShortLabels ? shortLabels : fullLabels,
     datasets: [
       {
         label: 'Criticality Metrics',
@@ -102,10 +109,19 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
 
   const barOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
+          title: (context: any) => {
+            // Show full label in tooltip when using short labels
+            if (useShortLabels) {
+              const index = context[0]?.dataIndex;
+              return fullLabels[index] || context[0]?.label;
+            }
+            return context[0]?.label;
+          },
           label: (context: any) => `${context.parsed.y}%`,
         },
       },
@@ -115,6 +131,12 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
         beginAtZero: true,
         max: 100,
         ticks: { stepSize: 20 },
+      },
+      x: {
+        ticks: {
+          maxRotation: useShortLabels ? 0 : 45,
+          minRotation: 0,
+        },
       },
     },
   };
@@ -159,7 +181,7 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
 
   if (loading) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Metrics</Heading>
         </Card.Header>
@@ -175,7 +197,7 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
 
   if (error) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Metrics</Heading>
         </Card.Header>
@@ -194,14 +216,14 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
   }
 
   return (
-    <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+    <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
       <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Criticality Metrics</Heading>
       </Card.Header>
-      <Card.Body p={4}>
-        <VStack gap={6}>
+      <Card.Body p={4} h="full" display="flex" flexDirection="column">
+        <VStack gap={6} h="full" flex="1">
           {/* Bar Chart */}
-          <Box w="full" h="250px">
+          <Box w="full" flex="1" minH="200px">
             <Bar data={barData} options={barOptions} />
           </Box>
 

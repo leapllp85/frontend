@@ -168,7 +168,7 @@ export default function ViewSurveyPage() {
                     </HStack>
 
                     {/* Survey Info */}
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Header p={6}>
                             <HStack justify="space-between" align="start">
                                 <VStack align="start" gap={2}>
@@ -238,7 +238,7 @@ export default function ViewSurveyPage() {
                     </SimpleGrid>
 
                     {/* Question Statistics */}
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Header p={6}>
                             <Heading size="lg" color="gray.800">Question Statistics</Heading>
                         </Card.Header>
@@ -287,7 +287,7 @@ export default function ViewSurveyPage() {
                     </Card.Root>
 
                     {/* Non-Responders */}
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Header p={6}>
                             <HStack justify="space-between" align="center">
                                 <Heading size="lg" color="gray.800">Team Members - Pending Response</Heading>

@@ -342,7 +342,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   if (loading) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
         </Card.Header>
@@ -358,7 +358,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   if (error) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
         </Card.Header>
@@ -379,81 +379,12 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
   }
 
   return (
-    <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
-      <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
-        <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
+    <Card.Root bg="white" shadow="lg" borderRadius="xl" h="full" display="flex" flexDirection="column">
+      <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
+        <Heading size="md" color="gray.800">Criticality Vs Attrition Risk</Heading>
       </Card.Header>
-      <Card.Body p={4}>
-        <VStack gap={6}>
-          {/* Risk Analysis Scatter Plot */}
-          <Box w="full">
-            {/* <Text fontSize="sm" fontWeight="medium" color="gray.700" mb={3}>
-              Criticality vs Risk Analysis
-            </Text> */}
-            <Box w="full" h="250px">
-              <Scatter data={scatterData} options={scatterOptions} />
-            </Box>
-            {/* Legend for scatter plot */}
-            {/* <HStack justify="center" gap={6} mt={2}>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="red.500" borderRadius="full" />
-                <Text fontSize="xs" color="gray.600">High Risk</Text>
-              </HStack>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="orange.500" borderRadius="full" />
-                <Text fontSize="xs" color="gray.600">Medium Risk</Text>
-              </HStack>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="green.500" borderRadius="full" />
-                <Text fontSize="xs" color="gray.600">Low Risk</Text>
-              </HStack>
-            </HStack> */}
-          </Box>
-
-          {/* Key Metrics */}
-          {/* <Grid templateColumns="repeat(2, 1fr)" gap={4} w="full">
-            <GridItem>
-              <VStack align="start" gap={1}>
-                <Text fontSize="xs" color="gray.600">Work Wellness</Text>
-                <Text fontSize="lg" fontWeight="bold" color="green.600">
-                  {riskData?.work_wellness}
-                </Text>
-              </VStack>
-            </GridItem>
-            <GridItem>
-              <VStack align="start" gap={1}>
-                <Text fontSize="xs" color="gray.600">Career Growth</Text>
-                <Text fontSize="lg" fontWeight="bold" color="orange.600">
-                  {riskData?.career_growth}
-                </Text>
-              </VStack>
-            </GridItem>
-          </Grid> */}
-
-          {/* Risk Distribution Chart */}
-          {/* <Box w="full">
-            <Text fontSize="sm" fontWeight="medium" color="gray.700" mb={3}>
-              Risk Factor Distribution
-            </Text>
-            <Box w="full" h="200px">
-              <Bar data={barData} options={barOptions} />
-            </Box>
-            <HStack justify="center" gap={6} mt={2}>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="red.500" borderRadius="sm" />
-                <Text fontSize="xs" color="gray.600">High Risk</Text>
-              </HStack>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="orange.500" borderRadius="sm" />
-                <Text fontSize="xs" color="gray.600">Medium Risk</Text>
-              </HStack>
-              <HStack gap={2}>
-                <Box w={3} h={3} bg="green.500" borderRadius="sm" />
-                <Text fontSize="xs" color="gray.600">Low Risk</Text>
-              </HStack>
-            </HStack>
-          </Box> */}
-        </VStack>
+      <Card.Body p={3} flex="1" minH="0">
+      <Scatter data={scatterData} options={scatterOptions} />
       </Card.Body>
     </Card.Root>
   );

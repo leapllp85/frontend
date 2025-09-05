@@ -156,7 +156,7 @@ export default function MyTeam() {
 
                         {/* Analytics Cards */}
                         <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={{ base: 4, md: 6 }}>
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={{ base: 4, md: 6 }}>
                             <HStack gap={{ base: 2, md: 3 }} mb={4}>
                                 <Box p={{ base: 1.5, md: 2 }} bg="blue.100" borderRadius="lg">
@@ -172,7 +172,7 @@ export default function MyTeam() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={{ base: 4, md: 6 }}>
                             <HStack gap={{ base: 2, md: 3 }} mb={4}>
                                 <Box p={{ base: 1.5, md: 2 }} bg="red.100" borderRadius="lg">
@@ -188,7 +188,7 @@ export default function MyTeam() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={{ base: 4, md: 6 }}>
                             <HStack gap={{ base: 2, md: 3 }} mb={4}>
                                 <Box p={{ base: 1.5, md: 2 }} bg="green.100" borderRadius="lg">
@@ -204,7 +204,7 @@ export default function MyTeam() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={{ base: 4, md: 6 }}>
                             <HStack gap={{ base: 2, md: 3 }} mb={4}>
                                 <Box p={{ base: 1.5, md: 2 }} bg="purple.100" borderRadius="lg">
@@ -222,7 +222,7 @@ export default function MyTeam() {
                         </SimpleGrid>
 
                         {/* Team Members Table */}
-                        <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                        <Card.Root bg="white" shadow="md" borderRadius="xl">
                             <Card.Header p={6}>
                                 <Heading size="lg" color="gray.800">
                                     Team Members

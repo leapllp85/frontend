@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Badge, Box, Heading, Text, Flex, HStack, VStack, Avatar, Card, Grid, GridItem } from "@chakra-ui/react";
-import { User, CheckCircle, Users, FileText, BarChart3 } from "lucide-react";
+import { Box, Grid, VStack, Card, Text, Spinner } from "@chakra-ui/react";
+import { User } from "lucide-react";
 import { userApi, actionItemApi, projectApi } from "../../services";
 import type { UserProfile } from "../../services/userApi";
-import { CriticalityMetrics } from "../profile/criticality/CriticalityMetrics";
 import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
-import { Projects } from "../profile/Projects";
-import { ActionItems } from "../profile/ActionItems";
-import { StatsCard } from "../profile/stats/StatsCard";
+import { StatsRow } from "../profile/StatsRow";
+import { NotificationsPanel } from "../profile/NotificationsPanel";
+import { ProjectMetricsOverview } from "../profile/ProjectMetricsOverview";
+import { ProjectRisks } from "../profile/ProjectRisks";
 
 // Import types from services to avoid conflicts
 import type { ActionItem, Project } from "../../services";
@@ -176,59 +176,52 @@ export const Profile = ({
   };
 
   return (
-    <Box w={width} h="100vh" display="flex" bg="gray.50">
-      {/* Sidebar */}
+    <Box 
+      w={width} 
+      h="100vh" 
+      bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+      position="relative"
+    >
       {/* Main Content */}
-      <Box flex="1" h="full" overflow="auto">
-        {/* Welcome Header */}
-        {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={{ base: 4, md: 6 }}>
-          <Flex justify="space-between" align="center" direction={{ base: "column", md: "row" }} gap={{ base: 4, md: 0 }}>
-            <HStack gap={4}>
-              <Heading size={{ base: "md", md: "lg" }} color="gray.800" textAlign={{ base: "center", md: "left" }}>
-                Welcome, {profileData?.user && profileData.user.first_name && profileData.user.last_name ? `${profileData.user.first_name} ${profileData.user.last_name}` : profileData?.user?.username || 'Manager User'} 👋
-              </Heading>
-            </HStack>
-            <Avatar.Root size={{ base: "lg", md: "md" }}>
-              <Avatar.Image src={profileData?.user?.profile_pic || profileData?.profile?.profile_pic} />
-              <Avatar.Fallback bg="purple.100" color="purple.600" fontWeight="bold">
-                {profileData?.user && profileData.user.first_name && profileData.user.last_name ? 
-                  `${profileData.user.first_name[0]}${profileData.user.last_name[0]}` : 
-                  profileData?.user?.username?.[0]?.toUpperCase() || 'MU'
-                }
-              </Avatar.Fallback>
-            </Avatar.Root>
-          </Flex>
-        </Box>
-         */}
+      <Box position="relative" zIndex={1} h="full" overflow="auto">
         {/* Dashboard Content */}
-        <Box p={{ base: 4, md: 6 }}>
-          <Grid templateColumns={{ base: "1fr", lg: "repeat(12, 1fr)" }} gap={{ base: 4, md: 6 }} h="full">
-            {/* Left Column - Stats and Action Items */}
-            <GridItem colSpan={{ base: 1, lg: 8 }}>
-              <VStack gap={6} align="stretch">
-                {/* Stats Cards */}
-                <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={4}>
-                  <StatsCard title="Total Projects" count={projectCount} icon={{ bgColor: "orange.100", node: <CheckCircle size={16} color="#ea580c" /> }} />
-                  <StatsCard title="Active Projects" count={projects.filter(p => p.status === 'Active').length} icon={{ bgColor: "green.100", node: <Users size={16} color="#16a34a" /> }} />
-                  <StatsCard title="At Risk" count={2} icon={{ bgColor: "red.100", node: <FileText size={16} color="#dc2626" /> }} />
-                </Grid>
+        <Box p={{ base: 3, md: 4 }} position="relative" zIndex={2}>
+          <VStack gap={{base:3, "2xl":3}} align="stretch" h="full">
+            {/* Top Stats Row */}
+            <Box flexShrink={0}>
+              <StatsRow 
+                activeProjects={projects.filter(p => p.status === 'Active').length}
+              />
+            </Box>
 
-                {/* Action Items */}
-                <ActionItems actionItems={actionItems} />
-                
-                {/* Projects */}
-                <Projects projects={projects} />
-              </VStack>
-            </GridItem>
-            
-            {/* Right Column - Criticality Analytics */}
-            <GridItem colSpan={{ base: 1, lg: 4 }}>
-              <VStack gap={6} align="stretch">
-                <CriticalityMetrics userId={profileData?.user?.id?.toString()} />
+            {/* Main Content Grid - 2x2 Equal Layout */}
+            <Grid 
+              templateColumns={{ base: "1fr", md: "1fr 1fr" }} 
+              // templateRows={{ base: "1fr", md: "1fr 1fr" }}
+              gap={{base:4, "2xl":6}}
+              minH="0"
+            >
+              {/* Top Left - Criticality vs Attrition Risk */}
+              <Box h="full">
                 <CriticalityVsRisk userId={profileData?.user?.id?.toString()} />
-              </VStack>
-            </GridItem>
-          </Grid>
+              </Box>
+              
+              {/* Top Right - Project Metrics Overview */}
+              <Box h="full">
+                <ProjectMetricsOverview />
+              </Box>
+              
+              {/* Bottom Left - Notifications */}
+              <Box h="full">
+                <NotificationsPanel />
+              </Box>
+              
+              {/* Bottom Right - Project Risks */}
+              <Box h="full">
+                <ProjectRisks />
+              </Box>
+            </Grid>
+          </VStack>
         </Box>
       </Box>
     </Box>

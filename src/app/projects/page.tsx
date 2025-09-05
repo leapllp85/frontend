@@ -121,7 +121,7 @@ export default function ProjectsPage() {
                     <VStack gap={8} align="stretch" w="full">
                     {/* Stats Section */}
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-                        <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                        <Card.Root bg="white" shadow="md" borderRadius="xl">
                             <Card.Body p={6}>
                                 <HStack gap={3} mb={4}>
                                     <Box bg="purple.100" p={2} borderRadius="lg">
@@ -204,7 +204,7 @@ export default function ProjectsPage() {
                                 <GridItem key={project.id}>
                                     <Card.Root
                                         bg="white"
-                                        shadow="lg"
+                                        shadow="md"
                                         borderRadius="xl"
                                         _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                         transition="all 0.3s ease"

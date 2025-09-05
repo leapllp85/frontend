@@ -204,7 +204,7 @@ export default function EditProject() {
                             border="1px solid"
                             borderColor="whiteAlpha.300"
                             borderRadius="xl"
-                            shadow="lg"
+                            shadow="md"
                             _hover={{ shadow: "xl" }}
                             transition="all 0.3s ease"
                         >
@@ -256,7 +256,7 @@ export default function EditProject() {
                             border="1px solid"
                             borderColor="whiteAlpha.300"
                             borderRadius="xl"
-                            shadow="lg"
+                            shadow="md"
                             _hover={{ shadow: "xl" }}
                             transition="all 0.3s ease"
                         >

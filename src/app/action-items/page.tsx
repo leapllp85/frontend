@@ -154,7 +154,7 @@ export default function ActionItemsPage() {
                     <VStack gap={8} align="stretch" w="full">
                         {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
                                 <Box p={2} bg="blue.100" borderRadius="lg">
@@ -170,7 +170,7 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
                                 <Box p={2} bg="orange.100" borderRadius="lg">
@@ -186,7 +186,7 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
                                 <Box p={2} bg="green.100" borderRadius="lg">
@@ -202,7 +202,7 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                    <Card.Root bg="white" shadow="md" borderRadius="xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
                                 <Box p={2} bg="purple.100" borderRadius="lg">
@@ -220,7 +220,7 @@ export default function ActionItemsPage() {
                 </SimpleGrid>
 
                 {/* Action Items List */}
-                <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                <Card.Root bg="white" shadow="md" borderRadius="xl">
                     <Card.Header p={6}>
                         <Heading size="lg" color="gray.800">
                             Action Items

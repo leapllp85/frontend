@@ -281,7 +281,7 @@ export default function SubmitSurveyPage() {
     if (submitted) {
         return (
             <Box p={8} maxW="600px" mx="auto" textAlign="center">
-                <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                <Card.Root bg="white" shadow="md" borderRadius="xl">
                     <Card.Body p={8}>
                         <VStack gap={6}>
                             <CheckCircle size={64} color="#10B981" />
@@ -313,7 +313,7 @@ export default function SubmitSurveyPage() {
                     <VStack align="stretch" gap={6}>
                         {/* Survey Info */}
                         {survey && (
-                            <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                            <Card.Root bg="white" shadow="md" borderRadius="xl">
                                 <Card.Header p={6}>
                                     <VStack align="start" gap={3}>
                                         <HStack gap={3}>
@@ -337,7 +337,7 @@ export default function SubmitSurveyPage() {
                         )}
 
                         {/* Questions */}
-                        <Card.Root bg="white" shadow="lg" borderRadius="xl">
+                        <Card.Root bg="white" shadow="md" borderRadius="xl">
                             <Card.Header p={6}>
                                 <Heading size="lg" color="gray.800">Survey Questions</Heading>
                                 <Text color="gray.600" fontSize="sm">

@@ -284,7 +284,7 @@ export default function Dashboard() {
                                         border="1px solid" 
                                         borderColor="gray.200"
                                         borderRadius="xl"
-                                        shadow="lg"
+                                        shadow="md"
                                         _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                         transition="all 0.3s ease"
                                         position="relative"
@@ -392,7 +392,7 @@ export default function Dashboard() {
                                     bg="linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
                                     border="none"
                                     borderRadius="xl"
-                                    shadow="lg"
+                                    shadow="md"
                                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                     transition="all 0.3s ease"
                                     position="relative"
@@ -428,7 +428,7 @@ export default function Dashboard() {
                                     bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                                     border="none"
                                     borderRadius="xl"
-                                    shadow="lg"
+                                    shadow="md"
                                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                     transition="all 0.3s ease"
                                     position="relative"
@@ -464,7 +464,7 @@ export default function Dashboard() {
                                     bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                                     border="none"
                                     borderRadius="xl"
-                                    shadow="lg"
+                                    shadow="md"
                                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                     transition="all 0.3s ease"
                                     position="relative"
@@ -500,7 +500,7 @@ export default function Dashboard() {
                                     bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
                                     border="none"
                                     borderRadius="xl"
-                                    shadow="lg"
+                                    shadow="md"
                                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                                     transition="all 0.3s ease"
                                     position="relative"

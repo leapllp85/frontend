@@ -499,7 +499,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
                     borderRadius="xl"
-                    shadow="lg"
+                    shadow="md"
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
@@ -521,7 +521,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                     borderRadius="xl"
-                    shadow="lg"
+                    shadow="md"
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
@@ -543,7 +543,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                     borderRadius="xl"
-                    shadow="lg"
+                    shadow="md"
                     _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
                     transition="all 0.3s ease"
                   >
