@@ -1,7 +1,7 @@
 // API Configuration and Base Service
 import { fetchWithAuth } from '@/lib/apis/auth';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://34.93.168.19:8000/api/v1';
 
 // Types based on backend models
 export interface User {

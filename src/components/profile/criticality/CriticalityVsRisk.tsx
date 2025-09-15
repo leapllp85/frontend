@@ -124,7 +124,19 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
           risk: data.risk
         });
       }
-      positionCounts.get(key).employees.push(data.employee_name);
+      // Attach realistic avatar URL for this employee using randomuser.me
+      function hashString(str: string) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        return Math.abs(hash);
+      }
+      const hash = hashString(data.employee_name);
+      const gender = hash % 2 === 0 ? 'men' : 'women';
+      const idx = (hash % 99) + 1; // randomuser.me supports 1-99
+      const avatarUrl = `https://randomuser.me/api/portraits/${gender}/${idx}.jpg`;
+      positionCounts.get(key).employees.push({ name: data.employee_name, image: avatarUrl });
     });
 
     // Now create datasets with bubble sizes based on count
@@ -134,30 +146,32 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       const count = position.employees.length;
       const bubbleSize = Math.max(8, Math.min(20, 8 + (count - 1) * 4)); // Base size 8, grows by 4 for each additional employee, max 20
       
-      const point = {
+      // For quadrant chart, create a point for each employee with unique image
+      const points = position.employees.map((emp: any) => ({
         x: position.x,
         y: position.y,
-        label: count === 1 ? position.employees[0] : `${count} employees: ${position.employees.join(', ')}`,
+        label: emp.name,
+        image: emp.image,
         originalCriticality: position.originalCriticality,
         originalRisk: position.originalRisk,
-        count: count,
-        employees: position.employees,
-        r: bubbleSize // This sets the bubble size
-      };
-
+        count: 1,
+        employees: [emp.name],
+        r: bubbleSize
+      }));
       switch (position.risk.toLowerCase()) {
         case 'high':
-          result.high.push(point);
+          result.high.push(...points);
           break;
         case 'medium':
-          result.medium.push(point);
+          result.medium.push(...points);
           break;
         case 'low':
-          result.low.push(point);
+          result.low.push(...points);
           break;
         default:
-          result.medium.push(point);
+          result.medium.push(...points);
       }
+
     });
 
     return result;
@@ -168,7 +182,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     datasets: [
       {
         label: 'High Risk',
-        data: groupedScatterData.high,
+        data: groupedScatterData.high || [],
         backgroundColor: 'rgba(245, 101, 101, 0.8)',
         borderColor: '#f56565',
         pointRadius: (context: any) => context.raw?.r || 8,
@@ -176,7 +190,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       },
       {
         label: 'Medium Risk',
-        data: groupedScatterData.medium,
+        data: groupedScatterData.medium || [],
         backgroundColor: 'rgba(237, 137, 54, 0.8)',
         borderColor: '#ed8936',
         pointRadius: (context: any) => context.raw?.r || 8,
@@ -184,7 +198,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       },
       {
         label: 'Low Risk',
-        data: groupedScatterData.low,
+        data: groupedScatterData.low || [],
         backgroundColor: 'rgba(72, 187, 120, 0.8)',
         borderColor: '#48bb78',
         pointRadius: (context: any) => context.raw?.r || 8,
@@ -192,6 +206,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       },
     ],
   };
+
 
   const scatterOptions = {
     responsive: true,
@@ -203,15 +218,8 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       tooltip: {
         callbacks: {
           label: function(context: any) {
-            const point = context.raw;
-            if (point.count === 1) {
-              return `${point.label}: ${point.originalCriticality} Criticality, ${point.originalRisk} Risk`;
-            } else {
-              return [
-                `${point.count} employees at ${point.originalCriticality} Criticality, ${point.originalRisk} Risk:`,
-                ...point.employees.map((name: string) => `• ${name}`)
-              ];
-            }
+            const user = context.raw;
+            return `${user.label}: ${user.originalCriticality} Criticality, ${user.originalRisk} Risk`;
           }
         }
       }
@@ -272,56 +280,88 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     },
   };
 
-  // Bar chart for risk distribution
-  // const barData = {
-  //   labels: ['Mental Health', 'Motivation', 'Career Opportunities', 'Personal Factors'],
-  //   datasets: [
-  //     {
-  //       label: 'High Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.high,
-  //         distribution.motivation.high,
-  //         distribution.career_opportunities.high,
-  //         distribution.personal_factors.high
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(245, 101, 101, 0.8)',
-  //       borderColor: '#f56565',
-  //       borderWidth: 1,
-  //     },
-  //     {
-  //       label: 'Medium Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.medium,
-  //         distribution.motivation.medium,
-  //         distribution.career_opportunities.medium,
-  //         distribution.personal_factors.medium
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(237, 137, 54, 0.8)',
-  //       borderColor: '#ed8936',
-  //       borderWidth: 1,
-  //     },
-  //     {
-  //       label: 'Low Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.low,
-  //         distribution.motivation.low,
-  //         distribution.career_opportunities.low,
-  //         distribution.personal_factors.low
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(72, 187, 120, 0.8)',
-  //       borderColor: '#48bb78',
-  //       borderWidth: 1,
-  //     },
-  //   ],
-  // };
+  // Grouped Bar Chart Data: Criticality vs Attrition Risk
+  const barData = React.useMemo(() => {
+    // Initialize count matrix
+    const criticalityLevels = ['Low', 'Medium', 'High'];
+    const riskLevels = ['Low', 'Medium', 'High'];
+    const counts: Record<string, Record<string, number>> = {};
+    criticalityLevels.forEach(c => {
+      counts[c] = {};
+      riskLevels.forEach(r => {
+        counts[c][r] = 0;
+      });
+    });
+
+    if (riskData?.scatter_data) {
+      riskData.scatter_data.forEach(item => {
+        const crit = item.criticality.charAt(0).toUpperCase() + item.criticality.slice(1).toLowerCase();
+        const risk = item.risk.charAt(0).toUpperCase() + item.risk.slice(1).toLowerCase();
+        if (counts[crit] && counts[crit][risk] !== undefined) {
+          counts[crit][risk] += 1;
+        }
+      });
+    }
+
+    return {
+      labels: criticalityLevels,
+      datasets: [
+        {
+          label: 'Low Risk',
+          data: criticalityLevels.map(c => counts[c]['Low']),
+          backgroundColor: 'rgba(72, 187, 120, 0.8)',
+        },
+        {
+          label: 'Medium Risk',
+          data: criticalityLevels.map(c => counts[c]['Medium']),
+          backgroundColor: 'rgba(237, 137, 54, 0.8)',
+        },
+        {
+          label: 'High Risk',
+          data: criticalityLevels.map(c => counts[c]['High']),
+          backgroundColor: 'rgba(245, 101, 101, 0.8)',
+        },
+      ],
+    };
+  }, [riskData]);
 
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false, // Hide Chart.js legend since we're using custom legend
+        display: true,
+        position: 'top',
+        labels: {
+          boxWidth: 18,
+          boxHeight: 18,
+          padding: 20,
+          font: {
+            size: 14,
+            weight: 'bold',
+            family: 'inherit',
+          },
+        },
       },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        color: '#333',
+        font: {
+          weight: 'bold',
+          size: 14,
+        },
+        formatter: (value: number) => (value > 0 ? value : ''),
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            const val = context.parsed.y;
+            return `${label}: ${val}`;
+          }
+        }
+      }
     },
     scales: {
       x: {
@@ -329,16 +369,45 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
         grid: {
           display: false,
         },
+        ticks: {
+          font: {
+            size: 15,
+            weight: 'bold',
+          },
+          color: '#6b7280',
+        },
+        stacked: false,
+        categoryPercentage: 0.6,
+        barPercentage: 0.7,
       },
       y: {
         display: true,
         beginAtZero: true,
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(0,0,0,0.07)',
         },
+        ticks: {
+          font: {
+            size: 13,
+            weight: 'bold',
+          },
+          color: '#9ca3af',
+          stepSize: 1,
+        },
+        stacked: false,
+        border: {
+          display: false
+        }
+      },
+    },
+    elements: {
+      bar: {
+        borderRadius: 12,
+        borderSkipped: false,
       },
     },
   };
+
 
   if (loading) {
     return (
@@ -384,7 +453,37 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
         <Heading size="md" color="gray.800">Criticality Vs Attrition Risk</Heading>
       </Card.Header>
       <Card.Body p={3} flex="1" minH="0">
-      <Scatter data={scatterData} options={scatterOptions} />
+      {/* Quadrant Scatter Chart with User Images */}
+      <Scatter
+        data={scatterData}
+        options={scatterOptions}
+        plugins={[{
+          id: 'userImagePlugin',
+          afterDatasetsDraw: (chart: any) => {
+            const { ctx, data, chartArea, scales } = chart;
+            if (!chartArea) return;
+            data.datasets.forEach((dataset: any, datasetIndex: number) => {
+              dataset.data.forEach((point: any, i: number) => {
+                const meta = chart.getDatasetMeta(datasetIndex).data[i];
+                if (!meta) return;
+                const x = meta.x;
+                const y = meta.y;
+                const img = new window.Image();
+                img.src = point.image || '/avatar.png';
+                ctx.save();
+                const radius = 24; // Increased from 18
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, 2 * Math.PI);
+                ctx.closePath();
+                ctx.clip();
+                ctx.drawImage(img, x - radius, y - radius, radius * 2, radius * 2);
+                ctx.restore();
+
+              });
+            });
+          }
+        }]}
+      />
       </Card.Body>
     </Card.Root>
   );

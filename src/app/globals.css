@@ -28,3 +28,16 @@ body {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Remove all borders globally */
+*, *::before, *::after {
+  border: none !important;
+}
+ 
+
+/* Add back a slight shadow to card-like elements */
+.chakra-card, .chakra-box, .card, .shadow, .tile, .panel, .container {
+  box-shadow: 0 2px 8px 0 rgba(174, 172, 172, 0.10), 0 0.5px 2px 0 rgba(157, 155, 155, 0.08) !important;
+  border-radius: 0.75rem;
+  background: #fff;
+}

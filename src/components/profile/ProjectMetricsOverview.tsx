@@ -108,47 +108,46 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   return (
     <VStack gap={0.5} h="full" justify="center">
       <Text fontSize="md" fontWeight="bold" color="gray.800" textAlign="center">{label}</Text>
-      <Box position="relative" w="full" aspectRatio="1">
-        <svg width="100%" height="100%" viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={dynamicColor} />
-              <stop offset="100%" stopColor={darkerColor} />
-            </linearGradient>
-          </defs>
-          <circle
-            cx="50"
-            cy="50"
-            r="40"
-            stroke="#e2e8f0"
-            strokeWidth="6"
-            fill="none"
-          />
-          <circle
-            cx="50"
-            cy="50"
-            r="40"
-            stroke={dynamicColor}
-            strokeWidth="6"
-            fill="none"
-            strokeDasharray={`${(value / 100) * 251.2}, 251.2`}
-            strokeDashoffset="0"
-            transform="rotate(-90 50 50)"
-            strokeLinecap="round"
-          />
-        </svg>
-        <Box
-          position="absolute"
-          top="50%"
-          left="50%"
-          transform="translate(-50%, -50%)"
-          fontSize="md"
-          fontWeight="bold"
-          color="gray.800"
-        >
-          {value}%
-        </Box>
-      </Box>
+      <Box position="relative" w="full" aspectRatio="2">
+  <svg width="100%" height="100%" viewBox="0 0 100 50">
+    <defs>
+      <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor={dynamicColor} />
+        <stop offset="100%" stopColor={darkerColor} />
+      </linearGradient>
+    </defs>
+    {/* Background semi-circle */}
+    <path
+      d="M 10 50 A 40 40 0 0 1 90 50"
+      fill="none"
+      stroke="#e2e8f0"
+      strokeWidth="6"
+    />
+    {/* Foreground semi-circle (progress) */}
+    <path
+      d="M 10 50 A 40 40 0 0 1 90 50"
+      fill="none"
+      stroke={dynamicColor}
+      strokeWidth="6"
+      strokeDasharray={`${(value / 100) * 125.6}, 125.6`}
+      strokeDashoffset="0"
+      strokeLinecap="round"
+    />
+  </svg>
+  <Box
+    position="absolute"
+    top="70%"
+    left="50%"
+    transform="translate(-50%, -50%)"
+    fontSize="md"
+    fontWeight="bold"
+    color="gray.800"
+    textAlign="center"
+    w="full"
+  >
+    {value}%
+  </Box>
+</Box>
       <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">Good</Text>
     </VStack>
   );

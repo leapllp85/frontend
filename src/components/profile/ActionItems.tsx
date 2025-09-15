@@ -3,7 +3,7 @@ import { formatDate } from "@/utils/date";
 
 export const ActionItems = ({ actionItems }: { actionItems: any[] }) => {
   return (
-    <Card.Root bg="white" shadow="md" border="1px solid" borderColor="gray.200">
+    <Card.Root bg="white" shadow="md">
       <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Action Items</Heading>
       </Card.Header>
@@ -11,7 +11,7 @@ export const ActionItems = ({ actionItems }: { actionItems: any[] }) => {
         <VStack gap={3} align="stretch">
           {actionItems.length > 0 ? (
             actionItems.map((item, index) => (
-              <Box key={index} p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
+              <Box key={index} p={3} bg="gray.50" borderRadius="md">
                 <Link w="full" href={item.action}>
                   <HStack w="full" justify="space-between">
                     <VStack align="start" gap={1}>

@@ -20,7 +20,7 @@ export const ContributorCard: React.FC<ContributorCardProps> = ({
     return (
         <Box
             p={4}
-            className="bg-white !important border border-gray-200 !important rounded-lg shadow-sm"
+            className="bg-white !important rounded-lg shadow-sm"
         >
             <Flex align="center" justify="space-between">
                 <Box flex="1">

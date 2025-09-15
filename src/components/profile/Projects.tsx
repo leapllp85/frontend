@@ -3,7 +3,7 @@ import { formatDate } from '@/utils/date';
 
 export const Projects = ({ projects }: { projects: any[] }) => {
   return (
-    <Card.Root bg="white" shadow="md" border="1px solid" borderColor="gray.200">
+    <Card.Root bg="white" shadow="md">
       <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Projects</Heading>
       </Card.Header>
@@ -11,7 +11,7 @@ export const Projects = ({ projects }: { projects: any[] }) => {
         <VStack gap={3} align="stretch">
           {projects.length > 0 ? (
             projects.map((project, index) => (
-              <Box key={index} p={3} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.100">
+              <Box key={index} p={3} bg="gray.50" borderRadius="md">
                 <HStack justify="space-between">
                   <VStack align="start" gap={1}>
                     <Text fontWeight="medium" color="gray.800">{project.title}</Text>
