@@ -171,6 +171,20 @@ export default function ProjectsPage() {
                             </Card.Body>
                         </Card.Root>
                     </SimpleGrid>
+                    
+                    {!loading && !error && (
+                        <Box>
+                            {/* Add page loading after onClick */}
+                            <Button 
+                                onClick={() => router.push('/projects/onboard')}
+                                colorPalette="purple"
+                                size="lg"
+                            >
+                                <Plus size={20} />
+                                Create New Project
+                            </Button>
+                        </Box>
+                    )}
 
                     {/* Loading State */}
                     {loading && (

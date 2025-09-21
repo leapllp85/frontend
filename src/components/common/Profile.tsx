@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Box, Grid, VStack, Card, Text, Spinner } from "@chakra-ui/react";
 import { User } from "lucide-react";
-import { userApi, actionItemApi, projectApi } from "../../services";
+import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsApi } from '../../services';
+import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
 import type { UserProfile } from "../../services/userApi";
 import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
 import { StatsRow } from "../profile/StatsRow";
 import { NotificationsPanel } from "../profile/NotificationsPanel";
 import { ProjectMetricsOverview } from "../profile/ProjectMetricsOverview";
 import { ProjectRisks } from "../profile/ProjectRisks";
-
-// Import types from services to avoid conflicts
-import type { ActionItem, Project } from "../../services";
 
 type ProfileData = UserProfile;
 
@@ -20,75 +18,66 @@ export const Profile = ({
   width: string;
 }) => {
   const username = localStorage.getItem("username");
-  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
-  const [actionItemsCount, setActionItemsCount] = useState(0);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [projectCount, setProjectCount] = useState(0);
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [actionItems, setActionItems] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [teamStats, setTeamStats] = useState<TeamStats | null>(null);
+  const [projectStats, setProjectStats] = useState<ProjectStats | null>(null);
+  const [projectRisks, setProjectRisks] = useState<ProjectRisksResponse | null>(null);
+  const [metrics, setMetrics] = useState<ProjectMetrics | null>(null);
+  const [notifications, setNotifications] = useState<NotificationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchUserProfile = async () => {
+  const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const data = await userApi.getCurrentUserProfile();
-      setProfileData(data);
       setError(null);
+      
+      const [
+        userResponse,
+        actionItemsResponse,
+        projectsResponse,
+        teamStatsResponse,
+        projectStatsResponse,
+        projectRisksResponse,
+        metricsResponse,
+        notificationsResponse
+      ] = await Promise.all([
+        userApi.getCurrentUserProfile(),
+        actionItemApi.getActionItems(),
+        projectApi.getMyProjects(),
+        teamApi.getTeamStats().catch(() => null),
+        projectApi.getProjectStats().catch(() => null),
+        projectApi.getProjectRisks().catch(() => null),
+        metricsApi.getProjectMetrics().catch(() => null),
+        notificationsApi.getNotifications().catch(() => null)
+      ]);
+      
+      setUser(userResponse);
+      setActionItems(actionItemsResponse || []);
+      setProjects(projectsResponse || []);
+      setTeamStats(teamStatsResponse);
+      setProjectStats(projectStatsResponse);
+      setProjectRisks(projectRisksResponse);
+      setMetrics(metricsResponse);
+      setNotifications(notificationsResponse);
+      
+      // Debug logging
+      console.log('Debug - projectStatsResponse:', projectStatsResponse);
+      console.log('Debug - projectsResponse length:', projectsResponse?.length || 0);
     } catch (err) {
-      console.error("Error fetching profile:", err);
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      console.error('Error fetching profile data:', err);
+      console.log('Debug - projectStats:', projectStats);
+      console.log('Debug - projects.length:', projects.length);
+      setError(err instanceof Error ? err.message : 'Failed to load profile data');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchActionItems = async () => {
-    try {
-      // @ts-ignore
-      const data = (await actionItemApi.getActionItems()).action_items;
-      // Pending Items should be at the top
-      const sortedItems = data.sort(
-        (a: ActionItem, b: ActionItem) => {
-          if (a.status === 'Pending' && b.status !== 'Pending') return -1;
-          if (a.status !== 'Pending' && b.status === 'Pending') return 1;
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-        }
-      );
-      setActionItemsCount(data.length);
-      const latestItems = sortedItems.slice(0, 3);
-      setActionItems(latestItems);
-    } catch (err) {
-      console.error("Error fetching action items:", err);
-      setActionItems([]);
-      setActionItemsCount(0);
-    }
-  };
-  const fetchProjects = async () => {
-    try {
-      // @ts-ignore
-      const data = (await projectApi.getProjects()).projects;
-      // Active Projects should be at the top
-      const sortedItems = data.sort(
-        (a: Project, b: Project) => {
-          if (a.status === 'Active' && b.status !== 'Active') return -1;
-          if (a.status !== 'Active' && b.status === 'Active') return 1;
-          return new Date(b.go_live_date).getTime() - new Date(a.go_live_date).getTime();
-        }
-      );
-      setProjectCount(data.length);
-      const latestItems = sortedItems.slice(0, 3);
-      setProjects(latestItems);
-    } catch (err) {
-      console.error("Error fetching projects:", err);
-      setProjects([]);
-      setProjectCount(0);
-    }
-  };
-
   useEffect(() => {
-    fetchUserProfile();
-    fetchActionItems();
-    fetchProjects();
+    fetchProfileData();
   }, []);
 
   if (loading) {
@@ -190,8 +179,15 @@ export const Profile = ({
             {/* Top Stats Row */}
             <Box flexShrink={0}>
               <StatsRow 
-                activeProjects={projects.filter(p => p.status === 'Active').length}
+                activeProjects={projectStats?.active_projects ?? projects?.length ?? 0}
+                teamMembers={teamStats?.team_members_count}
+                avgUtilization={teamStats?.utilization_percentage}
+                highRiskProjects={projectStats?.high_risk_projects}
               />
+              {/* Debug info */}
+              <Box fontSize="xs" color="gray.500" p={2}>
+                Debug: projectStats={JSON.stringify(projectStats)} | projects.length={projects?.length} | teamStats={JSON.stringify(teamStats)}
+              </Box>
             </Box>
 
             {/* Main Content Grid - 2x2 Equal Layout */}
@@ -203,22 +199,32 @@ export const Profile = ({
             >
               {/* Top Left - Criticality vs Attrition Risk */}
               <Box h="full">
-                <CriticalityVsRisk userId={profileData?.user?.id?.toString()} />
+                <CriticalityVsRisk userId={user?.id?.toString()} />
               </Box>
               
               {/* Top Right - Project Metrics Overview */}
               <Box h="full">
-                <ProjectMetricsOverview />
+                <ProjectMetricsOverview 
+              metrics={metrics ? [
+                { label: 'Mental Health', value: metrics.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                { label: 'Attrition Risk', value: metrics.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                { label: 'Project Health', value: metrics.project_health, color: '#fb923c', type: 'project_health' as const }
+              ] : undefined}
+            />
               </Box>
               
               {/* Bottom Left - Notifications */}
               <Box h="full">
-                <NotificationsPanel />
+                <NotificationsPanel 
+              notifications={notifications?.notifications}
+            />
               </Box>
               
               {/* Bottom Right - Project Risks */}
               <Box h="full">
-                <ProjectRisks />
+                <ProjectRisks 
+              projects={projectRisks?.projects}
+            />
               </Box>
             </Grid>
           </VStack>

@@ -57,17 +57,26 @@ const getRiskColor = (riskLevel: ProjectRisk['riskLevel']) => {
 export const ProjectRisks: React.FC<ProjectRisksProps> = ({
   projects = defaultProjects
 }) => {
+  // Sort projects by risk priority (High > Medium > Low) and show only top 3
+  const getTopPriorityProjects = (projects: ProjectRisk[]) => {
+    const riskPriority = { 'High Risk': 3, 'Med Risk': 2, 'Low Risk': 1 };
+    return projects
+      .sort((a, b) => riskPriority[b.riskLevel] - riskPriority[a.riskLevel])
+      .slice(0, 3);
+  };
+
+  const topProjects = getTopPriorityProjects(projects);
+
   return (
     <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
       <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
         <HStack justify="space-between">
           <Heading size="md" color="gray.800">Project Risks</Heading>
-          <Text fontSize="sm" color="blue.500" cursor="pointer">View All</Text>
         </HStack>
       </Card.Header>
       <Card.Body p={3} flex="1" overflow="auto">
         <VStack gap={{base:3, "2xl":4}} align="stretch">
-          {projects.map((project) => {
+          {topProjects.map((project) => {
             const riskColors = getRiskColor(project.riskLevel);
             return (
               <Box key={project.id}>

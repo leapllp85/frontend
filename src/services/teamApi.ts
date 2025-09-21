@@ -1,5 +1,11 @@
 import { apiService, EmployeeProfile, AttritionGraphData, DistributionGraphData } from './api';
 
+export interface TeamStats {
+  team_members_count: number;
+  average_utilization: number;
+  utilization_percentage: string;
+}
+
 export class TeamApiService {
   // Get all team members
   async getTeamMembers(): Promise<EmployeeProfile[]> {
@@ -29,6 +35,11 @@ export class TeamApiService {
   // Get distribution graph data
   async getDistributionGraphData(): Promise<DistributionGraphData> {
     return await apiService.get<DistributionGraphData>('/team-analytics/');
+  }
+
+  // Get team statistics for Profile component
+  async getTeamStats(): Promise<TeamStats> {
+    return await apiService.get<TeamStats>('/team-stats/');
   }
 }
 

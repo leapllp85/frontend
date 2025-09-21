@@ -14,17 +14,25 @@ export interface Survey {
 }
 
 export interface SurveyQuestion {
-    id: number;
-    question: string;
-    type: 'text' | 'multiple_choice' | 'rating' | 'boolean' | 'scale';
-    options?: string[];
-    required: boolean;
+    question_text: string;
+    question_type: 'text' | 'rating' | 'choice' | 'boolean' | 'scale';
+    choices?: string[];
+    is_required: boolean;
 }
 
 export interface CreateSurveyRequest {
     title: string;
     description: string;
-    status: 'draft' | 'active' | 'closed';
+    survey_type: 'wellness' | 'feedback' | 'satisfaction' | 'skills' | 'goals' | 'engagement' | 'leadership' | 'project_feedback';
+    start_date: string;
+    end_date: string;
+    target_audience: 'all_employees' | 'team_only' | 'by_department' | 'by_role' | 'by_risk_level' | 'custom_selection';
+    target_roles?: string[];
+    target_risk_levels?: string[];
+    target_employees?: number[];
+    target_departments?: string[];
+    is_anonymous?: boolean;
+    questions: SurveyQuestion[];
 }
 
 export interface UpdateSurveyRequest {
@@ -42,12 +50,22 @@ class SurveyApiService {
     }
 
     async getSurvey(id: number): Promise<Survey> {
-        const response = await apiService.get<Survey>(`${this.baseUrl}/${id}/`);
+        const response = await apiService.get<Survey>(`/surveys/${id}/`);
         return response;
     }
 
-    async createSurvey(data: CreateSurveyRequest): Promise<Survey> {
-        const response = await apiService.post<Survey>(`${this.baseUrl}/`, data);
+    async getSurveyManagement(): Promise<any> {
+        const response = await apiService.get<any>('/survey-management/');
+        return response;
+    }
+
+    async getMySurveyResponses(): Promise<any[]> {
+        const response = await apiService.get<any[]>('/my-survey-responses/');
+        return response;
+    }
+
+    async createSurvey(data: CreateSurveyRequest): Promise<any> {
+        const response = await apiService.post<any>('/manager/publish-survey/', data);
         return response;
     }
 
@@ -61,7 +79,12 @@ class SurveyApiService {
     }
 
     async getSurveyResponses(id: number): Promise<any[]> {
-        const response = await apiService.get<any[]>(`${this.baseUrl}/${id}/responses/`);
+        const response = await apiService.get<any[]>(`/surveys/${id}/responses/`);
+        return response;
+    }
+
+    async submitSurveyResponse(id: number, responses: any[]): Promise<any> {
+        const response = await apiService.post<any>(`/surveys/${id}/respond/`, { responses });
         return response;
     }
 }

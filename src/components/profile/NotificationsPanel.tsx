@@ -49,17 +49,19 @@ const getNotificationColor = (type: Notification['type']) => {
 export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   notifications = defaultNotifications
 }) => {
+  // Show only the first 3 notifications
+  const topNotifications = notifications.slice(0, 3);
+
   return (
     <Card.Root bg="white" shadow="md" borderRadius="xl" h="full" display="flex" flexDirection="column">
       <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
         <HStack justify="space-between">
           <Heading size="md" color="gray.800">Notifications</Heading>
-          <Text fontSize="sm" color="blue.500" cursor="pointer">View All</Text>
         </HStack>
       </Card.Header>
       <Card.Body p={3} flex="1" overflow="auto">
         <VStack gap={4} align="stretch">
-          {notifications.map((notification) => (
+          {topNotifications.map((notification) => (
             <HStack key={notification.id} gap={3}>
               <Box 
                 w={2} 

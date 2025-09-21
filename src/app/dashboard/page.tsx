@@ -12,6 +12,7 @@ import {
     SimpleGrid,
     Button,
     Flex,
+    Spinner
 } from '@chakra-ui/react';
 import { 
     Icon,
@@ -19,10 +20,11 @@ import {
     TrendingUp, 
     Star, 
     AlertTriangle,
-    Target
+    Target,
+    Brain
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
-import { dashboardApi, teamApi, DashboardQuickData } from '@/services';
+import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { insights } from './constants';
 import { TeamMember } from '@/types';
@@ -32,6 +34,9 @@ export default function Dashboard() {
     const [dashboardData, setDashboardData] = useState<DashboardQuickData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+    const [changedMembers, setChangedMembers] = useState<Set<string>>(new Set());
 
     // Fetch dashboard data from API
     useEffect(() => {
@@ -169,7 +174,75 @@ export default function Dashboard() {
             sum + member.age, 0) / teamMembers.length);
     };
 
+    const calculateSuggestedRisk = (member: TeamMember): 'High' | 'Medium' | 'Low' => {
+        const riskValues = {
+            'High': 3,
+            'Medium': 2,
+            'Low': 1
+        };
+        
+        const total = riskValues[member.mentalHealth] + 
+                     riskValues[member.motivationFactor] + 
+                     riskValues[member.careerOpportunities] + 
+                     riskValues[member.personalReason];
+        
+        const average = total / 4;
+        
+        if (average >= 2.5) return 'High';
+        if (average >= 1.5) return 'Medium';
+        return 'Low';
+    };
 
+    const handleRiskChange = (memberId: string, newRisk: 'High' | 'Medium' | 'Low') => {
+        setTeamMembers(prev => prev.map(member => 
+            member.id === memberId ? { ...member, attritionRisk: newRisk } : member
+        ));
+        setChangedMembers(prev => new Set(prev).add(memberId));
+        setSaveSuccess(null); // Clear any previous success message
+    };
+
+    const handleSaveChanges = async () => {
+        if (changedMembers.size === 0) return;
+
+        setSaving(true);
+        setSaveSuccess(null);
+        setError(null);
+
+        try {
+            const updatePromises = Array.from(changedMembers).map(async (memberId) => {
+                const member = teamMembers.find(m => m.id === memberId);
+                if (!member) return;
+
+                const updateData = {
+                    manager_assessment_risk: member.attritionRisk || 'Medium'
+                };
+
+                return await teamApi.updateTeamMember(parseInt(memberId), updateData);
+            });
+
+            await Promise.all(updatePromises);
+            
+            setChangedMembers(new Set());
+            setSaveSuccess('Team member assessments updated successfully!');
+            
+            // Clear success message after 3 seconds
+            setTimeout(() => setSaveSuccess(null), 3000);
+        } catch (err) {
+            console.error('Failed to save team member changes:', err);
+            setError('Failed to save changes. Please try again.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // Analytics data for team management
+    const attritionData = teamMembers.reduce((acc, member) => {
+        const risk = member.attritionRisk || 'Medium';
+        acc[risk] = (acc[risk] || 0) + 1;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const mentalHealthIssues = teamMembers.filter(member => member.mentalHealth === 'High').length;
 
     return (
         <AppLayout>
@@ -531,6 +604,157 @@ export default function Dashboard() {
                                     </Card.Body>
                                 </Card.Root>
                             </SimpleGrid>
+
+                        {/* Team Members Management Section */}
+                        <Card.Root bg="white" shadow="md" borderRadius="xl">
+                            <Card.Header p={6}>
+                                <HStack justify="space-between">
+                                    <VStack align="start" gap={1}>
+                                        <Heading size="lg" color="gray.800">
+                                            Team Members Management
+                                        </Heading>
+                                        <Text color="gray.600" fontSize="sm">
+                                            Individual team member risk assessments and management
+                                        </Text>
+                                    </VStack>
+                                    <HStack gap={4}>
+                                        <Card.Root bg="purple.50" border="1px solid" borderColor="purple.200" borderRadius="lg" p={3}>
+                                            <HStack gap={2}>
+                                                <Brain size={16} color="#805ad5" />
+                                                <Text fontSize="xs" color="gray.600" fontWeight="medium">Mental Health Issues</Text>
+                                                <Text fontSize="lg" fontWeight="bold" color="purple.600">{mentalHealthIssues}</Text>
+                                            </HStack>
+                                        </Card.Root>
+                                        <Button
+                                            colorPalette="purple"
+                                            size="md"
+                                            onClick={handleSaveChanges}
+                                            disabled={changedMembers.size === 0 || saving}
+                                            loading={saving}
+                                            loadingText="Saving..."
+                                        >
+                                            Save Changes ({changedMembers.size})
+                                        </Button>
+                                    </HStack>
+                                </HStack>
+                                
+                                {/* Success/Error Messages */}
+                                {saveSuccess && (
+                                    <Box mt={4} p={3} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md">
+                                        <Text color="green.700" fontSize="sm" fontWeight="medium">
+                                            ✅ {saveSuccess}
+                                        </Text>
+                                    </Box>
+                                )}
+                                
+                                {error && (
+                                    <Box mt={4} p={3} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
+                                        <Text color="red.700" fontSize="sm" fontWeight="medium">
+                                            ❌ {error}
+                                        </Text>
+                                    </Box>
+                                )}
+                            </Card.Header>
+                            <Card.Body p={0}>
+                                <Box overflowX="auto">
+                                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr style={{ backgroundColor: '#f7fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                                <th style={{ padding: '16px', textAlign: 'left', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Member
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Mental Health
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Motivation
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Career
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Personal
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Suggested Risk
+                                                </th>
+                                                <th style={{ padding: '16px', textAlign: 'center', fontWeight: '600', color: '#4a5568', fontSize: '14px' }}>
+                                                    Manager Assessment
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {teamMembers.map((member, index) => (
+                                                <tr 
+                                                    key={member.id}
+                                                    style={{ 
+                                                        borderBottom: '1px solid #e2e8f0',
+                                                        backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb'
+                                                    }}
+                                                >
+                                                    <td style={{ padding: '16px' }}>
+                                                        <VStack align="start" gap={1}>
+                                                            <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                {member.name}
+                                                            </Text>
+                                                            <Text color="gray.600" fontSize="xs">
+                                                                {member.email}
+                                                            </Text>
+                                                        </VStack>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <Badge colorPalette={getRiskColor(member.mentalHealth)} size="sm" borderRadius="full">
+                                                            {member.mentalHealth}
+                                                        </Badge>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <Badge colorPalette={getRiskColor(member.motivationFactor)} size="sm" borderRadius="full">
+                                                            {member.motivationFactor}
+                                                        </Badge>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <Badge colorPalette={getRiskColor(member.careerOpportunities)} size="sm" borderRadius="full">
+                                                            {member.careerOpportunities}
+                                                        </Badge>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <Badge colorPalette={getRiskColor(member.personalReason)} size="sm" borderRadius="full">
+                                                            {member.personalReason}
+                                                        </Badge>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <Badge colorPalette={getRiskColor(calculateSuggestedRisk(member))} size="sm" borderRadius="full">
+                                                            {calculateSuggestedRisk(member)}
+                                                        </Badge>
+                                                    </td>
+                                                    <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                        <select
+                                                            value={member.attritionRisk || 'Medium'}
+                                                            onChange={(e) => handleRiskChange(member.id, e.target.value as any)}
+                                                            style={{
+                                                                color: '#4a5568',
+                                                                padding: '6px 12px',
+                                                                border: '1px solid #d1d5db',
+                                                                borderRadius: '9999px',
+                                                                fontSize: '12px',
+                                                                backgroundColor: 'white',
+                                                                fontWeight: '500',
+                                                                outline: 'none',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            <option value="High">High Risk</option>
+                                                            <option value="Medium">Medium Risk</option>
+                                                            <option value="Low">Low Risk</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </Box>
+                            </Card.Body>
+                        </Card.Root>
                     </VStack>
                 </Box>
         </AppLayout>

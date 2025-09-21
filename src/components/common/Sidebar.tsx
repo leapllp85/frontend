@@ -44,11 +44,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navigationItems = [
     { icon: Home, label: "Home", href: "/" },
+    { icon: BarChart3, label: "Dashboard", href: "/dashboard" },
     { icon: FolderOpen, label: "Projects", href: "/projects" },
     { icon: FileText, label: "Surveys", href: "/surveys" },
     { icon: CheckCircle, label: "Action Items", href: "/action-items" },
-    { icon: BarChart3, label: "Dashboard", href: "/dashboard" },
-    { icon: Users, label: "My Team", href: "/my-team" },
   ];
 
   const handleSendMessage = useCallback(async () => {

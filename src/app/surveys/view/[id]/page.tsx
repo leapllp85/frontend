@@ -19,21 +19,39 @@ import {
 } from '@chakra-ui/react';
 import { ArrowLeft, Users, BarChart3, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { surveyApi, Survey } from '@/services';
+import { apiService } from '@/services/api';
 import { RequireTeamManagement } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
-interface SurveyStats {
-    total_responses: number;
-    completion_rate: number;
-    question_stats: Array<{
-        question: string;
-        responses: Array<{
-            option: string;
-            count: number;
-            percentage: number;
-        }>;
+interface ApiResponse {
+    survey: {
+        id: number;
+        title: string;
+        description: string;
+        created_at: string;
+        ui_status: string;
+        completion_rate: number;
+        survey_type?: string;
+        end_date?: string;
+    };
+    statistics: {
+        total_responses: number;
+        completed_responses: number;
+        pending_responses: number;
+    };
+    questions_stats: Array<{
+        id: number;
+        question_text: string;
+        question_type: string;
+        total_answers: number;
+        answer_distribution: {
+            [key: string]: {
+                count: number;
+                percentage: number;
+            };
+        };
     }>;
-    non_responders: Array<{
+    pending_members: Array<{
         id: number;
         name: string;
         email: string;
@@ -46,8 +64,7 @@ export default function ViewSurveyPage() {
     const router = useRouter();
     const surveyId = parseInt(params.id as string);
     
-    const [survey, setSurvey] = useState<Survey | null>(null);
-    const [stats, setStats] = useState<SurveyStats | null>(null);
+    const [apiData, setApiData] = useState<ApiResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -55,43 +72,9 @@ export default function ViewSurveyPage() {
         const fetchSurveyData = async () => {
             try {
                 setLoading(true);
-                // Fetch survey details
-                const surveyData = await surveyApi.getSurvey(surveyId);
-                setSurvey(surveyData);
-                
-                // TODO: Fetch survey statistics from API
-                // For now, using mock data
-                const mockStats: SurveyStats = {
-                    total_responses: 12,
-                    completion_rate: 75,
-                    question_stats: [
-                        {
-                            question: "How satisfied are you with your current role?",
-                            responses: [
-                                { option: "Very Satisfied", count: 5, percentage: 42 },
-                                { option: "Satisfied", count: 4, percentage: 33 },
-                                { option: "Neutral", count: 2, percentage: 17 },
-                                { option: "Dissatisfied", count: 1, percentage: 8 }
-                            ]
-                        },
-                        {
-                            question: "How would you rate work-life balance?",
-                            responses: [
-                                { option: "Excellent", count: 3, percentage: 25 },
-                                { option: "Good", count: 6, percentage: 50 },
-                                { option: "Fair", count: 2, percentage: 17 },
-                                { option: "Poor", count: 1, percentage: 8 }
-                            ]
-                        }
-                    ],
-                    non_responders: [
-                        { id: 1, name: "John Smith", email: "john@company.com", department: "Engineering" },
-                        { id: 2, name: "Sarah Wilson", email: "sarah@company.com", department: "Design" },
-                        { id: 3, name: "Mike Johnson", email: "mike@company.com", department: "Marketing" },
-                        { id: 4, name: "Lisa Brown", email: "lisa@company.com", department: "Sales" }
-                    ]
-                };
-                setStats(mockStats);
+                // Fetch survey management details from API
+                const response = await apiService.get<ApiResponse>(`/survey-management/${surveyId}/details/`);
+                setApiData(response);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching survey data:', err);
@@ -108,23 +91,23 @@ export default function ViewSurveyPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'active': return 'yellow';
+            case 'active': return 'green';
             case 'pending': return 'yellow';
-            case 'closed': return 'green';
-            case 'completed': return 'green';
-            case 'draft': return 'gray';
-            default: return 'gray';
+            case 'closed': return 'gray';
+            case 'completed': return 'gray';
+            case 'draft': return 'yellow';
+            default: return 'green';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'active': return 'Active';
-            case 'pending': return 'Active';
-            case 'closed': return 'Completed';
+            case 'pending': return 'Pending';
+            case 'closed': return 'Closed';
             case 'completed': return 'Completed';
             case 'draft': return 'Draft';
-            default: return 'Unknown';
+            default: return 'Active';
         }
     };
 
@@ -137,7 +120,7 @@ export default function ViewSurveyPage() {
         );
     }
 
-    if (error || !survey || !stats) {
+    if (error || !apiData) {
         return (
             <Box p={8} textAlign="center">
                 <Text color="red.500" fontSize="lg">{error || 'Survey not found'}</Text>
@@ -147,6 +130,8 @@ export default function ViewSurveyPage() {
             </Box>
         );
     }
+
+    const { survey, statistics, questions_stats, pending_members } = apiData;
 
     return (
         <RequireTeamManagement>
@@ -179,18 +164,25 @@ export default function ViewSurveyPage() {
                                         {survey.description}
                                     </Text>
                                     <HStack gap={4}>
-                                        <Badge colorPalette={getStatusColor(survey.status)} size="sm">
-                                            {getStatusLabel(survey.status)}
+                                        <Badge colorPalette={getStatusColor(survey.ui_status)} size="sm">
+                                            {getStatusLabel(survey.ui_status)}
                                         </Badge>
                                         <HStack gap={1} color="gray.500" fontSize="sm">
                                             <Clock size={14} />
-                                            <Text>Created: {new Date(survey.created_at).toLocaleDateString()}</Text>
+                                            <Text color="gray.500">Created: {survey.created_at ? new Date(survey.created_at).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            }) : 'Unknown'}</Text>
                                         </HStack>
                                     </HStack>
                                 </VStack>
                                 <VStack align="end" gap={2}>
                                     <Text fontSize="3xl" fontWeight="bold" color="purple.600">
-                                        {stats.completion_rate}%
+                                        {survey.completion_rate || 
+                                         (statistics.total_responses > 0 ? 
+                                          Math.round((statistics.completed_responses / statistics.total_responses) * 100) : 0)
+                                        }%
                                     </Text>
                                     <Text color="gray.600" fontSize="sm">Completion Rate</Text>
                                 </VStack>
@@ -205,7 +197,7 @@ export default function ViewSurveyPage() {
                                 <VStack gap={2}>
                                     <CheckCircle size={32} color="#10B981" />
                                     <Text fontSize="2xl" fontWeight="bold" color="green.600">
-                                        {stats.total_responses}
+                                        {statistics.total_responses}
                                     </Text>
                                     <Text color="gray.600">Total Responses</Text>
                                 </VStack>
@@ -217,7 +209,7 @@ export default function ViewSurveyPage() {
                                 <VStack gap={2}>
                                     <Users size={32} color="#6366F1" />
                                     <Text fontSize="2xl" fontWeight="bold" color="purple.600">
-                                        {stats.non_responders.length}
+                                        {statistics.pending_responses}
                                     </Text>
                                     <Text color="gray.600">Pending Responses</Text>
                                 </VStack>
@@ -229,7 +221,7 @@ export default function ViewSurveyPage() {
                                 <VStack gap={2}>
                                     <BarChart3 size={32} color="#F59E0B" />
                                     <Text fontSize="2xl" fontWeight="bold" color="orange.600">
-                                        {stats.question_stats.length}
+                                        {questions_stats.length}
                                     </Text>
                                     <Text color="gray.600">Questions</Text>
                                 </VStack>
@@ -244,42 +236,75 @@ export default function ViewSurveyPage() {
                         </Card.Header>
                         <Card.Body p={6}>
                             <VStack gap={8} align="stretch">
-                                {stats.question_stats.map((questionStat, index) => (
-                                    <Box key={index}>
-                                        <Text fontWeight="semibold" mb={4} color="gray.700">
-                                            {questionStat.question}
-                                        </Text>
-                                        <VStack gap={3} align="stretch">
-                                            {questionStat.responses.map((response, responseIndex) => (
-                                                <HStack key={responseIndex} justify="space-between">
-                                                    <HStack flex="1">
-                                                        <Text minW="120px" fontSize="sm">
-                                                            {response.option}
+                                {questions_stats.map((questionStat, index) => (
+                                    <Box key={questionStat.id || index}>
+                                        <HStack justify="space-between" mb={4}>
+                                            <Text fontWeight="semibold" color="gray.700">
+                                                {questionStat.question_text}
+                                            </Text>
+                                            <Text fontSize="sm" color="gray.500">
+                                                {questionStat.total_answers} responses
+                                            </Text>
+                                        </HStack>
+                                        {questionStat.question_type === 'text' ? (
+                                            <Box p={6} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200">
+                                                <VStack gap={3}>
+                                                    <HStack gap={2}>
+                                                        <Text fontSize="sm" color="blue.700" fontWeight="medium">
+                                                            📝 Text Question
                                                         </Text>
-                                                        <Box
-                                                            flex="1"
-                                                            bg="gray.200"
-                                                            borderRadius="full"
-                                                            height="8px"
-                                                            overflow="hidden"
-                                                        >
+                                                        <Badge colorPalette="blue" size="sm">
+                                                            {questionStat.total_answers} written responses
+                                                        </Badge>
+                                                    </HStack>
+                                                    {questionStat.total_answers === 0 ? (
+                                                        <Text fontSize="sm" color="gray.600" textAlign="center">
+                                                            No responses yet. Encourage team members to share their thoughts!
+                                                        </Text>
+                                                    ) : (
+                                                        <Text fontSize="sm" color="blue.700" textAlign="center">
+                                                            {questionStat.total_answers} team member{questionStat.total_answers !== 1 ? 's' : ''} provided written feedback. 
+                                                            Individual responses are available for detailed review.
+                                                        </Text>
+                                                    )}
+                                                </VStack>
+                                            </Box>
+                                        ) : (
+                                            <VStack gap={3} align="stretch">
+                                                {Object.entries(questionStat.answer_distribution).map(([option, data]) => (
+                                                    <HStack key={option} justify="space-between">
+                                                        <HStack flex="1">
+                                                            <Text minW="120px" fontSize="sm" color="gray.700">
+                                                                {questionStat.question_type === 'rating' ? 
+                                                                    `${option} Star${option !== '1' ? 's' : ''}` : 
+                                                                    option
+                                                                }
+                                                            </Text>
                                                             <Box
-                                                                bg="purple.500"
-                                                                height="100%"
-                                                                width={`${response.percentage}%`}
+                                                                flex="1"
+                                                                bg="gray.200"
                                                                 borderRadius="full"
-                                                                transition="width 0.3s ease"
-                                                            />
-                                                        </Box>
+                                                                height="8px"
+                                                                overflow="hidden"
+                                                            >
+                                                                <Box
+                                                                    bg="purple.500"
+                                                                    height="100%"
+                                                                    width={`${data.percentage}%`}
+                                                                    borderRadius="full"
+                                                                    transition="width 0.3s ease"
+                                                                />
+                                                            </Box>
+                                                        </HStack>
+                                                        <HStack gap={4} minW="100px" justify="end">
+                                                            <Text fontSize="sm" color="gray.600">
+                                                                {data.count} ({data.percentage}%)
+                                                            </Text>
+                                                        </HStack>
                                                     </HStack>
-                                                    <HStack gap={4} minW="100px" justify="end">
-                                                        <Text fontSize="sm" color="gray.600">
-                                                            {response.count} ({response.percentage}%)
-                                                        </Text>
-                                                    </HStack>
-                                                </HStack>
-                                            ))}
-                                        </VStack>
+                                                ))}
+                                            </VStack>
+                                        )}
                                     </Box>
                                 ))}
                             </VStack>
@@ -292,12 +317,12 @@ export default function ViewSurveyPage() {
                             <HStack justify="space-between" align="center">
                                 <Heading size="lg" color="gray.800">Team Members - Pending Response</Heading>
                                 <Badge colorPalette="orange" size="sm">
-                                    {stats.non_responders.length} pending
+                                    {pending_members.length} pending
                                 </Badge>
                             </HStack>
                         </Card.Header>
                         <Card.Body p={6}>
-                            {stats.non_responders.length === 0 ? (
+                            {pending_members.length === 0 ? (
                                 <Box textAlign="center" py={8}>
                                     <CheckCircle size={48} color="#10B981" style={{ margin: '0 auto' }} />
                                     <Text color="green.600" fontSize="lg" mt={4}>
@@ -306,7 +331,7 @@ export default function ViewSurveyPage() {
                                 </Box>
                             ) : (
                                 <VStack gap={4} align="stretch">
-                                    {stats.non_responders.map((member) => (
+                                    {pending_members.map((member) => (
                                         <HStack key={member.id} p={4} bg="orange.50" borderRadius="lg" justify="space-between">
                                             <HStack gap={3}>
                                                 <Box
@@ -324,7 +349,7 @@ export default function ViewSurveyPage() {
                                                     {member.name.charAt(0).toUpperCase()}
                                                 </Box>
                                                 <VStack align="start" gap={0}>
-                                                    <Text fontWeight="semibold">{member.name}</Text>
+                                                    <Text fontWeight="semibold" color="gray.800">{member.name}</Text>
                                                     <Text fontSize="sm" color="gray.600">{member.email}</Text>
                                                 </VStack>
                                             </HStack>
@@ -332,7 +357,7 @@ export default function ViewSurveyPage() {
                                                 <Text fontSize="sm" color="gray.600">{member.department}</Text>
                                                 <HStack gap={1} color="orange.600">
                                                     <AlertCircle size={14} />
-                                                    <Text fontSize="xs">Pending</Text>
+                                                    <Text fontSize="xs" color="orange.600">Pending</Text>
                                                 </HStack>
                                             </VStack>
                                         </HStack>
