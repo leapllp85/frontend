@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { surveyApi, CreateSurveyRequest, SurveyQuestion } from '../../../services';
 import { useRouter } from 'next/navigation';
 import {
     Box,
@@ -16,7 +17,6 @@ import {
     Select
 } from '@chakra-ui/react';
 import { ArrowLeft, Plus, X, FileText, Calendar, Users } from 'lucide-react';
-import { surveyApi, SurveyQuestion } from '@/services';
 import { RequireSurveyCreate } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
@@ -70,7 +70,7 @@ const CreateSurveyPage = () => {
             {
                 question_text: '',
                 question_type: 'text',
-                options: [],
+                choices: [],
                 is_required: true
             }
         ]
@@ -120,7 +120,7 @@ const CreateSurveyPage = () => {
                 {
                     question_text: '',
                     question_type: 'text',
-                    options: [],
+                    choices: [],
                     is_required: true
                 }
             ]
@@ -138,8 +138,8 @@ const CreateSurveyPage = () => {
 
     const addOption = (questionIndex: number) => {
         const updatedQuestions = [...formData.questions];
-        updatedQuestions[questionIndex].options = [
-            ...updatedQuestions[questionIndex].options,
+        updatedQuestions[questionIndex].choices = [
+            ...(updatedQuestions[questionIndex].choices || []),
             ''
         ];
         setFormData(prev => ({
@@ -150,7 +150,9 @@ const CreateSurveyPage = () => {
 
     const updateOption = (questionIndex: number, optionIndex: number, value: string) => {
         const updatedQuestions = [...formData.questions];
-        updatedQuestions[questionIndex].options[optionIndex] = value;
+        if (updatedQuestions[questionIndex].choices) {
+            updatedQuestions[questionIndex].choices[optionIndex] = value;
+        }
         setFormData(prev => ({
             ...prev,
             questions: updatedQuestions
@@ -159,7 +161,7 @@ const CreateSurveyPage = () => {
 
     const removeOption = (questionIndex: number, optionIndex: number) => {
         const updatedQuestions = [...formData.questions];
-        updatedQuestions[questionIndex].options = updatedQuestions[questionIndex].options.filter((_, i) => i !== optionIndex);
+        updatedQuestions[questionIndex].choices = updatedQuestions[questionIndex].choices?.filter((_: string, i: number) => i !== optionIndex) || [];
         setFormData(prev => ({
             ...prev,
             questions: updatedQuestions
@@ -195,8 +197,8 @@ const CreateSurveyPage = () => {
             }
 
             if ((question.question_type === 'choice' || question.question_type === 'rating') && 
-                question.options.length === 0) {
-                newErrors[`question_${index}_options`] = 'At least one option is required for this question type';
+                (!question.choices || question.choices.length === 0)) {
+                newErrors[`question_${index}_choices`] = 'At least one choice is required for this question type';
             }
         });
 
@@ -212,7 +214,16 @@ const CreateSurveyPage = () => {
 
         try {
             setLoading(true);
-            await surveyApi.createSurvey(formData);
+            const surveyData: CreateSurveyRequest = {
+                title: formData.title,
+                description: formData.description,
+                survey_type: formData.survey_type as 'feedback' | 'wellness' | 'satisfaction' | 'skills' | 'goals' | 'engagement' | 'leadership' | 'project_feedback',
+                start_date: formData.start_date,
+                end_date: formData.end_date,
+                target_audience: formData.targeting_option as 'all_employees' | 'team_only' | 'by_department' | 'by_role' | 'by_risk_level' | 'custom_selection',
+                questions: formData.questions
+            };
+            const response = await surveyApi.createSurvey(surveyData);
             
             console.log('Survey Created: Your survey has been created successfully');
 
@@ -391,7 +402,7 @@ const CreateSurveyPage = () => {
                                     <Button
                                         size="sm"
                                         colorPalette="purple"
-                                        leftIcon={<Plus size={16} />}
+                                        // leftIcon={<Plus size={16} />}
                                         onClick={addQuestion}
                                     >
                                         Add Question
@@ -467,7 +478,7 @@ const CreateSurveyPage = () => {
                                                             </Button>
                                                         </HStack>
                                                         <VStack gap={2} align="stretch">
-                                                            {question.options.map((option, optionIndex) => (
+                                                            {question.choices?.map((option: string, optionIndex: number) => (
                                                                 <HStack key={optionIndex}>
                                                                     <Input
                                                                         size="sm"
@@ -488,9 +499,9 @@ const CreateSurveyPage = () => {
                                                                 </HStack>
                                                             ))}
                                                         </VStack>
-                                                        {errors[`question_${index}_options`] && (
+                                                        {errors[`question_${index}_choices`] && (
                                                             <Text color="red.500" fontSize="sm" mt={2}>
-                                                                {errors[`question_${index}_options`]}
+                                                                {errors[`question_${index}_choices`]}
                                                             </Text>
                                                         )}
                                                     </Box>

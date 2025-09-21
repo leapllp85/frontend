@@ -5,7 +5,7 @@ interface ProjectRisk {
   id: string;
   name: string;
   progress: number;
-  riskLevel: 'High Risk' | 'Med Risk' | 'Low Risk';
+  riskLevel: 'High Risk' | 'Medium Risk' | 'Low Risk';
   tasks: number;
   members: number;
   dueDate: string;
@@ -29,7 +29,7 @@ const defaultProjects: ProjectRisk[] = [
     id: '2',
     name: 'Project Beta',
     progress: 65,
-    riskLevel: 'Med Risk',
+    riskLevel: 'Medium Risk',
     tasks: 28340,
     members: 5,
     dueDate: '20 Jan 2024'
@@ -48,7 +48,7 @@ const defaultProjects: ProjectRisk[] = [
 const getRiskColor = (riskLevel: ProjectRisk['riskLevel']) => {
   switch (riskLevel) {
     case 'High Risk': return { colorPalette: 'red', bgColor: 'red.500' };
-    case 'Med Risk': return { colorPalette: 'orange', bgColor: 'orange.500' };
+    case 'Medium Risk': return { colorPalette: 'orange', bgColor: 'orange.500' };
     case 'Low Risk': return { colorPalette: 'green', bgColor: 'green.500' };
     default: return { colorPalette: 'gray', bgColor: 'gray.500' };
   }
@@ -59,7 +59,7 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
 }) => {
   // Sort projects by risk priority (High > Medium > Low) and show only top 3
   const getTopPriorityProjects = (projects: ProjectRisk[]) => {
-    const riskPriority = { 'High Risk': 3, 'Med Risk': 2, 'Low Risk': 1 };
+    const riskPriority = { 'High Risk': 3, 'Medium Risk': 2, 'Low Risk': 1 };
     return projects
       .sort((a, b) => riskPriority[b.riskLevel] - riskPriority[a.riskLevel])
       .slice(0, 3);
