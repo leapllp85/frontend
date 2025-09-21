@@ -109,7 +109,7 @@ export const Profile = ({
           borderRadius="2xl"
           border="1px solid"
           borderColor="whiteAlpha.300"
-          shadow="2xl"
+          shadow="sm"
           p={8}
         >
           <Card.Body>
@@ -151,7 +151,7 @@ export const Profile = ({
           borderRadius="2xl"
           border="1px solid"
           borderColor="whiteAlpha.300"
-          shadow="2xl"
+          shadow="sm"
           p={8}
         >
           <Card.Body>

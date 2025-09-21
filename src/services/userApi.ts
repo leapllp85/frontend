@@ -1,4 +1,4 @@
-import { fetchWithAuth } from '@/lib/apis/auth';
+import { apiService } from './api';
 
 // User Profile Types based on backend API
 export interface UserProfile {
@@ -52,7 +52,7 @@ export class UserApiService {
 
     // If not in localStorage, fetch from API
     try {
-      const response = await fetchWithAuth('http://34.93.168.19:8000/api/user/profile/');
+      const response = await apiService.get('/user/profile/') as UserProfile;
       
       // Store the response data in localStorage for future use
       if (response.user && response.profile) {
@@ -68,24 +68,58 @@ export class UserApiService {
   }
 
   // Get user profile by username - use the legacy profile endpoint
-  async getUserProfile(username: string): Promise<UserProfile> {
-    const response = await fetchWithAuth(`http://34.93.168.19:8000/api/user/profile/?username=${username}`);
-    return response;
+  async getUserProfileByUsername(username: string): Promise<UserProfile> {
+    return await apiService.get(`/user/profile/?username=${username}`);
+  }
+
+  // Get user profile
+  async getUserProfile(): Promise<any> {
+    return await apiService.get('/user/profile/');
   }
 
   // Update current user profile
-  async updateUserProfile(profileData: Partial<UserProfile>): Promise<UserProfile> {
-    const response = await fetchWithAuth(
-      'http://34.93.168.19:8000/api/user/profile/',
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profileData),
-      }
-    );
-    return response;
+  async updateUserProfile(profileData: any): Promise<any> {
+    return await apiService.put('/user/profile/', profileData);
+  }
+
+  // Search users across organization
+  async searchUsers(query: string, limit: number = 10): Promise<any[]> {
+    const response = await apiService.get(`/users/search/?q=${encodeURIComponent(query)}&limit=${limit}`) as { users: any[], count: number };
+    // API returns {users: [...], count: number}, but we need just the users array
+    return response.users || [];
+  }
+
+  // Get all users (now returns team members)
+  async getAllUsers(): Promise<any[]> {
+    return await apiService.get('/my-team/');
+  }
+
+  // Get team members with all profile data - Manager only
+  async getMyTeam(): Promise<any[]> {
+    return await apiService.get('/my-team/');
+  }
+
+  // Add user to project
+  async addUserToProject(
+    projectId: number, 
+    userId: number, 
+    allocationPercentage: number = 0,
+    startDate?: string,
+    endDate?: string
+  ): Promise<any> {
+    return await apiService.post(`/project-team/${projectId}/`, {
+      employee_id: userId,
+      allocation_percentage: allocationPercentage,
+      start_date: startDate,
+      end_date: endDate
+    });
+  }
+
+  // Remove user from project
+  async removeUserFromProject(projectId: number, userId: number): Promise<void> {
+    await apiService.delete(`/project-team/${projectId}/`, {
+      employee_id: userId
+    });
   }
 }
 

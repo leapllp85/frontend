@@ -58,7 +58,7 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
   projects = defaultProjects
 }) => {
   return (
-    <Card.Root bg="white" shadow="md" borderRadius="xl" h="full" display="flex" flexDirection="column">
+    <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
       <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
         <HStack justify="space-between">
           <Heading size="md" color="gray.800">Project Risks</Heading>

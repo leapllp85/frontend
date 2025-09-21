@@ -87,7 +87,7 @@ export default function Header() {
             position="sticky"
             top={0}
             zIndex={50}
-            shadow="lg"
+            shadow="sm"
             w="full"
         >
             <HStack justify="space-between" align="center">

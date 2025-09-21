@@ -213,8 +213,8 @@ export const MetricCard: React.FC<MetricCardProps> = ({ config, dataset }) => {
       borderColor="gray.200" 
       borderWidth="1px" 
       borderRadius="xl" 
-      shadow="md"
-      _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
+      shadow="sm"
+      _hover={{ transform: "translateY(-2px)", shadow: "md" }}
       transition="all 0.3s ease"
     >
       <Card.Body p={6}>

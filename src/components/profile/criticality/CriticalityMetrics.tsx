@@ -181,7 +181,7 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
 
   if (loading) {
     return (
-      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Metrics</Heading>
         </Card.Header>
@@ -197,7 +197,7 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
 
   if (error) {
     return (
-      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Metrics</Heading>
         </Card.Header>
@@ -216,7 +216,7 @@ export const CriticalityMetrics: React.FC<CriticalityMetricsProps> = ({ userId }
   }
 
   return (
-    <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+    <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
       <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Criticality Metrics</Heading>
       </Card.Header>

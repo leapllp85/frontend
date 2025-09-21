@@ -203,8 +203,8 @@ class ApiService {
   }
 
   // DELETE request
-  async delete<T>(endpoint: string): Promise<T> {
-    return await this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, data?: any): Promise<T> {
+    return await this.request<T>(endpoint, { method: 'DELETE', body: JSON.stringify(data) });
   }
 
   // Helper methods for AsyncChatApiService

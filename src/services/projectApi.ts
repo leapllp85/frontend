@@ -18,7 +18,7 @@ export class ProjectApiService {
 
   // Get project by ID
   async getProject(id: number): Promise<Project> {
-    return await apiService.get<Project>(`/projects/${id}/`);
+    return await apiService.get<Project>(`/project-team/${id}/`);
   }
 
   // Create new project
@@ -28,12 +28,12 @@ export class ProjectApiService {
 
   // Update project
   async updateProject(id: number, projectData: Partial<Project>): Promise<Project> {
-    return await apiService.put<Project>(`/projects/${id}/`, projectData);
+    return await apiService.put<Project>(`/project-team/${id}/`, projectData);
   }
 
   // Delete project
   async deleteProject(id: number): Promise<void> {
-    return await apiService.delete<void>(`/projects/${id}/`);
+    return await apiService.delete<void>(`/project-team/${id}/`);
   }
 
   // Get project team members

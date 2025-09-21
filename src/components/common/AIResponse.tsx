@@ -153,7 +153,7 @@ const AIResponse: React.FC<AIResponseProps> = ({
 
         {/* Query Information */}
         {ragResponse.queries && ragResponse.queries.length > 0 && (
-          <Box w="full" p={4} bg="gray.50" borderRadius="xl" border="1px solid" borderColor="gray.200" shadow="lg">
+          <Box w="full" p={4} bg="gray.50" borderRadius="xl" border="1px solid" borderColor="gray.200" shadow="sm">
             <Text fontWeight="semibold" color="gray.800" mb={3}>Data Sources</Text>
             <VStack align="start" gap={3}>
               {ragResponse.queries.map((query, index) => (
@@ -187,7 +187,7 @@ const AIResponse: React.FC<AIResponseProps> = ({
       {userQuestion ? (
         <>
           {/* Header */}
-          <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={4} shadow="lg">
+          <Box bg="white" borderBottom="1px solid" borderColor="gray.200" p={4} shadow="sm">
             <Flex justify="space-between" align="center">
               <HStack gap={3}>
                 <IconButton

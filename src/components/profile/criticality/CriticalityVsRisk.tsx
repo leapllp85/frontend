@@ -342,7 +342,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   if (loading) {
     return (
-      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
         </Card.Header>
@@ -358,7 +358,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   if (error) {
     return (
-      <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
         </Card.Header>
@@ -379,7 +379,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
   }
 
   return (
-    <Card.Root bg="white" shadow="lg" borderRadius="xl" h="full" display="flex" flexDirection="column">
+    <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
       <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Criticality Vs Attrition Risk</Heading>
       </Card.Header>

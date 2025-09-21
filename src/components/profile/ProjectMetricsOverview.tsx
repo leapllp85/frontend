@@ -158,7 +158,7 @@ export const ProjectMetricsOverview: React.FC<ProjectMetricsOverviewProps> = ({
   metrics = defaultMetrics
 }) => {
   return (
-    <Card.Root bg="white" shadow="md" borderRadius="xl" h="full" display="flex" flexDirection="column">
+    <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
       <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
         <Heading size="md" color="gray.800">Project Metrics Overview</Heading>
       </Card.Header>

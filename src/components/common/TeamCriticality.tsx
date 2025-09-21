@@ -132,7 +132,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
         alignItems="center"
         justifyContent="center"
         borderRadius="2xl"
-        shadow="2xl"
+        shadow="sm"
       >
         <Card.Root
           w="full"
@@ -311,7 +311,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               borderRadius="2xl"
               border="1px solid"
               borderColor="whiteAlpha.300"
-              shadow="xl"
+              shadow="sm"
               p={{ base: 1, md: 2 }}
             >
               <Card.Body>
@@ -347,8 +347,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               border="1px solid"
               borderColor="gray.200"
               borderRadius="2xl"
-              shadow="xl"
-              _hover={{ transform: "translateY(-2px)", shadow: "2xl" }}
+              shadow="sm"
+              _hover={{ transform: "translateY(-2px)", shadow: "md" }}
               transition="all 0.3s ease"
               overflow="hidden"
             >
@@ -404,8 +404,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
               border="1px solid"
               borderColor="gray.200"
               borderRadius="2xl"
-              shadow="xl"
-              _hover={{ transform: "translateY(-2px)", shadow: "2xl" }}
+              shadow="sm"
+              _hover={{ transform: "translateY(-2px)", shadow: "md" }}
               transition="all 0.3s ease"
               overflow="hidden"
             >
@@ -463,10 +463,10 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
             <Card.Root 
               bg="white"
               borderRadius="2xl"
-              shadow="xl"
+              shadow="sm"
               border="1px solid"
               borderColor="gray.200"
-              _hover={{ transform: "translateY(-2px)", shadow: "2xl" }}
+              _hover={{ transform: "translateY(-2px)", shadow: "md" }}
               transition="all 0.3s ease"
               overflow="hidden"
             >
@@ -499,8 +499,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
                     borderRadius="xl"
-                    shadow="md"
-                    _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
+                    shadow="sm"
+                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
                     transition="all 0.3s ease"
                   >
                     <Card.Body p={{ base: 3, md: 4 }} textAlign="center">
@@ -521,8 +521,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                     borderRadius="xl"
-                    shadow="md"
-                    _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
+                    shadow="sm"
+                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
                     transition="all 0.3s ease"
                   >
                     <Card.Body p={{ base: 3, md: 4 }} textAlign="center">
@@ -543,8 +543,8 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
                   <Card.Root 
                     bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
                     borderRadius="xl"
-                    shadow="md"
-                    _hover={{ transform: "translateY(-2px)", shadow: "xl" }}
+                    shadow="sm"
+                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
                     transition="all 0.3s ease"
                   >
                     <Card.Body p={{ base: 3, md: 4 }} textAlign="center">

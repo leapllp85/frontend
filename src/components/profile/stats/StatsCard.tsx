@@ -2,7 +2,7 @@ import { Card, VStack, HStack, Box, Text } from "@chakra-ui/react";
 
 export const StatsCard = ({ title, count, icon }: { title: string; count: number; icon: { bgColor: string; node: React.ReactNode } }) => {
     return (
-        <Card.Root bg="white" shadow="lg" border="1px solid" borderColor="gray.200">
+        <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
             <Card.Body p={4}>
                 <VStack align="start" gap={2}>
                 <HStack gap={2}>

@@ -39,7 +39,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, da
     // Insights panel component
     if (type.includes('insights_panel') || type.includes('insights')) {
       return (
-        <Card.Root bg="blue.50" borderColor="blue.200" borderWidth="1px" borderRadius="xl" shadow="md" w="full">
+        <Card.Root bg="blue.50" borderColor="blue.200" borderWidth="1px" borderRadius="xl" shadow="sm" w="full">
           <Card.Header p={6} pb={4}>
             <VStack align="start" gap={2} w="full">
               <HStack justify="space-between" w="full">
@@ -117,7 +117,7 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, da
     // List component (render as simple list)
     if (type.includes('list')) {
       return (
-        <Card.Root bg="white" borderColor="gray.200" borderWidth="1px" borderRadius="xl" shadow="md">
+        <Card.Root bg="white" borderColor="gray.200" borderWidth="1px" borderRadius="xl" shadow="sm">
           <Card.Header p={6} pb={4}>
             <VStack align="start" gap={2}>
               <HStack justify="space-between" w="full">
