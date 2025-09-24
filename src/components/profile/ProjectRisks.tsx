@@ -3,7 +3,10 @@ import { Box, Text, HStack, VStack, Card, Heading, Badge } from "@chakra-ui/reac
 
 interface ProjectRisk {
   id: string;
-  name: string;
+  title: string;
+  team_members_count: number;
+  go_live_date: string;
+  criticality: 'High' | 'Medium' | 'Low';
   progress: number;
   riskLevel: 'High Risk' | 'Medium Risk' | 'Low Risk';
   tasks: number;
@@ -18,7 +21,10 @@ interface ProjectRisksProps {
 const defaultProjects: ProjectRisk[] = [
   {
     id: '1',
-    name: 'Project Alpha',
+    title: 'Project Alpha',
+    team_members_count: 8,
+    go_live_date: '15 Dec 2023',
+    criticality: 'High',
     progress: 35,
     riskLevel: 'High Risk',
     tasks: 12345,
@@ -27,7 +33,10 @@ const defaultProjects: ProjectRisk[] = [
   },
   {
     id: '2',
-    name: 'Project Beta',
+    title: 'Project Beta',
+    team_members_count: 5,
+    go_live_date: '20 Jan 2024',
+    criticality: 'Medium',
     progress: 65,
     riskLevel: 'Medium Risk',
     tasks: 28340,
@@ -36,7 +45,10 @@ const defaultProjects: ProjectRisk[] = [
   },
   {
     id: '3',
-    name: 'Project Gamma',
+    title: 'Project Gamma',
+    team_members_count: 6,
+    go_live_date: '10 Feb 2024',
+    criticality: 'Low',
     progress: 85,
     riskLevel: 'Low Risk',
     tasks: 34340,
@@ -45,10 +57,10 @@ const defaultProjects: ProjectRisk[] = [
   }
 ];
 
-const getRiskColor = (riskLevel: ProjectRisk['riskLevel']) => {
-  switch (riskLevel) {
+const getRiskColor = (level: 'High Risk' | 'Medium Risk' | 'Low Risk') => {
+  switch (level) {
     case 'High Risk': return { colorPalette: 'red', bgColor: 'red.500' };
-    case 'Medium Risk': return { colorPalette: 'orange', bgColor: 'orange.500' };
+    case 'Medium Risk': return { colorPalette: 'yellow', bgColor: 'yellow.500' };
     case 'Low Risk': return { colorPalette: 'green', bgColor: 'green.500' };
     default: return { colorPalette: 'gray', bgColor: 'gray.500' };
   }
@@ -84,31 +96,31 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
                   <VStack align="start" gap={0}>
                     <HStack gap={1} mt={2}>
                       <Text fontSize="sm" fontWeight="semibold" color="gray.800">
-                        {project.name}
+                        {project.title}
                       </Text>
                       <Text fontSize="xs" color="gray.600">
-                        {project.members} members
+                        {project.team_members_count} members
                       </Text>
                       <Text fontSize="xs" color="gray.400">
-                        Due: {project.dueDate}
+                        Due: {project.go_live_date}
                       </Text>
                     </HStack>
                     <Text fontSize="xs" color="gray.600">
-                      Progress: {project.progress}%
+                      Progress: 80%
                     </Text>
                   </VStack>
                   <VStack align="end" gap={0}>
                     <Badge colorPalette={riskColors.colorPalette} size="sm">
-                      {project.riskLevel}
+                      {project.criticality}
                     </Badge>
                     <Text fontSize="xs" color="gray.500">
-                      {project.tasks} tasks
+                      51 tasks
                     </Text>
                   </VStack>
                 </HStack>
                 <Box w="full" bg="gray.200" borderRadius="full" h="2">
                   <Box 
-                    w={`${project.progress}%`} 
+                    w="80%" 
                     bg={riskColors.bgColor} 
                     borderRadius="full" 
                     h="2" 

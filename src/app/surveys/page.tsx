@@ -17,8 +17,9 @@ import {
     Input,
     Textarea
 } from '@chakra-ui/react';
-import { FileText, Plus, Calendar, Users, BarChart3, Trash2, X } from 'lucide-react';
-import { surveyApi, Survey, SurveyQuestion } from '@/services';
+import { Pagination } from '@/components/common/Pagination';
+import { FileText, Plus, Calendar, Users, BarChart3, Trash2, X, Search } from 'lucide-react';
+import { surveyApi, Survey, SurveyQuestion, SurveysPaginatedResponse, SurveysQueryParams } from '@/services';
 import { RequireSurveyView, RequireSurveyCreate, RequireSurveyDelete, ManagerOnly, AssociateOnly } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { formatDate } from '@/utils/date';
@@ -51,8 +52,17 @@ export default function SurveysPage() {
     const router = useRouter();
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchLoading, setSearchLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [filteredCount, setFilteredCount] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
+    const [hasPrevious, setHasPrevious] = useState(false);
+    const [isManager, setIsManager] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const currentDateTime = getCurrentDateTime();
     const [newSurvey, setNewSurvey] = useState({
         title: '',
@@ -77,54 +87,80 @@ export default function SurveysPage() {
         high_priority: 0
     });
 
-    useEffect(() => {
-        const fetchSurveys = async () => {
-            try {
+    // Fetch surveys with pagination
+    const fetchSurveys = async (params?: SurveysQueryParams, isSearch = false) => {
+        try {
+            if (isSearch) {
+                setSearchLoading(true);
+            } else {
                 setLoading(true);
-                
-                // Try to get survey management data for managers first
-                try {
-                    const managementData = await surveyApi.getSurveyManagement();
-                    // @ts-ignore
-                    setSurveys(managementData.surveys || managementData);
-                    // @ts-ignore
-                    setSummary(managementData.summary || {
-                        total_available: managementData.length || 0,
-                        team_surveys: 0,
-                        organization_surveys: 0,
-                        completed: 0,
-                        pending: 0,
-                        high_priority: 0
-                    });
-                } catch (managementErr) {
-                    // If survey management fails (not a manager), fall back to regular surveys
-                    console.log('Not a manager, fetching regular surveys');
-                    const surveysData = await surveyApi.getSurveys();
-                    // @ts-ignore
-                    setSurveys(surveysData.surveys || surveysData);
-                    // @ts-ignore
-                    setSummary(surveysData.summary || {
-                        total_available: Array.isArray(surveysData) ? surveysData.length : 0,
-                        team_surveys: 0,
-                        organization_surveys: 0,
-                        completed: 0,
-                        pending: 0,
-                        high_priority: 0
-                    });
-                }
-                
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching surveys:', err);
-                setError('Failed to load surveys. Please try again.');
-                setSurveys([]);
-            } finally {
+            }
+            
+            // Try to get survey management data for managers first
+            try {
+                const managementData: SurveysPaginatedResponse = await surveyApi.getSurveyManagement(params);
+                const surveys = Array.isArray(managementData.results) ? managementData.results : (managementData.results.surveys || []);
+                setSurveys(surveys);
+                setSummary(managementData.results.summary || {
+                    total_available: managementData.count || 0,
+                    team_surveys: 0,
+                    organization_surveys: 0,
+                    completed: 0,
+                    pending: 0,
+                    high_priority: 0
+                });
+                setTotalCount(managementData.count);
+                setFilteredCount(managementData.results.total_results || managementData.count);
+                setHasNext(!!managementData.next);
+                setHasPrevious(!!managementData.previous);
+                setIsManager(true);
+            } catch (managementErr) {
+                // If survey management fails (not a manager), fall back to regular surveys
+                console.log('Not a manager, fetching regular surveys');
+                const surveysData: SurveysPaginatedResponse = await surveyApi.getSurveys(params);
+                const surveys = Array.isArray(surveysData.results) ? surveysData.results : (surveysData.results.surveys || []);
+                setSurveys(surveys);
+                setSummary(surveysData.results.summary || {
+                    total_available: surveysData.count || 0,
+                    team_surveys: 0,
+                    organization_surveys: 0,
+                    completed: 0,
+                    pending: 0,
+                    high_priority: 0
+                });
+                setTotalCount(surveysData.count);
+                setFilteredCount(surveysData.results.total_results || surveysData.count);
+                setHasNext(!!surveysData.next);
+                setHasPrevious(!!surveysData.previous);
+                setIsManager(false);
+            }
+            
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching surveys:', err);
+            setError('Failed to load surveys. Please try again.');
+            setSurveys([]);
+        } finally {
+            if (isSearch) {
+                setSearchLoading(false);
+            } else {
                 setLoading(false);
             }
-        };
+        }
+    };
 
-        fetchSurveys();
-    }, []);
+    useEffect(() => {
+        const isInitialLoad = currentPage === 1 && pageSize === 10 && !searchQuery;
+        const timeoutId = setTimeout(() => {
+            fetchSurveys({ 
+                page: currentPage, 
+                page_size: pageSize,
+                search: searchQuery || undefined
+            }, !isInitialLoad);
+        }, searchQuery ? 300 : 0); // 300ms debounce for search
+
+        return () => clearTimeout(timeoutId);
+    }, [currentPage, pageSize, searchQuery]);
 
     const handleCreateSurvey = async () => {
         if (!newSurvey.title.trim() || !newSurvey.description.trim() || !newSurvey.start_date || !newSurvey.end_date || newSurvey.questions.length === 0) {
@@ -151,15 +187,7 @@ export default function SurveysPage() {
             console.log('Survey created successfully:', response);
             
             // Refresh surveys list
-            try {
-                const managementData = await surveyApi.getSurveyManagement();
-                // @ts-ignore
-                setSurveys(managementData.surveys || managementData);
-            } catch (managementErr) {
-                const surveysData = await surveyApi.getSurveys();
-                // @ts-ignore
-                setSurveys(surveysData.surveys || surveysData);
-            }
+            fetchSurveys({ page: currentPage, page_size: pageSize });
             
             // Reset form
             const resetDateTime = getCurrentDateTime();
@@ -292,6 +320,89 @@ export default function SurveysPage() {
                 {/* Content */}
                 <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
                     <VStack gap={8} align="stretch" w="full">
+                        {/* Header with Search and Pagination Info */}
+                        {!loading && !error && (
+                            <VStack gap={4} align="stretch">
+                                <HStack justify="space-between" flexWrap="wrap">
+                                    <VStack align="start" gap={1}>
+                                        <Heading size="xl" color="gray.800">
+                                            Employee Surveys
+                                        </Heading>
+                                        <Text fontSize="sm" color="gray.600">
+                                            {searchQuery ? (
+                                                `Found ${filteredCount} of ${totalCount} surveys matching "${searchQuery}"`
+                                            ) : (
+                                                `Showing ${surveys.length} of ${totalCount} surveys`
+                                            )}
+                                        </Text>
+                                    </VStack>
+
+                                    {/* Create Survey Button */}
+                                    <RequireSurveyCreate>
+                                        <Box>
+                                            <Button 
+                                                onClick={() => router.push('/surveys/create')}
+                                                colorPalette="purple"
+                                                size="lg"
+                                            >
+                                                <Plus size={20} />
+                                                Create New Survey
+                                            </Button>
+                                        </Box>
+                                    </RequireSurveyCreate>
+                                    
+                                    
+                                </HStack>
+                            </VStack>
+                        )}
+
+                {/* Search Input */}
+                <HStack gap={2} w="full">
+                    <Box position="relative" flex="1">
+                        <Input
+                            placeholder="Search surveys by title, description, or status..."
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setCurrentPage(1); // Reset to first page on search
+                            }}
+                            pl={10}
+                            size="md"
+                            bg="white"
+                            border="1px solid"
+                            borderColor="gray.300"
+                            color="gray.800"
+                            _placeholder={{ color: "gray.500" }}
+                            _focus={{
+                                borderColor: "purple.500",
+                                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
+                            }}
+                        />
+                        <Box
+                            position="absolute"
+                            left={3}
+                            top="50%"
+                            transform="translateY(-50%)"
+                            color="gray.800"
+                        >
+                            <Search size={16} />
+                        </Box>
+                    </Box>
+                    {searchQuery && (
+                        <Button
+                            size="sm"
+                            // variant="ghost"
+                            onClick={() => {
+                                setSearchQuery('');
+                                setCurrentPage(1);
+                            }}
+                            colorPalette="purple"
+                            // color="gray.500"
+                        >
+                            Clear
+                        </Button>
+                    )}
+                </HStack>
 
                 {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
@@ -360,19 +471,57 @@ export default function SurveysPage() {
                     </Card.Root>
                 </SimpleGrid>
 
-                {/* Create Survey Button */}
-                <RequireSurveyCreate>
-                    <Box>
-                        <Button 
-                            onClick={() => router.push('/surveys/create')}
-                            colorPalette="purple"
-                            size="lg"
+                {/* Pagination Controls */}
+                <HStack justify="center" gap={4} flexWrap="wrap" w="full">
+                    <HStack gap={2}>
+                        <Text fontSize="sm" color="gray.600">Page size:</Text>
+                        <select
+                            value={pageSize}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                setPageSize(Number(e.target.value));
+                                setCurrentPage(1);
+                            }}
+                            style={{
+                                padding: '4px 8px',
+                                border: '1px solid #d1d5db',
+                                borderRadius: '6px',
+                                fontSize: '14px',
+                                backgroundColor: 'white',
+                                color: '#4a5568',
+                                width: '120px'
+                            }}
                         >
-                            <Plus size={20} />
-                            Create New Survey
+                            <option value={5}>5 per page</option>
+                            <option value={10}>10 per page</option>
+                            <option value={20}>20 per page</option>
+                            <option value={50}>50 per page</option>
+                        </select>
+                    </HStack>
+                    
+                    <HStack gap={2}>
+                        <Button
+                            size="sm"
+                            // variant="outline"
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={!hasPrevious || loading}
+                            colorPalette="purple"
+                        >
+                            Previous
                         </Button>
-                    </Box>
-                </RequireSurveyCreate>
+                        <Text fontSize="sm" color="gray.600" px={2}>
+                            Page {currentPage}
+                        </Text>
+                        <Button
+                            size="sm"
+                            // variant="outline"
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                            disabled={!hasNext || loading}
+                            colorPalette="purple"
+                        >
+                            Next
+                        </Button>
+                    </HStack>
+                </HStack>
 
                 {/* Create Form */}
                 <RequireSurveyCreate>
@@ -916,19 +1065,56 @@ export default function SurveysPage() {
                 {/* Surveys List */}
                 <Card.Root bg="white" shadow="sm" borderRadius="xl">
                     <Card.Header p={6}>
-                        <Heading size="lg" color="gray.800">
-                            All Surveys
-                        </Heading>
-                        <Text color="gray.600" fontSize="sm">
-                            Manage your employee surveys and feedback
-                        </Text>
+                        <HStack justify="space-between">
+                            <VStack align="start" gap={1}>
+                                <Heading size="lg" color="gray.800">
+                                    {isManager ? 'Survey Management' : 'Available Surveys'}
+                                </Heading>
+                                <Text color="gray.600" fontSize="sm">
+                                    {isManager ? 'Manage your employee surveys and feedback' : 'Complete assigned surveys'}
+                                </Text>
+                            </VStack>
+                            {loading && (
+                                <Spinner size="md" color="purple.500" />
+                            )}
+                        </HStack>
                     </Card.Header>
                     <Card.Body p={6}>
+                        <Box position="relative">
+                            {searchLoading && (
+                                <Box
+                                    position="absolute"
+                                    top={0}
+                                    left={0}
+                                    right={0}
+                                    bottom={0}
+                                    bg="white"
+                                    opacity={0.8}
+                                    zIndex={1}
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    borderRadius="xl"
+                                >
+                                    <VStack gap={2}>
+                                        <Spinner size="lg" color="purple.500" />
+                                        <Text fontSize="sm" color="gray.600">Searching surveys...</Text>
+                                    </VStack>
+                                </Box>
+                            )}
                         <VStack gap={4} align="stretch">
-                            {surveys.length === 0 ? (
+                            {surveys.length === 0 && !loading ? (
                                 <Box textAlign="center" py={8}>
                                     <Text color="gray.500" fontSize="lg">
-                                        No surveys found. Create your first survey to get started.
+                                        {searchQuery ? `No surveys found matching "${searchQuery}"` : 
+                                         isManager ? 'No surveys found. Create your first survey to get started.' : 'No surveys available at this time.'}
+                                    </Text>
+                                </Box>
+                            ) : loading ? (
+                                <Box textAlign="center" py={8}>
+                                    <Spinner size="lg" color="purple.500" mb={4} />
+                                    <Text color="gray.600" fontSize="md">
+                                        Loading surveys...
                                     </Text>
                                 </Box>
                             ) : (
@@ -1075,10 +1261,11 @@ export default function SurveysPage() {
                                 ))
                             )}
                         </VStack>
+                        </Box>
                     </Card.Body>
                 </Card.Root>
-                    </VStack>
-                </Box>
+            </VStack>
+        </Box>
         </AppLayout>
     );
 }

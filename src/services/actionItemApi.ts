@@ -1,9 +1,49 @@
 import { apiService, ActionItem } from './api';
 
+export interface ActionItemsPaginatedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: {
+    action_items?: ActionItem[];
+    summary?: any;
+    user_info?: any;
+  };
+}
+
+export interface ActionItemsQueryParams {
+  page?: number;
+  page_size?: number;
+  status?: string;
+  user_id?: string;
+}
+
 export class ActionItemApiService {
-  // Get all action items
-  async getActionItems(): Promise<ActionItem[]> {
-    return await apiService.get<ActionItem[]>('/action-items/');
+  // Get all action items with pagination
+  async getActionItems(params?: ActionItemsQueryParams): Promise<ActionItemsPaginatedResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      queryParams.append('page_size', params.page_size.toString());
+    }
+    if (params?.status) {
+      queryParams.append('status', params.status);
+    }
+    if (params?.user_id) {
+      queryParams.append('user_id', params.user_id);
+    }
+    
+    const url = `/action-items/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await apiService.get<ActionItemsPaginatedResponse>(url);
+  }
+
+  // Legacy method for backward compatibility
+  async getAllActionItems(): Promise<ActionItem[]> {
+    const response = await this.getActionItems();
+    return response.results.action_items || [];
   }
 
   // Get action item by ID

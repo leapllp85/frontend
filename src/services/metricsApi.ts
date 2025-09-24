@@ -1,15 +1,17 @@
 import { apiService } from './api';
 
 export interface ProjectMetrics {
-  mental_health: number;
-  attrition_risk: number;
-  project_health: number;
+  data: {
+    mental_health: number;
+    attrition_risk: number;
+    project_health: number;
+  }
 }
 
 export class MetricsApiService {
   // Get project metrics for Profile component
   async getProjectMetrics(): Promise<ProjectMetrics> {
-    return await apiService.get<ProjectMetrics>('/metrics/');
+    return await apiService.get<ProjectMetrics>('/criticality/metrics/');
   }
 }
 

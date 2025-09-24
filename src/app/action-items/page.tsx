@@ -15,11 +15,10 @@ import {
     Flex,
     Input,
     Textarea,
-    Select,
     Link
 } from '@chakra-ui/react';
 import { CheckCircle, Clock, Plus, User, Calendar } from 'lucide-react';
-import { actionItemApi, ActionItem } from '@/services';
+import { actionItemApi, ActionItem, ActionItemsPaginatedResponse, ActionItemsQueryParams } from '@/services';
 import { formatDate } from '@/utils/date';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
@@ -33,26 +32,42 @@ export default function ActionItemsPage() {
         action: '',
         status: 'Pending' as 'Pending' | 'Completed'
     });
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
+    const [hasPrevious, setHasPrevious] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<string>('');
+
+    // Fetch action items with pagination
+    const fetchActionItems = async (params?: ActionItemsQueryParams) => {
+        try {
+            setLoading(true);
+            const response: ActionItemsPaginatedResponse = await actionItemApi.getActionItems(params);
+            setActionItems(response.results.action_items || []);
+            setTotalCount(response.count);
+            setHasNext(!!response.next);
+            setHasPrevious(!!response.previous);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching action items:', err);
+            setError('Failed to load action items. Please try again.');
+            setActionItems([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchActionItems = async () => {
-            try {
-                setLoading(true);
-                const items = await actionItemApi.getActionItems();
-                // @ts-ignore
-                setActionItems(items.action_items);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching action items:', err);
-                setError('Failed to load action items. Please try again.');
-                setActionItems([]);
-            } finally {
-                setLoading(false);
-            }
+        const params: ActionItemsQueryParams = {
+            page: currentPage,
+            page_size: pageSize
         };
-
-        fetchActionItems();
-    }, []);
+        if (statusFilter) {
+            params.status = statusFilter;
+        }
+        fetchActionItems(params);
+    }, [currentPage, pageSize, statusFilter]);
 
     const handleCreateActionItem = async () => {
         if (!newActionItem.title.trim() || !newActionItem.action.trim()) {
@@ -152,6 +167,92 @@ export default function ActionItemsPage() {
                 {/* Content */}
                 <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
                     <VStack gap={8} align="stretch" w="full">
+                        {/* Header with Pagination Info and Filters */}
+                        <HStack justify="space-between" flexWrap="wrap">
+                            <VStack align="start" gap={1}>
+                                <Heading size="xl" color="gray.800">
+                                    Action Items
+                                </Heading>
+                                <Text fontSize="sm" color="gray.600">
+                                    Showing {actionItems.length} of {totalCount} action items
+                                </Text>
+                            </VStack>
+                            
+                            {/* Filters and Pagination Controls */}
+                            {/* <HStack gap={4} flexWrap="wrap">
+                                <HStack gap={2}>
+                                    <Text fontSize="sm" color="gray.600">Status:</Text>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                            setStatusFilter(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        style={{
+                                            padding: '4px 8px',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '6px',
+                                            fontSize: '14px',
+                                            backgroundColor: 'white',
+                                            color: '#4a5568',
+                                            width: '120px'
+                                        }}
+                                    >
+                                        <option value="">All</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Completed">Completed</option>
+                                    </select>
+                                </HStack>
+                                
+                                <HStack gap={2}>
+                                    <Text fontSize="sm" color="gray.600">Page size:</Text>
+                                    <select
+                                        value={pageSize}
+                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                            setPageSize(Number(e.target.value));
+                                            setCurrentPage(1);
+                                        }}
+                                        style={{
+                                            padding: '4px 8px',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '6px',
+                                            fontSize: '14px',
+                                            backgroundColor: 'white',
+                                            color: '#4a5568',
+                                            width: '100px'
+                                        }}
+                                    >
+                                        <option value={5}>5 per page</option>
+                                        <option value={10}>10 per page</option>
+                                        <option value={20}>20 per page</option>
+                                        <option value={50}>50 per page</option>
+                                    </select>
+                                </HStack>
+                                
+                                <HStack gap={2}>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={!hasPrevious || loading}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Text fontSize="sm" color="gray.600" px={2}>
+                                        Page {currentPage}
+                                    </Text>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        disabled={!hasNext || loading}
+                                    >
+                                        Next
+                                    </Button>
+                                </HStack>
+                            </HStack> */}
+                        </HStack>
+
                         {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
                     <Card.Root bg="white" shadow="sm" borderRadius="xl">
@@ -222,19 +323,33 @@ export default function ActionItemsPage() {
                 {/* Action Items List */}
                 <Card.Root bg="white" shadow="sm" borderRadius="xl">
                     <Card.Header p={6}>
-                        <Heading size="lg" color="gray.800">
-                            Action Items
-                        </Heading>
-                        <Text color="gray.600" fontSize="sm">
-                            Track action items
-                        </Text>
+                        <HStack justify="space-between">
+                            <VStack align="start" gap={1}>
+                                <Heading size="lg" color="gray.800">
+                                    Action Items
+                                </Heading>
+                                <Text color="gray.600" fontSize="sm">
+                                    {statusFilter ? `Filtered by: ${statusFilter}` : 'All action items'}
+                                </Text>
+                            </VStack>
+                            {loading && (
+                                <Spinner size="md" color="purple.500" />
+                            )}
+                        </HStack>
                     </Card.Header>
                     <Card.Body p={6}>
                         <VStack gap={4} align="stretch">
-                            {actionItems.length === 0 ? (
+                            {actionItems.length === 0 && !loading ? (
                                 <Box textAlign="center" py={8}>
                                     <Text color="gray.500" fontSize="lg">
-                                        No action items found.
+                                        {statusFilter ? `No ${statusFilter.toLowerCase()} action items found.` : 'No action items found.'}
+                                    </Text>
+                                </Box>
+                            ) : loading ? (
+                                <Box textAlign="center" py={8}>
+                                    <Spinner size="lg" color="purple.500" mb={4} />
+                                    <Text color="gray.600" fontSize="md">
+                                        Loading action items...
                                     </Text>
                                 </Box>
                             ) : (
@@ -262,22 +377,20 @@ export default function ActionItemsPage() {
                                                         </HStack>
                                                     </HStack>
                                                 </VStack>
-                                                <HStack gap={2}>
-                                                    <Link
-                                                        href={item.action}
-                                                        borderColor="blue"
-                                                        bg="blue"
-                                                        color="white"
-                                                        borderWidth="1px"
-                                                        borderRadius="lg"
-                                                        px={2}
-                                                        py={1}
-                                                        fontSize="md"
-                                                        fontWeight="bold"
-                                                    >
-                                                        View
-                                                    </Link>
-                                                </HStack>
+                                                <Link
+                                                    href={item.action}
+                                                    borderColor="purple.500"
+                                                    bg="purple.500"
+                                                    color="white"
+                                                    borderWidth="1px"
+                                                    borderRadius="lg"
+                                                    px={2}
+                                                    py={1}
+                                                    fontSize="md"
+                                                    fontWeight="bold"
+                                                >
+                                                    View
+                                                </Link>
                                             </HStack>
                                         </Card.Body>
                                     </Card.Root>
@@ -285,6 +398,39 @@ export default function ActionItemsPage() {
                             )}
                         </VStack>
                     </Card.Body>
+                    
+                    {/* Pagination Footer */}
+                    {!loading && actionItems.length > 0 && (
+                        <Card.Footer p={6} borderTop="1px solid" borderColor="gray.200">
+                            <HStack justify="space-between" w="full">
+                                <Text fontSize="sm" color="gray.600">
+                                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} items
+                                </Text>
+                                <HStack gap={2}>
+                                    <Button
+                                        size="sm"
+                                        // variant="outline"
+                                        colorPalette="purple"
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={!hasPrevious}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Text fontSize="sm" color="gray.600" px={2}>
+                                        Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                                    </Text>
+                                    <Button
+                                        size="sm"
+                                        colorPalette="purple"
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        disabled={!hasNext}
+                                    >
+                                        Next
+                                    </Button>
+                                </HStack>
+                            </HStack>
+                        </Card.Footer>
+                    )}
                 </Card.Root>
                     </VStack>
                 </Box>

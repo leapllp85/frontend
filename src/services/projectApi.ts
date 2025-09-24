@@ -2,40 +2,129 @@ import { apiService, Project } from './api';
 
 export interface ProjectStats {
   total_projects: number;
-  high_risk_projects: number;
   active_projects: number;
-}
-
-export interface ProjectRisk {
-  id: string;
-  name: string;
-  progress: number;
-  riskLevel: 'High Risk' | 'Medium Risk' | 'Low Risk';
-  tasks: number;
-  members: number;
-  dueDate: string;
+  high_risk_projects: number;
+  completed_projects: number;
+  completion_rate: number;
 }
 
 export interface ProjectRisksResponse {
-  projects: ProjectRisk[];
+  summary: {
+    total_projects: number;
+    high_risk_count: number;
+    medium_risk_count: number;
+    low_risk_count: number;
+    risk_percentage: number;
+  };
+  projects?: any[]; // Optional - only needed for detailed views, not Profile
+}
+
+export interface ProjectSummary {
   total_projects: number;
-  high_risk_count: number;
+  active_projects: number;
+  completed_projects: number;
+  high_priority_projects: number;
+  completion_rate: number;
+}
+
+export interface UserInfo {
+  name: string;
+  role: string;
+  manager: string | null;
+}
+
+export interface ProjectsPaginatedResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: {
+    projects: Project[];
+    summary?: ProjectSummary;
+    user_info?: UserInfo;
+    total_results?: number;
+    search_query?: string;
+  };
+}
+
+export interface ProjectsQueryParams {
+  page?: number;
+  page_size?: number;
+  project_id?: number;
+  search?: string;
 }
 
 export class ProjectApiService {
-  // Get all projects
-  async getProjects(): Promise<Project[]> {
-    return await apiService.get<Project[]>('/projects/');
+  // Get all projects with pagination
+  async getProjects(params?: ProjectsQueryParams): Promise<ProjectsPaginatedResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      queryParams.append('page_size', params.page_size.toString());
+    }
+    if (params?.project_id) {
+      queryParams.append('project_id', params.project_id.toString());
+    }
+    if (params?.search) {
+      queryParams.append('search', params.search);
+    }
+    
+    const url = `/projects/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await apiService.get<ProjectsPaginatedResponse>(url);
   }
 
-  // Get my projects
-  async getMyProjects(): Promise<Project[]> {
-    return await apiService.get<Project[]>('/my-projects/');
+  // Get my projects with pagination
+  async getMyProjects(params?: ProjectsQueryParams): Promise<ProjectsPaginatedResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      queryParams.append('page_size', params.page_size.toString());
+    }
+    if (params?.search) {
+      queryParams.append('search', params.search);
+    }
+    
+    const url = `/my-projects/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await apiService.get<ProjectsPaginatedResponse>(url);
   }
 
-  // Get team projects (for managers)
-  async getTeamProjects(): Promise<Project[]> {
-    return await apiService.get<Project[]>('/team-projects/');
+  // Get team projects (for managers) with pagination
+  async getTeamProjects(params?: ProjectsQueryParams): Promise<ProjectsPaginatedResponse> {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) {
+      queryParams.append('page', params.page.toString());
+    }
+    if (params?.page_size) {
+      queryParams.append('page_size', params.page_size.toString());
+    }
+    if (params?.search) {
+      queryParams.append('search', params.search);
+    }
+    
+    const url = `/team-projects/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    return await apiService.get<ProjectsPaginatedResponse>(url);
+  }
+
+  // Legacy methods for backward compatibility
+  async getAllProjects(): Promise<Project[]> {
+    const response = await this.getProjects();
+    return response.results.projects;
+  }
+
+  async getAllMyProjects(): Promise<Project[]> {
+    const response = await this.getMyProjects();
+    return response.results.projects;
+  }
+
+  async getAllTeamProjects(): Promise<Project[]> {
+    const response = await this.getTeamProjects();
+    return response.results.projects;
   }
 
   // Get project by ID

@@ -12,8 +12,10 @@ import {
     SimpleGrid,
     Button,
     Flex,
-    Spinner
+    Spinner,
+    Input
 } from '@chakra-ui/react';
+import { Pagination } from '@/components/common/Pagination';
 import { 
     Icon,
     Users, 
@@ -32,72 +34,97 @@ import { TeamMember } from '@/types';
 export default function Dashboard() {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [dashboardData, setDashboardData] = useState<DashboardQuickData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [quickDataLoading, setQuickDataLoading] = useState(true);
+    const [teamDataLoading, setTeamDataLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
     const [changedMembers, setChangedMembers] = useState<Set<string>>(new Set());
+    
+    // Pagination and search state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [filteredCount, setFilteredCount] = useState(0);
 
-    // Fetch dashboard data from API
+    // Fetch quick data first for immediate dashboard display
     useEffect(() => {
-        const fetchDashboardData = async () => {
+        const fetchQuickData = async () => {
             try {
-                setLoading(true);
-                
-                // Fetch dashboard quick data and team members in parallel
-                const [quickData, teamData] = await Promise.all([
-                    dashboardApi.getDashboardQuickData(),
-                    teamApi.getTeamMembers()
-                ]);
-                
+                setQuickDataLoading(true);
+                const quickData = await dashboardApi.getDashboardQuickData();
                 setDashboardData(quickData);
                 console.log('Dashboard Quick Data:', quickData);
-                
-                // Transform team data to match UI expectations
-                // Add validation to ensure teamData is an array
-                // @ts-ignore
-                const teamArray = Array.isArray(teamData.team_members) ? teamData.team_members : [];
-                
-                console.log('Team API Response:', teamArray);
-                
-                // @ts-ignore
-                const transformedTeamMembers: TeamMember[] = teamArray.map(member => ({
-                    id: member.id.toString(),
-                    name: (member.first_name && member.last_name) ? `${member.first_name} ${member.last_name}` : member.username || 'Unknown User',
-                    email: member.email || `${member.username}@company.com`,
-                    age: member.age || 0,
-                    mentalHealth: member.mental_health || 'Medium',
-                    motivationFactor: member.motivation_factor || 'Medium',
-                    careerOpportunities: member.career_opportunities || 'Medium',
-                    personalReason: member.personal_reason || 'Medium',
-                    managerAssessmentRisk: member.manager_assessment_risk || 'Medium',
-                    utilization: Math.floor(Math.random() * 30) + 70, // TODO: Get from allocations API
-                    projectCriticality: member.manager_assessment_risk || 'Medium',
-                    attritionRisk: member.manager_assessment_risk || 'Medium',
-                    primaryTrigger: member.primary_trigger || 'MH',
-                    triggers: {
-                        mentalHealth: member.mental_health === 'Low',
-                        motivation: member.motivation_factor === 'Low',
-                        career: member.career_opportunities === 'Low',
-                        personal: member.personal_reason === 'Low'
-                    }
-                }));
-                
-                setTeamMembers(transformedTeamMembers);
                 setError(null);
             } catch (err) {
-                console.error('Failed to fetch dashboard data:', err);
+                console.error('Failed to fetch quick data:', err);
                 setError('Failed to load dashboard data. Please try again.');
-                // Fallback to empty data on error
-                setTeamMembers([]);
                 setDashboardData(null);
             } finally {
-                setLoading(false);
+                setQuickDataLoading(false);
             }
         };
 
-        fetchDashboardData();
+        fetchQuickData();
     }, []);
+
+    // Fetch team data separately after quick data loads
+    useEffect(() => {
+        if (!quickDataLoading && dashboardData) {
+            const fetchTeamData = async () => {
+                try {
+                    setTeamDataLoading(true);
+                    const teamData = await teamApi.getTeamMembers({
+                        page: currentPage,
+                        page_size: pageSize,
+                        search: searchQuery || undefined
+                    });
+                    
+                    // Transform team data to match UI expectations
+                    // @ts-ignore
+                    const teamArray = Array.isArray(teamData.results.team_members) ? teamData.results.team_members : [];
+                    
+                    console.log('Team API Response:', teamArray);
+                    
+                    const transformedTeamMembers: TeamMember[] = teamArray.map((member: any) => ({
+                        id: member.id.toString(),
+                        name: (member.first_name && member.last_name) ? `${member.first_name} ${member.last_name}` : (member.username || 'Unknown User'),
+                        email: member.email || `${member.username || 'unknown'}@company.com`,
+                        age: member.age || 0,
+                        mentalHealth: member.mental_health || 'Medium',
+                        motivationFactor: member.motivation_factor || 'Medium',
+                        careerOpportunities: member.career_opportunities || 'Medium',
+                        personalReason: member.personal_reason || 'Medium',
+                        managerAssessmentRisk: member.manager_assessment_risk || 'Medium',
+                        utilization: Math.floor(Math.random() * 30) + 70, // TODO: Get from allocations API
+                        projectCriticality: member.manager_assessment_risk || 'Medium',
+                        attritionRisk: member.manager_assessment_risk || 'Medium',
+                        primaryTrigger: member.primary_trigger || 'MH',
+                        triggers: {
+                            mentalHealth: member.mental_health === 'Low',
+                            motivation: member.motivation_factor === 'Low',
+                            career: member.career_opportunities === 'Low',
+                            personal: member.personal_reason === 'Low'
+                        }
+                    }));
+                    
+                    setTeamMembers(transformedTeamMembers);
+                    setTotalCount(teamData.count);
+                    setFilteredCount(teamData.results.filtered_count);
+                    setError(null);
+                } catch (err) {
+                    console.error('Failed to fetch team data:', err);
+                    // Don't set error for team data failure, just log it
+                    setTeamMembers([]);
+                } finally {
+                    setTeamDataLoading(false);
+                }
+            };
+
+            fetchTeamData();
+        }
+    }, [quickDataLoading, dashboardData, currentPage, pageSize, searchQuery]);
 
     // Calculate analytics using API data or fallback to calculated values
     const teamAttritionRisk = () => {
@@ -262,9 +289,10 @@ export default function Dashboard() {
                 <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
                     <VStack gap={8} align="stretch" w="full">
 
-                    {/* Loading State */}
-                    {loading && (
+                    {/* Loading State for Quick Data */}
+                    {quickDataLoading && (
                         <Box textAlign="center" py={12}>
+                            <Spinner size="xl" color="purple.500" mb={4} />
                             <Text fontSize="lg" color="gray.600">Loading dashboard data...</Text>
                         </Box>
                     )}
@@ -280,6 +308,7 @@ export default function Dashboard() {
                     )}
 
                     {/* Quick Data Widgets */}
+                    {!quickDataLoading && !error && (
                     <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}>
                         {insights({
                             teamAttritionRisk,
@@ -329,6 +358,7 @@ export default function Dashboard() {
                             </Card.Root>
                         ))}
                     </SimpleGrid>
+                    )}
 
                     {/* Top Talent Details */}
                     <Card.Root 
@@ -606,6 +636,7 @@ export default function Dashboard() {
                             </SimpleGrid>
 
                         {/* Team Members Management Section */}
+                        {!quickDataLoading && !error && (
                         <Card.Root bg="white" shadow="md" borderRadius="xl">
                             <Card.Header p={6}>
                                 <HStack justify="space-between">
@@ -616,6 +647,12 @@ export default function Dashboard() {
                                         <Text color="gray.600" fontSize="sm">
                                             Individual team member risk assessments and management
                                         </Text>
+                                        {teamDataLoading && (
+                                            <HStack gap={2}>
+                                                <Spinner size="sm" color="purple.500" />
+                                                <Text fontSize="sm" color="gray.500">Loading team data...</Text>
+                                            </HStack>
+                                        )}
                                     </VStack>
                                     <HStack gap={4}>
                                         <Card.Root bg="purple.50" border="1px solid" borderColor="purple.200" borderRadius="lg" p={3}>
@@ -637,6 +674,60 @@ export default function Dashboard() {
                                         </Button>
                                     </HStack>
                                 </HStack>
+                                
+                                {/* Search and Filters */}
+                                <VStack align="stretch" gap={4} mt={4}>
+                                    <HStack gap={4} flexWrap="wrap">
+                                        <Box flex={1} minW="200px">
+                                            <Input
+                                                placeholder="Search by name, email, or username..."
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value);
+                                                    setCurrentPage(1); // Reset to first page on search
+                                                }}
+                                                size="sm"
+                                            />
+                                        </Box>
+                                        <Box>
+                                            <select
+                                                value={pageSize}
+                                                onChange={(e) => {
+                                                    setPageSize(Number(e.target.value));
+                                                    setCurrentPage(1); // Reset to first page on page size change
+                                                }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'white',
+                                                    color: '#4a5568',
+                                                    outline: 'none',
+                                                    cursor: 'pointer',
+                                                    minWidth: '120px'
+                                                }}
+                                            >
+                                                <option value={5}>5 per page</option>
+                                                <option value={10}>10 per page</option>
+                                                <option value={20}>20 per page</option>
+                                                <option value={50}>50 per page</option>
+                                            </select>
+                                        </Box>
+                                    </HStack>
+                                    
+                                    {/* Search Results Info */}
+                                    {searchQuery && (
+                                        <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                                            <Text fontSize="sm" color="blue.700">
+                                                <strong>{filteredCount}</strong> members found matching <strong>"{searchQuery}"</strong>
+                                                {filteredCount !== totalCount && (
+                                                    <span> (filtered from {totalCount} total members)</span>
+                                                )}
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </VStack>
                                 
                                 {/* Success/Error Messages */}
                                 {saveSuccess && (
@@ -754,7 +845,26 @@ export default function Dashboard() {
                                     </table>
                                 </Box>
                             </Card.Body>
+                            
+                            {/* Enhanced Pagination Footer */}
+                            <Card.Footer p={4} borderTop="1px solid" borderColor="gray.200">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={Math.ceil((searchQuery ? filteredCount : totalCount) / pageSize)}
+                                    totalItems={searchQuery ? filteredCount : totalCount}
+                                    itemsPerPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                    onItemsPerPageChange={(newPageSize) => {
+                                        setPageSize(newPageSize);
+                                        setCurrentPage(1);
+                                    }}
+                                    loading={teamDataLoading}
+                                    showFirstLast={true}
+                                    showPageNumbers={true}
+                                />
+                            </Card.Footer>
                         </Card.Root>
+                        )}
                     </VStack>
                 </Box>
         </AppLayout>

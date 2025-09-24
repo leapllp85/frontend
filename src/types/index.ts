@@ -55,17 +55,17 @@ export interface ComponentEmployee {
 export interface EmployeeProfile {
     role: string;
     id: number;
-    username: string;
-    first_name: string;
-    last_name: string;
-    profile_pic: string;
-    mental_health: 'High' | 'Medium' | 'Low';
-    motivation_factor: 'High' | 'Medium' | 'Low';
-    career_opportunities: 'High' | 'Medium' | 'Low';
-    personal_reason: 'High' | 'Medium' | 'Low';
-    suggested_risk: 'High' | 'Medium' | 'Low';
-    project_criticality: 'High' | 'Medium' | 'Low';
-    manager_assessment_risk: 'High' | 'Medium' | 'Low';
+    username?: string;
+    first_name?: string;
+    last_name?: string;
+    profile_pic?: string;
+    mental_health?: 'High' | 'Medium' | 'Low';
+    motivation_factor?: 'High' | 'Medium' | 'Low';
+    career_opportunities?: 'High' | 'Medium' | 'Low';
+    personal_reason?: 'High' | 'Medium' | 'Low';
+    suggested_risk?: 'High' | 'Medium' | 'Low';
+    project_criticality?: 'High' | 'Medium' | 'Low';
+    manager_assessment_risk?: 'High' | 'Medium' | 'Low';
     all_triggers?: string;
     primary_trigger: 'MH' | 'MT' | 'CO' | 'PR';
     age: number;

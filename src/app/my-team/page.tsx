@@ -12,11 +12,14 @@ import {
     Badge,
     SimpleGrid,
     Spinner,
-    Flex
+    Flex,
+    Input,
+    Select
 } from '@chakra-ui/react';
+import { Pagination } from '@/components/common/Pagination';
 import { Users, AlertTriangle, Brain, Target } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
-import { teamApi, EmployeeProfile } from '@/services';
+import { teamApi, EmployeeProfile, TeamMembersPaginatedResponse, TeamMembersQueryParams } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 interface TeamMember {
@@ -34,42 +37,50 @@ export default function MyTeam() {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [filteredCount, setFilteredCount] = useState(0);
+    const [hasNext, setHasNext] = useState(false);
+    const [hasPrevious, setHasPrevious] = useState(false);
+
+    const fetchTeamData = async (params?: TeamMembersQueryParams) => {
+        try {
+            setLoading(true);
+            const response: TeamMembersPaginatedResponse = await teamApi.getTeamMembers(params);
+            
+            const profilesArray = response.results.team_members || [];
+            const transformedMembers: TeamMember[] = profilesArray.map((profile: EmployeeProfile) => ({
+                id: profile.id.toString(),
+                // @ts-ignore
+                name: `${profile.first_name} ${profile.last_name}` || profile.username,
+                email: profile.email || `${profile.first_name?.toLowerCase()}.${profile.last_name?.toLowerCase()}@company.com`,
+                mentalHealth: profile.mental_health as 'High' | 'Medium' | 'Low',
+                motivationFactor: profile.motivation_factor as 'High' | 'Medium' | 'Low',
+                careerOpportunities: profile.career_opportunities as 'High' | 'Medium' | 'Low',
+                personalReason: profile.personal_reason as 'High' | 'Medium' | 'Low',
+                managerAssessmentRisk: profile.manager_assessment_risk as 'High' | 'Medium' | 'Low',
+            }));
+            
+            setTeamMembers(transformedMembers);
+            setTotalCount(response.count);
+            setFilteredCount(response.results.filtered_count);
+            setHasNext(!!response.next);
+            setHasPrevious(!!response.previous);
+            setError(null);
+        } catch (err) {
+            console.error('Error fetching team data:', err);
+            setError('Failed to load team data. Please try again.');
+            setTeamMembers([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchTeamData = async () => {
-            try {
-                setLoading(true);
-                const employeeProfiles = await teamApi.getTeamMembers();
-                
-                // Ensure employeeProfiles is an array
-                // @ts-ignore
-                const profilesArray = Array.isArray(employeeProfiles.team_members) ? employeeProfiles.team_members : [];
-                const transformedMembers: TeamMember[] = profilesArray.map((profile: EmployeeProfile) => ({
-                    id: profile.id.toString(),
-                    // @ts-ignore
-                    name: `${profile.first_name} ${profile.last_name}` || profile.username,
-                    // @ts-ignore
-                    email: profile.email,
-                    mentalHealth: profile.mental_health as 'High' | 'Medium' | 'Low',
-                    motivationFactor: profile.motivation_factor as 'High' | 'Medium' | 'Low',
-                    careerOpportunities: profile.career_opportunities as 'High' | 'Medium' | 'Low',
-                    personalReason: profile.personal_reason as 'High' | 'Medium' | 'Low',
-                    managerAssessmentRisk: profile.manager_assessment_risk as 'High' | 'Medium' | 'Low',
-                }));
-                
-                setTeamMembers(transformedMembers);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching team data:', err);
-                setError('Failed to load team data. Please try again.');
-                setTeamMembers([]);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchTeamData();
-    }, []);
+        fetchTeamData({ page: currentPage, page_size: pageSize, search: searchQuery || undefined });
+    }, [currentPage, pageSize, searchQuery]);
 
     const calculateSuggestedRisk = (member: TeamMember): 'High' | 'Medium' | 'Low' => {
         const riskValues = {
@@ -224,12 +235,68 @@ export default function MyTeam() {
                         {/* Team Members Table */}
                         <Card.Root bg="white" shadow="md" borderRadius="xl">
                             <Card.Header p={6}>
-                                <Heading size="lg" color="gray.800">
-                                    Team Members
-                                </Heading>
-                                <Text color="gray.600" fontSize="sm">
-                                    Individual team member risk assessments
-                                </Text>
+                                <VStack align="stretch" gap={4}>
+                                    <Box>
+                                        <Heading size="lg" color="gray.800">
+                                            Team Members
+                                        </Heading>
+                                        <Text color="gray.600" fontSize="sm">
+                                            Individual team member risk assessments
+                                        </Text>
+                                    </Box>
+                                    
+                                    {/* Search and Filters */}
+                                    <HStack gap={4} flexWrap="wrap">
+                                        <Box flex={1} minW="200px">
+                                            <Input
+                                                placeholder="Search by name, email, or username..."
+                                                value={searchQuery}
+                                                onChange={(e) => {
+                                                    setSearchQuery(e.target.value);
+                                                    setCurrentPage(1); // Reset to first page on search
+                                                }}
+                                                size="sm"
+                                            />
+                                        </Box>
+                                        <Box>
+                                            <select
+                                                value={pageSize}
+                                                onChange={(e) => {
+                                                    setPageSize(Number(e.target.value));
+                                                    setCurrentPage(1); // Reset to first page on page size change
+                                                }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'white',
+                                                    color: '#4a5568',
+                                                    outline: 'none',
+                                                    cursor: 'pointer',
+                                                    minWidth: '120px'
+                                                }}
+                                            >
+                                                <option value={5}>5 per page</option>
+                                                <option value={10}>10 per page</option>
+                                                <option value={20}>20 per page</option>
+                                                <option value={50}>50 per page</option>
+                                            </select>
+                                        </Box>
+                                    </HStack>
+                                    
+                                    {/* Results Info and Search Status */}
+                                    {searchQuery && (
+                                        <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                                            <Text fontSize="sm" color="blue.700">
+                                                <strong>{filteredCount}</strong> members found matching <strong>"{searchQuery}"</strong>
+                                                {filteredCount !== totalCount && (
+                                                    <span> (filtered from {totalCount} total members)</span>
+                                                )}
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </VStack>
                             </Card.Header>
                             <Card.Body p={0}>
                                 <Box overflowX="auto">
@@ -330,6 +397,24 @@ export default function MyTeam() {
                                     </table>
                                 </Box>
                             </Card.Body>
+                            
+                            {/* Enhanced Pagination Footer */}
+                            <Card.Footer p={4} borderTop="1px solid" borderColor="gray.200">
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={Math.ceil((searchQuery ? filteredCount : totalCount) / pageSize)}
+                                    totalItems={searchQuery ? filteredCount : totalCount}
+                                    itemsPerPage={pageSize}
+                                    onPageChange={setCurrentPage}
+                                    onItemsPerPageChange={(newPageSize) => {
+                                        setPageSize(newPageSize);
+                                        setCurrentPage(1);
+                                    }}
+                                    loading={loading}
+                                    showFirstLast={true}
+                                    showPageNumbers={true}
+                                />
+                            </Card.Footer>
                         </Card.Root>
                     </VStack>
                 </Box>

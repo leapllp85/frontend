@@ -29,6 +29,10 @@ export interface Project {
 export interface EmployeeProfile {
   id: number;
   user_info: User;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  name?: string;
   profile_pic?: string;
   age: number;
   mental_health: 'High' | 'Medium' | 'Low';
@@ -41,6 +45,8 @@ export interface EmployeeProfile {
   suggested_risk: 'High' | 'Medium' | 'Low';
   created_at: string;
   updated_at: string;
+  total_allocation: number;
+  project_criticality: 'High' | 'Medium' | 'Low';
 }
 
 export interface ProjectAllocation {

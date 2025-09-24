@@ -34,6 +34,8 @@ export const Profile = ({
       setLoading(true);
       setError(null);
       
+      console.log('Starting Profile data fetch...');
+      
       const [
         userResponse,
         actionItemsResponse,
@@ -54,24 +56,52 @@ export const Profile = ({
         notificationsApi.getNotifications().catch(() => null)
       ]);
       
+      console.log('API Responses received:');
+      console.log('- userResponse:', userResponse);
+      console.log('- actionItemsResponse:', actionItemsResponse);
+      console.log('- projectsResponse:', projectsResponse);
+      console.log('- teamStatsResponse:', teamStatsResponse);
+      console.log('- projectStatsResponse:', projectStatsResponse);
+      console.log('- projectRisksResponse:', projectRisksResponse);
+      console.log('- metricsResponse:', metricsResponse);
+      console.log('- notificationsResponse:', notificationsResponse);
+      
       setUser(userResponse);
-      setActionItems(actionItemsResponse || []);
-      setProjects(projectsResponse || []);
+      
+      // Handle paginated responses properly
+      if (actionItemsResponse?.results?.action_items) {
+        setActionItems(actionItemsResponse.results.action_items);
+      } else if (Array.isArray(actionItemsResponse)) {
+        setActionItems(actionItemsResponse);
+      } else {
+        setActionItems([]);
+      }
+      
+      if (projectsResponse?.results?.projects) {
+        setProjects(projectsResponse.results.projects);
+      } else if (Array.isArray(projectsResponse)) {
+        setProjects(projectsResponse);
+      } else {
+        setProjects([]);
+      }
+      
       setTeamStats(teamStatsResponse);
       setProjectStats(projectStatsResponse);
       setProjectRisks(projectRisksResponse);
       setMetrics(metricsResponse);
       setNotifications(notificationsResponse);
       
-      // Debug logging
-      console.log('Debug - projectStatsResponse:', projectStatsResponse);
-      console.log('Debug - projectsResponse length:', projectsResponse?.length || 0);
+      console.log('State updated successfully');
     } catch (err) {
       console.error('Error fetching profile data:', err);
-      console.log('Debug - projectStats:', projectStats);
-      console.log('Debug - projects.length:', projects.length);
+      console.error('Full error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined,
+        error: err
+      });
       setError(err instanceof Error ? err.message : 'Failed to load profile data');
     } finally {
+      console.log('Profile data fetch completed, setting loading to false');
       setLoading(false);
     }
   };
@@ -184,10 +214,6 @@ export const Profile = ({
                 avgUtilization={teamStats?.utilization_percentage}
                 highRiskProjects={projectStats?.high_risk_projects}
               />
-              {/* Debug info */}
-              <Box fontSize="xs" color="gray.500" p={2}>
-                Debug: projectStats={JSON.stringify(projectStats)} | projects.length={projects?.length} | teamStats={JSON.stringify(teamStats)}
-              </Box>
             </Box>
 
             {/* Main Content Grid - 2x2 Equal Layout */}
@@ -206,9 +232,9 @@ export const Profile = ({
               <Box h="full">
                 <ProjectMetricsOverview 
               metrics={metrics ? [
-                { label: 'Mental Health', value: metrics.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                { label: 'Attrition Risk', value: metrics.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                { label: 'Project Health', value: metrics.project_health, color: '#fb923c', type: 'project_health' as const }
+                { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
               ] : undefined}
             />
               </Box>

@@ -41,12 +41,86 @@ export interface UpdateSurveyRequest {
     status?: 'draft' | 'active' | 'closed';
 }
 
+export interface SurveysPaginatedResponse {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: {
+        surveys?: Survey[];
+        summary?: any;
+        user_info?: any;
+        total_results?: number;
+        search_query?: string;
+    };
+}
+
+export interface SurveysQueryParams {
+    page?: number;
+    page_size?: number;
+    search?: string;
+}
+
 class SurveyApiService {
     private baseUrl = `/surveys`;
 
-    async getSurveys(): Promise<Survey[]> {
-        const response = await apiService.get<Survey[]>('/surveys/');
-        return response;
+    // Get surveys with pagination
+    async getSurveys(params?: SurveysQueryParams): Promise<SurveysPaginatedResponse> {
+        const queryParams = new URLSearchParams();
+        
+        if (params?.page) {
+            queryParams.append('page', params.page.toString());
+        }
+        if (params?.page_size) {
+            queryParams.append('page_size', params.page_size.toString());
+        }
+        if (params?.search) {
+            queryParams.append('search', params.search);
+        }
+        
+        const url = `/surveys/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        return await apiService.get<SurveysPaginatedResponse>(url);
+    }
+
+    // Get published surveys with pagination
+    async getPublishedSurveys(params?: SurveysQueryParams): Promise<SurveysPaginatedResponse> {
+        const queryParams = new URLSearchParams();
+        
+        if (params?.page) {
+            queryParams.append('page', params.page.toString());
+        }
+        if (params?.page_size) {
+            queryParams.append('page_size', params.page_size.toString());
+        }
+        if (params?.search) {
+            queryParams.append('search', params.search);
+        }
+        
+        const url = `/surveys/publish/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        return await apiService.get<SurveysPaginatedResponse>(url);
+    }
+
+    // Get survey management with pagination
+    async getSurveyManagement(params?: SurveysQueryParams): Promise<SurveysPaginatedResponse> {
+        const queryParams = new URLSearchParams();
+        
+        if (params?.page) {
+            queryParams.append('page', params.page.toString());
+        }
+        if (params?.page_size) {
+            queryParams.append('page_size', params.page_size.toString());
+        }
+        if (params?.search) {
+            queryParams.append('search', params.search);
+        }
+        
+        const url = `/surveys/manage/${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+        return await apiService.get<SurveysPaginatedResponse>(url);
+    }
+
+    // Legacy methods for backward compatibility
+    async getAllSurveys(): Promise<Survey[]> {
+        const response = await this.getSurveys();
+        return response.results.surveys || [];
     }
 
     async getSurvey(id: number): Promise<Survey> {
@@ -54,7 +128,8 @@ class SurveyApiService {
         return response;
     }
 
-    async getSurveyManagement(): Promise<any> {
+    // Legacy method - use getSurveyManagement() with pagination instead
+    async getSurveyManagementLegacy(): Promise<any> {
         const response = await apiService.get<any>('/survey-management/');
         return response;
     }
