@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (user) {
             const userRole = getUserRole(user);
-            const userPermissions = getUserPermissions(userRole);
+            const userPermissions = getUserPermissions(user);
             setRole(userRole);
             setPermissions(userPermissions);
             setIsAuthenticated(true);

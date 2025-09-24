@@ -28,9 +28,9 @@ export interface User {
     email: string;
     first_name: string;
     last_name: string;
-    role?: UserRole;
-    is_manager?: boolean;
-    permissions?: UserPermissions;
+    role: string;
+    is_manager: boolean;
+    permissions: string[];
 }
 
 // Employee Types

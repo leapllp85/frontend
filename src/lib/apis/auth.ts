@@ -2,23 +2,22 @@
 import nookies from "nookies";
 
 export async function login(username: string, password: string) {
-    const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
-    const res = await fetch(`${apiUrl}/api/login/`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const res = await fetch(`${apiUrl}/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
     });
 
     if (!res.ok) {
-        console.log(res)
-        throw new Error("Invalid login");
+        const errorData = await res.json().catch(() => ({}));
+        const errorMessage = errorData.detail || "No active account found with the given credentials";
+        throw new Error(errorMessage);
     }
 
     const data = await res.json();
 
-    localStorage.setItem("username", JSON.stringify(username));
-
-    // Store access token in memory or localStorage
+    // Store access token in localStorage
     localStorage.setItem("accessToken", data.access);
 
     // Store refresh token as cookie with nookies
@@ -38,7 +37,7 @@ export async function refreshAccessToken(ctx = null) {
     if (!refreshToken) throw new Error("No refresh token found");
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const res = await fetch(`${apiUrl}/api/token/refresh/`, {
+    const res = await fetch(`${apiUrl}/auth/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh: refreshToken }),
@@ -110,20 +109,17 @@ export async function fetchProfile(username: string) {
     )
 }
 
-// Enhanced login function that fetches user profile data
+// Enhanced login function that uses the new JWT auth response
 export async function loginWithProfile(username: string, password: string) {
     try {
-        // First, perform the login
+        // Perform the login - the new API returns user data directly
         const loginResponse = await login(username, password);
         
-        // Then fetch the user profile data
-        const profileData = await fetchProfile(username);
-        
-        // Return both login response and profile data
+        // The new API response includes user data directly
         return {
-            ...loginResponse,
-            user: profileData.user,
-            profile: profileData.profile
+            access: loginResponse.access,
+            refresh: loginResponse.refresh,
+            user: loginResponse.user
         };
     } catch (error) {
         console.error('Login with profile error:', error);
@@ -131,17 +127,42 @@ export async function loginWithProfile(username: string, password: string) {
     }
 }
 
-export function logout() {
-    // Clear access token from localStorage
-    localStorage.removeItem("accessToken");
-    
-    // Clear refresh token cookie
-    nookies.destroy(null, "refreshToken", {
-        path: "/",
-    });
-    
-    // Redirect to login page
-    window.location.href = "/login";
+export async function logout() {
+    try {
+        const accessToken = localStorage.getItem("accessToken");
+        const cookies = nookies.get(null);
+        const refreshToken = cookies.refreshToken;
+        
+        if (accessToken && refreshToken) {
+            // Call the logout API to blacklist the refresh token
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            await fetch(`${apiUrl}/auth/logout/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+            }).catch(error => {
+                console.warn('Logout API call failed:', error);
+            });
+        }
+    } catch (error) {
+        console.warn('Error during logout API call:', error);
+    } finally {
+        // Always clear local storage and cookies regardless of API call success
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("profileData");
+        
+        // Clear refresh token cookie
+        nookies.destroy(null, "refreshToken", {
+            path: "/",
+        });
+        
+        // Redirect to login page
+        window.location.href = "/login";
+    }
 }
 
 export function isTokenExpired(token: string): boolean {

@@ -49,8 +49,8 @@ export default function LoginPage() { // 👈 NO async here
         try {
             const loginResponse = await loginWithProfile(username, password);
 
+            // Store user data in localStorage
             localStorage.setItem('userData', JSON.stringify(loginResponse.user));
-            localStorage.setItem('profileData', JSON.stringify(loginResponse.profile));
             
             // Store user data in AuthContext
             authLogin(loginResponse.user);

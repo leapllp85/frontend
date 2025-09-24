@@ -10,11 +10,25 @@ export function getUserRole(user: User): UserRole {
 }
 
 /**
- * Gets user permissions based on their role
- * Manager inherits all Associate permissions plus additional ones
+ * Gets user permissions based on the permissions array from JWT API
+ * Converts API permission strings to UserPermissions object
  */
-export function getUserPermissions(role: UserRole): UserPermissions {
-    const basePermissions: UserPermissions = {
+export function getUserPermissions(user: User): UserPermissions {
+    const permissions = user.permissions || [];
+    
+    // Map API permission strings to UserPermissions boolean flags
+    const permissionMap: Record<string, keyof UserPermissions> = {
+        'chat': 'canViewDashboard', // Basic access
+        'profile': 'canViewDashboard', // Basic access
+        'surveys': 'canViewSurveys',
+        'my_projects': 'canViewDashboard', // Basic project access
+        'team_dashboard': 'canViewDashboard',
+        'team_projects': 'canViewTeamProjects',
+        'my_team': 'canViewMyTeam',
+        'survey_management': 'canCreateSurveys'
+    };
+    
+    const userPermissions: UserPermissions = {
         canViewDashboard: false,
         canViewTeamProjects: false,
         canViewMyTeam: false,
@@ -30,57 +44,47 @@ export function getUserPermissions(role: UserRole): UserPermissions {
         canCreateSurveys: false,
         canDeleteSurveys: false,
     };
-
-    switch (role) {
-        case 'Associate':
-            return {
-                ...basePermissions,
-                // Associates have basic access
-                canViewDashboard: false, // Associates don't see team dashboard
-                canViewTeamProjects: false, // Associates see only their projects
-                canViewMyTeam: false,
-                canViewTeamAnalytics: false,
-                canManageTeam: false,
-                // Action Items and Courses - Associates can VIEW but not ASSIGN
-                canViewActionItems: true, // All users can view action items
-                canAssignActionItems: false, // Only managers can assign
-                canViewCourses: true, // All users can view courses
-                canAssignCourses: false, // Only managers can assign
-                // Project Management - Associates can only VIEW projects
-                canCreateProjects: false, // Only managers can create projects
-                canEditProjects: false, // Only managers can edit projects
-                // Survey Management - Associates can VIEW but not CREATE/DELETE
-                canViewSurveys: true, // All users can view surveys
-                canCreateSurveys: false, // Only managers can create surveys
-                canDeleteSurveys: false, // Only managers can delete surveys
-            };
-
-        case 'Manager':
-            return {
-                ...basePermissions,
-                // Managers inherit all Associate features plus management features
-                canViewDashboard: true, // Team Dashboard
-                canViewTeamProjects: true, // Team Projects
-                canViewMyTeam: true, // My Team management
-                canViewTeamAnalytics: true, // Team analytics
-                canManageTeam: true, // Team management capabilities
-                // Action Items and Courses - Managers can both VIEW and ASSIGN
-                canViewActionItems: true, // All users can view action items
-                canAssignActionItems: true, // Managers can assign action items
-                canViewCourses: true, // All users can view courses
-                canAssignCourses: true, // Managers can assign courses
-                // Project Management - Managers can CREATE and EDIT projects
-                canCreateProjects: true, // Managers can create new projects
-                canEditProjects: true, // Managers can edit existing projects
-                // Survey Management - Managers can VIEW, CREATE, and DELETE
-                canViewSurveys: true, // All users can view surveys
-                canCreateSurveys: true, // Managers can create surveys
-                canDeleteSurveys: true, // Managers can delete surveys
-            };
-
-        default:
-            return basePermissions;
-    }
+    
+    // Set permissions based on API response
+    permissions.forEach(permission => {
+        switch (permission) {
+            case 'chat':
+            case 'profile':
+                userPermissions.canViewDashboard = true;
+                break;
+            case 'surveys':
+                userPermissions.canViewSurveys = true;
+                break;
+            case 'my_projects':
+                userPermissions.canViewDashboard = true;
+                break;
+            case 'team_dashboard':
+                userPermissions.canViewDashboard = true;
+                userPermissions.canViewTeamAnalytics = true;
+                break;
+            case 'team_projects':
+                userPermissions.canViewTeamProjects = true;
+                userPermissions.canCreateProjects = true;
+                userPermissions.canEditProjects = true;
+                break;
+            case 'my_team':
+                userPermissions.canViewMyTeam = true;
+                userPermissions.canManageTeam = true;
+                userPermissions.canAssignActionItems = true;
+                userPermissions.canAssignCourses = true;
+                break;
+            case 'survey_management':
+                userPermissions.canCreateSurveys = true;
+                userPermissions.canDeleteSurveys = true;
+                break;
+        }
+    });
+    
+    // All users can view action items and courses
+    userPermissions.canViewActionItems = true;
+    userPermissions.canViewCourses = true;
+    
+    return userPermissions;
 }
 
 /**
@@ -133,7 +137,7 @@ export function getNavigationItems(user: User | null): NavigationItem[] {
     if (!user) return [];
 
     const role = getUserRole(user);
-    const permissions = getUserPermissions(role);
+    const permissions = getUserPermissions(user);
 
     const allNavItems = role === 'Manager' ? managerNavItems : baseNavItems;
 
@@ -159,7 +163,7 @@ export function canAccessRoute(user: User | null, route: string): boolean {
     if (!user) return false;
 
     const role = getUserRole(user);
-    const permissions = getUserPermissions(role);
+    const permissions = getUserPermissions(user);
 
     // Define route access rules
     const routePermissions: Record<string, keyof UserPermissions | 'always'> = {
@@ -190,8 +194,7 @@ export function canAccessRoute(user: User | null, route: string): boolean {
 export function hasPermission(user: User | null, permission: keyof UserPermissions): boolean {
     if (!user) return false;
 
-    const role = getUserRole(user);
-    const permissions = getUserPermissions(role);
+    const permissions = getUserPermissions(user);
 
     return permissions[permission];
 }
