@@ -459,7 +459,7 @@ export default function EditProject() {
                             <Box bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md" p={4}>
                                 <Text color="red.600" fontWeight="medium">{error}</Text>
                                 <Text color="red.500" fontSize="sm" mt={2}>
-                                    Debug info: API Base URL is {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}
+                                    Debug info: API Base URL is {process.env.BASE_URL || 'http://localhost:8000'}
                                 </Text>
                             </Box>
                         )}

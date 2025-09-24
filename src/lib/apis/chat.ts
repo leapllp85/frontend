@@ -1,7 +1,7 @@
 import { fetchWithAuth } from "./auth";
 import { ChatConversation, ChatMessage, ChatRequest, ChatResponse } from "../../types/ragApi";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BASE_URL;
+const BASE_URL = process.env.BASE_URL || 'http://localhost:8000';
 
 export interface CreateConversationRequest {
   title?: string;

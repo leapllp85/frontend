@@ -2,7 +2,7 @@
 import nookies from "nookies";
 
 export async function login(username: string, password: string) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
     const res = await fetch(`${apiUrl}/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -36,7 +36,7 @@ export async function refreshAccessToken(ctx = null) {
     const refreshToken = cookies.refreshToken;
     if (!refreshToken) throw new Error("No refresh token found");
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
     const res = await fetch(`${apiUrl}/auth/token/refresh/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,7 +103,7 @@ export async function fetchWithAuth(url: string, options: any = {}) {
 }
 
 export async function fetchProfile(username: string) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
     return await fetchWithAuth(
         `${apiUrl}/api/user/profile/?username=${username}`,
     )
@@ -135,7 +135,7 @@ export async function logout() {
         
         if (accessToken && refreshToken) {
             // Call the logout API to blacklist the refresh token
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+            const apiUrl = process.env.BASE_URL || 'http://localhost:8000';
             await fetch(`${apiUrl}/auth/logout/`, {
                 method: "POST",
                 headers: {
