@@ -249,7 +249,7 @@ export default function CoursesPage() {
                                         <VStack align="start" gap={4}>
                                             <HStack justify="space-between" w="full" wrap="wrap">
                                                 <HStack gap={2} wrap="wrap">
-                                                    {course.category_names?.map((categoryName, index) => (
+                                                    {course.category_names?.map((categoryName: string, index: number) => (
                                                         <Badge key={index} colorPalette={getCategoryColor(categoryName)} size="sm">
                                                             {categoryName}
                                                         </Badge>
