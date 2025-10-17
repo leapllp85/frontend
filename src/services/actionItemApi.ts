@@ -1,5 +1,8 @@
 import { apiService, ActionItem } from './api';
 
+// Re-export ActionItem type for convenience
+export type { ActionItem };
+
 export interface ActionItemsPaginatedResponse {
   count: number;
   next: string | null;
