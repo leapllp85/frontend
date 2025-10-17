@@ -61,7 +61,7 @@ export default function CoursesPage() {
 
     // Get unique categories from all courses
     const allCategories = courses.reduce((acc: string[], course) => {
-        course.category_names?.forEach(category => {
+        course.category_names?.forEach((category: string) => {
             if (!acc.includes(category)) {
                 acc.push(category);
             }
