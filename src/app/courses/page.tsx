@@ -18,7 +18,8 @@ import {
     Select
 } from '@chakra-ui/react';
 import { BookOpen, Plus, Tag, Calendar, ExternalLink, Clock } from 'lucide-react';
-import { courseApi, Course, CourseCategory } from '@/services';
+import { courseApi } from '@/services';
+import type { Course, CourseCategory } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function CoursesPage() {
