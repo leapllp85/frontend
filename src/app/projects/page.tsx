@@ -503,7 +503,7 @@ export default function ProjectsPage() {
                                                                 </HStack>
                                                                 <HStack gap={2} align="center">
                                                                      <AvatarGroup size="sm">
-                                                                         {project.contributors.slice(0, 4).map((contributor) => (
+                                                                         {project.contributors.slice(0, 4).map((contributor: any) => (
                                                                              <Avatar.Root key={contributor.id} size="sm" bg="purple.500" color="white">
                                                                                  <Avatar.Fallback bg="purple.500" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
                                                                              </Avatar.Root>
