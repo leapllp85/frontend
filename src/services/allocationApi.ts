@@ -1,5 +1,8 @@
 import { apiService, ProjectAllocation } from './api';
 
+// Re-export types for external use
+export type { ProjectAllocation };
+
 export class AllocationApiService {
   // Get all project allocations
   async getAllocations(): Promise<ProjectAllocation[]> {

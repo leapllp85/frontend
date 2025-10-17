@@ -1,5 +1,8 @@
 import { apiService, Course, CourseCategory } from './api';
 
+// Re-export types for external use
+export type { Course, CourseCategory };
+
 export class CourseApiService {
   // Get all courses
   async getCourses(): Promise<{ courses: Course[]; total_count: number; message: string }> {

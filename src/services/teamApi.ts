@@ -1,5 +1,8 @@
 import { apiService, EmployeeProfile, AttritionGraphData, DistributionGraphData } from './api';
 
+// Re-export types for external use
+export type { EmployeeProfile, AttritionGraphData, DistributionGraphData };
+
 export interface TeamStats {
   team_members_count: number;
   average_utilization: number;
