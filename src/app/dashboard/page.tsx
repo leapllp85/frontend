@@ -380,7 +380,7 @@ export default function Dashboard() {
                         </Card.Header>
                         <Card.Body p={6} pt={2}>
                             <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 4, md: 6 }}>
-                                {topTalent().map((member, index) => (
+                                {topTalent().map((member: any, index: number) => (
                                     <Card.Root 
                                         key={member.id} 
                                         bg="white" 
