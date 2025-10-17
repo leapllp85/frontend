@@ -146,21 +146,7 @@ export default function LoginPage() { // 👈 NO async here
                   
 
                     
-                    {/* Carousel dots */}
-                    <Box className="flex gap-2 justify-center" mb={8}>
-                        <Box 
-                            width="8px"
-                            height="8px"
-                            borderRadius="50%"
-                            bg="rgba(255, 255, 255, 0.5)"
-                        />
-                        <Box 
-                            width="8px"
-                            height="8px"
-                            borderRadius="50%"
-                            bg="#FFFFFF"
-                        />
-                    </Box>
+                    
 
                     {/* Copyright */}
                     <Text 
@@ -302,7 +288,7 @@ export default function LoginPage() { // 👈 NO async here
                                     <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                                 </Field.Root>
 
-                                <Box className="flex items-center justify-between" mt={1.5}>
+                                {/* <Box className="flex items-center justify-between" mt={1.5}>
                                     <Box className="flex items-center gap-2">
                                         <input
                                             type="checkbox"
@@ -330,7 +316,7 @@ export default function LoginPage() { // 👈 NO async here
                                     >
                                         Forgot password?
                                     </Text>
-                                </Box>
+                                </Box> */}
 
                                 <Button
                                     bg="#1b7f8e"
