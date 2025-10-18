@@ -1,13 +1,15 @@
+'use client';
+
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { Box, Text, VStack, HStack, Button, Input, Spinner, Badge, IconButton, Avatar, Heading } from "@chakra-ui/react";
-import { Home, FolderOpen, FileText, Users, BarChart3, CheckCircle, LogOut, Send, MessageCircle, Zap, X } from "lucide-react";
+import { Box, Text, VStack, HStack, Button, Input } from "@chakra-ui/react";
+import { Home, BarChart3, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot } from "lucide-react";
 import { usePathname } from 'next/navigation';
-import { useAuth, useRBAC } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
 import { useChatContext } from '@/contexts/ChatContext';
 import { userApi } from "@/services";
-import { UserProfile } from "../../services/userApi"
+import { UserProfile } from "../../services/userApi";
 
 type ProfileData = UserProfile;
 
@@ -23,24 +25,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSendMessage, 
   onResetView,
   disabled = false,
-  enableAsync = true,
-  enableStreaming = true
 }) => {
   const [chatMessage, setChatMessage] = useState("");
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   const {
-    sendMessage: contextSendMessage,
     sendMessageAsync,
-    sendMessageStreaming,
     isLoading,
-    progress,
-    progressMessage,
-    cancelActiveTask
   } = useChatContext();
 
   const pathname = usePathname();
-  const { hasRole, user } = useRBAC();
 
   const navigationItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -57,7 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setChatMessage("");
     
     try {
-      // Always use async mode internally for seamless experience
       if (onSendMessage) {
         await onSendMessage(message);
       } else {
@@ -76,10 +70,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [handleSendMessage]);
 
   const fetchUserProfile = async () => {
+    try {
       const data = await userApi.getCurrentUserProfile();
       setProfileData(data);
-    };
-
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
 
   const { logout: authLogout } = useAuth();
   
@@ -94,231 +91,156 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [onResetView]);
 
-
-    useEffect(() => {
-      fetchUserProfile();
-    }, []);
+  useEffect(() => {
+    setMounted(true);
+    fetchUserProfile();
+  }, []);
   
   return (
     <VStack 
-      w={{ base: "260px", md: "280px", lg: "300px", xl: "320px", "2xl": "340px" }}
-      minW={{ base: "260px", md: "280px" }}
-      maxW={{ base: "260px", md: "280px", lg: "300px", xl: "320px", "2xl": "340px" }}
+      w="290px"
+      minW="220px"
+      maxW="300px"
       h="100vh" 
-      bg="linear-gradient(180deg, #a4489e 0%, #8b5a9d 100%)"
+      bg="#2d6a75"
       overflow="hidden"
       flexDirection="column"
       justify="space-between"
+      p={6}
+      gap={2}
     >
-      {/* Welcome message */}
-      <VStack p={{ base: 4, md: 5, lg: 6 }} gap={{ base: 2, md: 4, lg: 6 }} pt={{ base: 4, md: 6, lg: 8 }} w="full">
-        {/* Decorative dots - visible only on 15.6+ inch screens */}
-        {/* <HStack gap={2} display={{ base: "none", "2xl": "flex" }}>
-          {[...Array(4)].map((_, i) => (
-            <Box 
-              key={i}
-              w="3" 
-              h="3" 
-              bg="whiteAlpha.400" 
-              borderRadius="full" 
-            />
-          ))}
-        </HStack> */}
-        
-        <VStack gap={2}>
-          <Avatar.Root size={{ base: "lg", md: "xl" }}>
-            <Avatar.Image src={profileData?.user?.profile_pic || profileData?.profile?.profile_pic} />
-            <Avatar.Fallback bg="purple.100" color="purple.600" fontWeight="bold">
-              {profileData?.user && profileData.user.first_name && profileData.user.last_name ? 
-                `${profileData.user.first_name[0]}${profileData.user.last_name[0]}` : 
-                profileData?.user?.username?.[0]?.toUpperCase() || 'MU'
-              }
-            </Avatar.Fallback>
-          </Avatar.Root>
-          <Heading size={{ base: "md", md: "lg" }} color="whiteAlpha.800" fontSize={{ base: "md", md: "lg" }} textAlign="center">
-            {profileData?.user && profileData.user.first_name && profileData.user.last_name ? `${profileData.user.first_name} ${profileData.user.last_name}` : profileData?.user?.username || 'Manager User'}
-          </Heading>
-          {/* <Text color="whiteAlpha.800" fontSize={{ base: "xs", md: "sm" }} mb={1}>
-            Hello, {user?.first_name || 'User'}!,
-          </Text>
-          <Text color="white" fontSize={{ base: "md", md: "lg" }} fontWeight="medium">
-            {hasRole('Manager') ? 'How can I help you' : 'Welcome to Corporate MVP'}
-          </Text> */}
+      {/* Top Section */}
+      <VStack w="full" gap={6} p={4} align="stretch">
+       
+        {/* User Profile */}
+        <VStack gap={3} align="center" py={5}>
+          <Box
+            w="50px"
+            h="50px"
+            borderRadius="full"
+            bg="purple.500"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            color="white"
+            fontSize="lg"
+            fontWeight="semi-bold"
+          >
+            {(profileData?.user?.username || "Manager User").charAt(0).toUpperCase()}
+          </Box>
+          <HStack gap={2}>
+            <Text fontSize="md" color="white" fontWeight="medium">
+              {profileData?.user?.username || "Manager User"}
+            </Text>
+            <Box
+              as="button"
+              p={0.5}
+              borderRadius="sm"
+              _hover={{ bg: "whiteAlpha.200" }}
+              cursor="pointer"
+            >
+              <Edit2 size={10} color="white" />
+            </Box>
+          </HStack>
+        </VStack>
+
+        {/* Navigation */}
+        <VStack gap={2} align="stretch" mt={2}>
+          {navigationItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            
+            return (
+              <Link key={item.href} href={item.href} onClick={handleNavClick}>
+                <HStack
+                  px={3}
+                  py={2.5}
+                  borderRadius="lg"
+                  bg={isActive ? "#4a9ba8" : "transparent"}
+                  _hover={{ bg: isActive ? "#4a9ba8" : "whiteAlpha.100" }}
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  gap={3}
+                >
+                  <Icon size={18} color="white" />
+                  <Text fontSize="md" color="white" fontWeight={isActive ? "semibold" : "normal"}>
+                    {item.label}
+                  </Text>
+                </HStack>
+              </Link>
+            );
+          })}
+          
+          {/* Logout */}
+          <HStack
+            px={3}
+            py={2.5}
+            borderRadius="lg"
+            bg="transparent"
+            _hover={{ bg: "whiteAlpha.100" }}
+            cursor="pointer"
+            transition="all 0.2s"
+            gap={3}
+            onClick={handleLogout}
+          >
+            <LogOut size={18} color="white" />
+            <Text fontSize="md" color="white">
+              Logout
+            </Text>
+          </HStack>
         </VStack>
       </VStack>
-    
-      {/* Navigation */}
-      <VStack w="full" gap={{ base: 1, md: 1, lg: 2 }} px={{ base: 3, md: 4, lg: 5 }}>
-        {navigationItems.map((item, index) => (
-          <Link key={index} href={item.href} style={{ width: '100%' }}>
-            <Button
-              w="full"
-              h={{ base: "9", md: "10", lg: "11" }}
-              bg={pathname === item.href ? "whiteAlpha.200" : "transparent"}
-              color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
-              justifyContent="flex-start"
-              variant="ghost"
-              fontWeight="medium"
-              borderRadius="lg"
-              fontSize={{ base: "xs", md: "sm", lg: "md" }}
-              onClick={handleNavClick}
-            >
-              <HStack gap={2}>
-                <item.icon size={16} />
-                <Text>{item.label}</Text>
-              </HStack>
-            </Button>
-          </Link>
-        ))}
-        
-        {/* Logout Button */}
-        <Button
-          w="full"
-          h={{ base: "9", md: "10", lg: "11" }}
-          bg="transparent"
-          color="white"
-          _hover={{ bg: "red.500" }}
-          justifyContent="flex-start"
-          variant="ghost"
-          fontWeight="medium"
-          borderRadius="lg"
-          onClick={handleLogout}
-          fontSize={{ base: "xs", md: "sm", lg: "md" }}
-        >
-          <HStack gap={2}>
-            <LogOut size={16} />
-            <Text>Logout</Text>
-          </HStack>
-        </Button>
-      </VStack>
-      
-      {/* AI Assistant Chat Section - Manager Only */}
-      {hasRole('Manager') && (
-        <Box 
-          px={{ base: 3, md: 4, lg: 5 }} 
-          mt={{ base: 3, md: 5, lg: 6 }} 
-          pb={{ base: 3, md: 4, lg: 5, "2xl": 12 }} 
-          w="full"
-        >
-          <VStack gap={3} align="stretch" h="full">
-            <HStack gap={2} align="center">
-              <MessageCircle size={18} color="white" />
-              <Text color="white" fontSize={{ base: "xs", md: "sm", lg: "md" }} fontWeight="bold">
-                AI Assistant
-              </Text>
-            </HStack>
-            
-            <HStack
-              p={{ base: 2, md: 3, lg: 4 }}
-              borderRadius="xl"
-              border="1px solid"
-              borderColor="whiteAlpha.200"
-              w="full"
-              gap={2}
-            >
-              <Text 
-                fontSize={{ base: "xs", md: "sm", lg: "md" }} 
-                color="white" 
-                fontWeight="medium"
-              >
-                💡
-              </Text>
-              <Text 
-                fontSize={{ base: "2xs", md: "xs", lg: "sm" }} 
-                color="white" 
-                fontWeight="medium"
-                textAlign="left"
-              >
-                Ask me anything about your projects, action items, or team insights!
-              </Text>
-            </HStack>
-            
-            {/* Progress Indicator */}
-            {(isLoading || progress !== null) && (
-              <Box w="full" p={{ base: 2, md: 3 }} bg="whiteAlpha.100" borderRadius="lg" border="1px solid" borderColor="whiteAlpha.200">
-                <VStack gap={2} align="start">
-                  <HStack justify="space-between" w="full">
-                    <Text fontSize={{ base: "2xs", md: "xs" }} color="white" fontWeight="medium">
-                      {progressMessage || 'Processing...'}
-                    </Text>
-                    {isLoading && (
-                      <IconButton
-                        size="xs"
-                        variant="ghost"
-                        colorScheme="whiteAlpha"
-                        onClick={() => cancelActiveTask()}
-                        aria-label="Cancel"
-                      >
-                        <X size={10} />
-                      </IconButton>
-                    )}
-                  </HStack>
-                  {progress !== null && (
-                    <Box
-                      w="full"
-                      h="2"
-                      bg="whiteAlpha.200"
-                      borderRadius="full"
-                      overflow="hidden"
-                    >
-                      <Box
-                        h="full"
-                        bg="purple.400"
-                        borderRadius="full"
-                        width={`${progress}%`}
-                        transition="width 0.3s ease"
-                      />
-                    </Box>
-                  )}
-                </VStack>
-              </Box>
-            )}
-            
 
-            {/* Chat Input */}
-            <HStack gap={2}>
-              <Input
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                placeholder="Ask me anything..."
-                bg="whiteAlpha.100"
-                border="1px solid"
-                borderColor="whiteAlpha.200"
-                color="white"
-                _placeholder={{ color: "whiteAlpha.600" }}
-                _focus={{ 
-                  borderColor: "whiteAlpha.400",
-                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.4)"
-                }}
-                size={{ base: "xs", md: "sm" }}
-                onKeyPress={handleKeyPress}
-                disabled={disabled || isLoading}
-              />
-              <Button
-                size={{ base: "xs", md: "sm" }}
-                bg="whiteAlpha.200"
-                color="white"
-                _hover={{ bg: "whiteAlpha.300" }}
-                _disabled={{ 
-                  opacity: 0.6,
-                  cursor: "not-allowed"
-                }}
-                onClick={handleSendMessage}
-                minW="auto"
-                px={3}
-                disabled={disabled || isLoading || !chatMessage.trim()}
-              >
-                {isLoading ? (
-                  <Spinner size="xs" />
-                ) : (
-                  <Send size={14} />
-                )}
-              </Button>
-            </HStack>
-          </VStack>
-        </Box>
-      )}
+      {/* AI Assistant - Bottom Section */}
+      <Box w="full" p={3} pb={6} bg="#2d6a75">
+        <VStack gap={6} align="stretch">
+          <HStack gap={3}>
+            <Bot size={20} color="white" />
+            <Text fontSize="md" color="white" fontWeight="semi-bold">
+              AI Assistant
+            </Text>
+          </HStack>
+          
+          <Text fontSize="sm" color="whiteAlpha.800" lineHeight="1.4">
+            Ask me anything about your projects, action items, or team insights!
+          </Text>
+          
+          {/* Chat Input */}
+          <HStack gap={3}>
+            <Input
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              placeholder="Ask me anything..."
+              bg="whiteAlpha.200"
+              border="none"
+              color="white"
+              _placeholder={{ color: "whiteAlpha.600" }}
+              _focus={{ 
+                bg: "whiteAlpha.300",
+                outline: "none"
+              }}
+              size="sm"
+              fontSize="xs"
+              onKeyPress={handleKeyPress}
+              disabled={disabled || isLoading}
+              h="32px"
+            />
+            <Button
+              size="sm"
+              bg="whiteAlpha.300"
+              color="white"
+              _hover={{ bg: "whiteAlpha.400" }}
+              onClick={handleSendMessage}
+              disabled={disabled || isLoading || !chatMessage.trim()}
+              minW="auto"
+              px={2.5}
+              h="32px"
+            >
+              <Send size={14} />
+            </Button>
+          </HStack>
+        </VStack>
+      </Box>
     </VStack>
   );
 };

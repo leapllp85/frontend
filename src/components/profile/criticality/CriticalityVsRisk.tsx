@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -8,14 +10,14 @@ import {
   Heading,
   Spinner,
   Grid,
-  GridItem
+  GridItem,
+  Flex
 } from '@chakra-ui/react';
-import { Scatter, Bar } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
   BarElement,
   Title,
   Tooltip,
@@ -27,7 +29,6 @@ import { criticalityApi, CriticalityVsRiskData, RiskDistribution } from '../../.
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  PointElement,
   BarElement,
   Title,
   Tooltip,
@@ -38,318 +39,146 @@ interface CriticalityVsRiskProps {
   userId?: string;
 }
 
+// Legend item component - matching the exact image style
+const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }) => (
+  <HStack gap={2} align="center" minH="18px">
+    <Box w={4} h={3} bg={color} borderRadius="sm" />
+    {label && (
+      <Text fontSize="xs" color="gray.700" fontWeight="semibold" minW="35px">
+        {label}
+      </Text>
+    )}
+  </HStack>
+);
+
 export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
-  const [riskData, setRiskData] = useState<CriticalityVsRiskData | null>(null);
-  const [distribution, setDistribution] = useState<RiskDistribution | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRiskData();
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [userId]);
 
-  const fetchRiskData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // const [riskAnalysis, riskDistribution] = await Promise.all([
-      //   criticalityApi.getCriticalityVsRisk(),
-      //   criticalityApi.getRiskDistribution()
-      // ]);
-      const riskAnalysis= await criticalityApi.getCriticalityVsRisk();
-      
-      setRiskData(riskAnalysis);
-      // setDistribution(riskDistribution);
-    } catch (err) {
-      console.error('Error fetching risk data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load risk analysis');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Helper function to convert categorical values to numerical
-  const convertToNumeric = (value: string): number => {
-    switch (value.toLowerCase()) {
-      case 'low': return 1;
-      case 'medium': return 2;
-      case 'high': return 3;
-      default: return 2;
-    }
-  };
-
-  // Helper function to determine risk level color and group data
-  const getRiskColor = (risk: string) => {
-    switch (risk.toLowerCase()) {
-      case 'high':
-        return {
-          backgroundColor: 'rgba(245, 101, 101, 0.8)',
-          borderColor: '#f56565'
-        };
-      case 'medium':
-        return {
-          backgroundColor: 'rgba(237, 137, 54, 0.8)',
-          borderColor: '#ed8936'
-        };
-      case 'low':
-        return {
-          backgroundColor: 'rgba(72, 187, 120, 0.8)',
-          borderColor: '#48bb78'
-        };
-      default:
-        return {
-          backgroundColor: 'rgba(237, 137, 54, 0.8)',
-          borderColor: '#ed8936'
-        };
-    }
-  };
-
-  // Group scatter data by risk level and count occurrences at same position
-  const groupedScatterData = React.useMemo(() => {
-    if (!riskData?.scatter_data) return { high: [], medium: [], low: [] };
-
-    // First, group by position to count overlapping points
-    const positionCounts = new Map();
-    
-    riskData.scatter_data.forEach(data => {
-      const key = `${data.criticality}-${data.risk}`;
-      if (!positionCounts.has(key)) {
-        positionCounts.set(key, {
-          x: convertToNumeric(data.criticality),
-          y: convertToNumeric(data.risk),
-          originalCriticality: data.criticality,
-          originalRisk: data.risk,
-          employees: [],
-          risk: data.risk
-        });
-      }
-      positionCounts.get(key).employees.push(data.employee_name);
-    });
-
-    // Now create datasets with bubble sizes based on count
-    const result = { high: [] as any[], medium: [] as any[], low: [] as any[] };
-    
-    positionCounts.forEach((position) => {
-      const count = position.employees.length;
-      const bubbleSize = Math.max(8, Math.min(20, 8 + (count - 1) * 4)); // Base size 8, grows by 4 for each additional employee, max 20
-      
-      const point = {
-        x: position.x,
-        y: position.y,
-        label: count === 1 ? position.employees[0] : `${count} employees: ${position.employees.join(', ')}`,
-        originalCriticality: position.originalCriticality,
-        originalRisk: position.originalRisk,
-        count: count,
-        employees: position.employees,
-        r: bubbleSize // This sets the bubble size
-      };
-
-      switch (position.risk.toLowerCase()) {
-        case 'high':
-          result.high.push(point);
-          break;
-        case 'medium':
-          result.medium.push(point);
-          break;
-        case 'low':
-          result.low.push(point);
-          break;
-        default:
-          result.medium.push(point);
-      }
-    });
-
-    return result;
-  }, [riskData]);
-
-  // Scatter plot data for criticality vs risk
-  const scatterData = {
+  // Bar chart data for risk distribution
+  const chartData = {
+    labels: [
+      'High Risk',
+      'Medium Risk', 
+      'Low Risk'
+    ],
     datasets: [
       {
-        label: 'High Risk',
-        data: groupedScatterData.high,
-        backgroundColor: 'rgba(245, 101, 101, 0.8)',
-        borderColor: '#f56565',
-        pointRadius: (context: any) => context.raw?.r || 8,
-        pointHoverRadius: (context: any) => (context.raw?.r || 8) + 2,
-      },
-      {
-        label: 'Medium Risk',
-        data: groupedScatterData.medium,
-        backgroundColor: 'rgba(237, 137, 54, 0.8)',
-        borderColor: '#ed8936',
-        pointRadius: (context: any) => context.raw?.r || 8,
-        pointHoverRadius: (context: any) => (context.raw?.r || 8) + 2,
-      },
-      {
-        label: 'Low Risk',
-        data: groupedScatterData.low,
-        backgroundColor: 'rgba(72, 187, 120, 0.8)',
-        borderColor: '#48bb78',
-        pointRadius: (context: any) => context.raw?.r || 8,
-        pointHoverRadius: (context: any) => (context.raw?.r || 8) + 2,
-      },
-    ],
+        label: 'Risk Distribution',
+        data: [35, 28, 22], // Top 3 risk distribution data
+        backgroundColor: [
+          '#F56565', // Red - High Risk (from CriticalityMetrics)
+          '#ED8936', // Orange - Medium Risk (from CriticalityMetrics)
+          '#4299E1'  // Blue - Low Risk (from CriticalityMetrics)
+        ],
+        borderWidth: 0,
+        borderColor: 'transparent',
+        borderRadius: 8, // Rounded bar tops
+        borderSkipped: false,
+        barThickness: 20, // Make bars slimmer
+        categoryPercentage: 0.6, // Reduce category width
+        hoverBackgroundColor: [
+          '#E53E3E', // Darker red on hover
+          '#DD6B20', // Darker orange on hover
+          '#3182CE'  // Darker blue on hover
+        ]
+      }
+    ]
   };
 
-  const scatterOptions = {
+  const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    indexAxis: 'y' as const, // Horizontal bars
     plugins: {
       legend: {
-        display: true, // Hide Chart.js legend since we're using custom legend
+        display: false
       },
       tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#FFFFFF',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
         callbacks: {
-          label: function(context: any) {
-            const point = context.raw;
-            if (point.count === 1) {
-              return `${point.label}: ${point.originalCriticality} Criticality, ${point.originalRisk} Risk`;
-            } else {
-              return [
-                `${point.count} employees at ${point.originalCriticality} Criticality, ${point.originalRisk} Risk:`,
-                ...point.employees.map((name: string) => `• ${name}`)
-              ];
-            }
+          label: (context: any) => {
+            const label = context.dataset.label || '';
+            const value = context.parsed.x || 0;
+            return `${context.label}: ${value}%`;
           }
         }
       }
     },
     scales: {
       x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Criticality Level',
-          font: {
-            size: 12,
-          },
-        },
-        min: 0.5,
-        max: 3.5,
-        ticks: {
-          stepSize: 1,
-          callback: function(value: any) {
-            switch (value) {
-              case 1: return 'Low';
-              case 2: return 'Medium';
-              case 3: return 'High';
-              default: return '';
-            }
-          }
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-        },
-      },
-      y: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Risk Level',
-          font: {
-            size: 12,
-          },
-        },
-        min: 0.5,
-        max: 3.5,
-        ticks: {
-          stepSize: 1,
-          callback: function(value: any) {
-            switch (value) {
-              case 1: return 'Low';
-              case 2: return 'Medium';
-              case 3: return 'High';
-              default: return '';
-            }
-          }
-        },
-        grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
-        },
-      },
-    },
-  };
-
-  // Bar chart for risk distribution
-  // const barData = {
-  //   labels: ['Mental Health', 'Motivation', 'Career Opportunities', 'Personal Factors'],
-  //   datasets: [
-  //     {
-  //       label: 'High Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.high,
-  //         distribution.motivation.high,
-  //         distribution.career_opportunities.high,
-  //         distribution.personal_factors.high
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(245, 101, 101, 0.8)',
-  //       borderColor: '#f56565',
-  //       borderWidth: 1,
-  //     },
-  //     {
-  //       label: 'Medium Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.medium,
-  //         distribution.motivation.medium,
-  //         distribution.career_opportunities.medium,
-  //         distribution.personal_factors.medium
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(237, 137, 54, 0.8)',
-  //       borderColor: '#ed8936',
-  //       borderWidth: 1,
-  //     },
-  //     {
-  //       label: 'Low Risk',
-  //       data: distribution ? [
-  //         distribution.mental_health.low,
-  //         distribution.motivation.low,
-  //         distribution.career_opportunities.low,
-  //         distribution.personal_factors.low
-  //       ] : [0, 0, 0, 0],
-  //       backgroundColor: 'rgba(72, 187, 120, 0.8)',
-  //       borderColor: '#48bb78',
-  //       borderWidth: 1,
-  //     },
-  //   ],
-  // };
-
-  const barOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false, // Hide Chart.js legend since we're using custom legend
-      },
-    },
-    scales: {
-      x: {
-        display: true,
-        grid: {
-          display: false,
-        },
-      },
-      y: {
-        display: true,
         beginAtZero: true,
+        max: 40,
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          display: true,
+          color: 'rgba(0, 0, 0, 0.1)'
         },
+        ticks: {
+          color: '#666',
+          font: {
+            size: 11
+          },
+          callback: function(value: any) {
+            return value + '%';
+          }
+        }
       },
+      y: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          color: '#666',
+          font: {
+            size: 11,
+            weight: 'bold'
+          }
+        },
+        categoryPercentage: 0.6, // Make bars slimmer
+        barPercentage: 0.8 // Additional bar thickness control
+      }
     },
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeOutQuart'
+    },
+    hover: {
+      animationDuration: 200
+    }
   };
 
   if (loading) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
+      <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
-          <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
+          <HStack justify="space-between" align="center">
+            <Heading size="sm" color="gray.800">Criticality - Attrition Data</Heading>
+            <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
+          </HStack>
         </Card.Header>
-        <Card.Body p={4}>
-          <VStack gap={4} align="center" justify="center" minH="300px">
-            <Spinner size="lg" color="purple.500" />
-            <Text color="gray.500">Loading risk analysis...</Text>
+        <Card.Body p={3} flex="1" minH="0" overflow="hidden">
+          <VStack gap={4} align="center" justify="center" minH="200px">
+            <Spinner size="lg" color="teal.500" />
+            <Text color="gray.500" fontSize="sm">Loading chart...</Text>
           </VStack>
         </Card.Body>
       </Card.Root>
@@ -358,15 +187,15 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   if (error) {
     return (
-      <Card.Root bg="white" shadow="sm" border="1px solid" borderColor="gray.200">
-        <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
-          <Heading size="md" color="gray.800">Criticality Vs Risk</Heading>
+      <Card.Root bg="white" shadow="lg" borderRadius="2xl" h="full" display="flex" flexDirection="column" border="1px solid" borderColor="gray.200">
+        <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
+          <Heading size="sm" color="gray.800">Criticality- Attrition Chart</Heading>
         </Card.Header>
-        <Card.Body p={4}>
+        <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
             <VStack gap={2} align="start">
               <Text fontSize="sm" fontWeight="semibold" color="red.800">
-                Error loading risk analysis
+                Error loading chart
               </Text>
               <Text fontSize="sm" color="red.600">
                 {error}
@@ -379,12 +208,34 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
   }
 
   return (
-    <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
-      <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
-        <Heading size="md" color="gray.800">Criticality Vs Attrition Risk</Heading>
+    <Card.Root 
+      bg="#e6fffa" 
+      shadow="sm" 
+      borderRadius="2xl"
+      border="1px solid" 
+      borderColor="gray.100"
+      h="full" 
+      display="flex" 
+      flexDirection="column"
+      maxH="320px"
+      minH="240px"
+    >
+      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
+        <HStack justify="space-between" align="center">
+          <Heading size="md" color="gray.800">Criticality- Attrition Chart</Heading>
+          <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
+        </HStack>
       </Card.Header>
-      <Card.Body p={3} flex="1" minH="0">
-      <Scatter data={scatterData} options={scatterOptions} />
+      <Card.Body p={6} h="full" display="flex" flexDirection="column">
+        <Flex h="full" gap={10} align="start" justify="flex-end" pr={4} pt={-1}>
+          {/* Chart and Legend Container - positioned to the right */}
+          {/* Empty content area */}
+          <Box w="full" h="200px" display="flex" align="center" justify="center">
+            <Text color="gray.500" fontSize="sm">
+              Chart content will be displayed here
+            </Text>
+          </Box>
+        </Flex>
       </Card.Body>
     </Card.Root>
   );

@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { Box, Text, HStack, VStack, Card, Heading } from "@chakra-ui/react";
 
@@ -53,36 +55,25 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   const topNotifications = notifications.slice(0, 3);
 
   return (
-    <Card.Root bg="white" shadow="md" borderRadius="xl" h="full" display="flex" flexDirection="column">
-      <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
-        <HStack justify="space-between">
-          <Heading size="md" color="gray.800">Notifications</Heading>
+    <Card.Root 
+      bg="#e6fffa" 
+      shadow="sm" 
+      borderRadius="2xl" 
+      h="full" 
+      display="flex" 
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
+      maxH="280px"
+      minH="240px"
+    >
+      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
+        <HStack justify="space-between" align="center">
+          <Heading size="sm" color="gray.800" textAlign="center">Attrition Trends</Heading>
+          <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
         </HStack>
       </Card.Header>
-      <Card.Body p={3} flex="1" overflow="auto">
-        <VStack gap={4} align="stretch">
-          {topNotifications.map((notification) => (
-            <HStack key={notification.id} gap={3}>
-              <Box 
-                w={2} 
-                h={2} 
-                bg={getNotificationColor(notification.type)} 
-                borderRadius="full" 
-                mt={2} 
-              />
-              <VStack align="start" gap={1} flex={1}>
-                <Text fontSize="sm" fontWeight="semibold" color="gray.800">
-                  {notification.title}
-                </Text>
-                <Text fontSize="xs" color="gray.600">
-                  {notification.description}
-                </Text>
-                <Text fontSize="xs" color="gray.400">{notification.timestamp}</Text>
-              </VStack>
-            </HStack>
-          ))}
-        </VStack>
-      </Card.Body>
+     
     </Card.Root>
   );
 };

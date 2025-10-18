@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState, useEffect } from "react";
-import { Box, Grid, VStack, Card, Text, Spinner } from "@chakra-ui/react";
+import { Box, Grid, VStack, Card, Text, Spinner, GridItem, HStack } from "@chakra-ui/react";
 import { User } from "lucide-react";
 import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsApi } from '../../services';
 import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
@@ -132,7 +134,7 @@ export const Profile = ({
           p={8}
         >
           <Card.Body>
-            <VStack gap={4}>
+            <VStack gap={0}>
               <Box
                 w="16"
                 h="16"
@@ -174,9 +176,9 @@ export const Profile = ({
           p={8}
         >
           <Card.Body>
-            <VStack gap={4}>
+            <VStack gap={0}>
               <Box p={3} bg="red.100" borderRadius="full" color="red.600">
-                <User size={32} />
+                <User size={24} />
               </Box>
               <Text fontSize="lg" fontWeight="semibold" color="red.600" textAlign="center">
                 Error loading profile: {error}
@@ -198,61 +200,63 @@ export const Profile = ({
     <Box 
       w={width} 
       h="100vh" 
-      bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+      bg="#d4f1f4"
       position="relative"
+      gap={0}
     >
       {/* Main Content */}
-      <Box position="relative" zIndex={1} h="full" overflow="auto">
+      <Box position="relative" h="full" overflow="auto" w="full">
         {/* Dashboard Content */}
-        <Box p={{ base: 3, md: 4 }} position="relative" zIndex={2}>
-          <VStack gap={{base:3, "2xl":3}} align="stretch" h="full">
+        <Box h="full" p={4} position="relative">
+          <VStack h="full" align="stretch" gap={4} w="full">
             {/* Top Stats Row */}
             <Box flexShrink={0}>
               <StatsRow 
-                activeProjects={projectStats?.active_projects ?? projects?.length ?? 0}
+                activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
                 teamMembers={teamStats?.team_members_count}
                 avgUtilization={teamStats?.utilization_percentage}
                 highRiskProjects={projectStats?.high_risk_projects}
               />
             </Box>
 
-            {/* Main Content Grid - 2x2 Equal Layout */}
-            <Grid 
-              templateColumns={{ base: "1fr", md: "1fr 1fr" }} 
-              // templateRows={{ base: "1fr", md: "1fr 1fr" }}
-              gap={{base:4, "2xl":6}}
-              minH="0"
+            {/* Main Content Grid - Compact Layout */}
+            <HStack 
+              // flex="1"
+              w="full"
+              gap={4}
+              align="stretch"
+              overflow="hidden"
             >
-              {/* Top Left - Criticality vs Attrition Risk */}
-              <Box h="full">
-                <CriticalityVsRisk userId={user?.id?.toString()} />
-              </Box>
-              
-              {/* Top Right - Project Metrics Overview */}
               <Box h="full">
                 <ProjectMetricsOverview 
-              metrics={metrics ? [
-                { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-              ] : undefined}
-            />
+                  metrics={metrics ? [
+                    { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                    { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                    { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
+                  ] : undefined}
+                />
               </Box>
-              
-              {/* Bottom Left - Notifications */}
-              <Box h="full">
-                <NotificationsPanel 
-              notifications={notifications?.notifications}
-            />
-              </Box>
-              
-              {/* Bottom Right - Project Risks */}
-              <Box h="full">
-                <ProjectRisks 
-              projects={projectRisks?.projects}
-            />
-              </Box>
-            </Grid>
+              <VStack w="full" gap={4} align="stretch" h="full">
+                {/* Top - Criticality vs Attrition Risk (Reduced Height) */}
+                <Box w="full">
+                  <CriticalityVsRisk userId={user?.id?.toString()} />
+                </Box>
+                                
+                {/* Bottom Row - Notifications and Project Risks */}
+                <HStack gap={4} align="stretch" w="full">
+                  <Box w="full">
+                    <NotificationsPanel 
+                      notifications={notifications?.notifications}
+                    />
+                  </Box>
+                  <Box w="full">
+                    <ProjectRisks 
+                      projects={projectRisks?.projects}
+                    />
+                  </Box>
+                </HStack>
+              </VStack>
+            </HStack>
           </VStack>
         </Box>
       </Box>

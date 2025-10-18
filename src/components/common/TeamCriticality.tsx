@@ -459,7 +459,7 @@ export const TeamCriticality: React.FC<TeamCriticalityProps> = ({ onShowGraph })
           </SimpleGrid>
 
           {/* Summary Statistics */}
-          <Box mt={{ base: 4, md: 6 }}>
+          <Box mt={{ base: 1, md: 1 }}>
             <Card.Root 
               bg="white"
               borderRadius="2xl"

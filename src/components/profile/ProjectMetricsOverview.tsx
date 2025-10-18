@@ -1,5 +1,7 @@
+'use client';
+
 import React from "react";
-import { Box, Text, VStack, Card, Heading, SimpleGrid } from "@chakra-ui/react";
+import { Box, Text, VStack, HStack, Card, Heading } from "@chakra-ui/react";
 
 interface MetricData {
   label: string;
@@ -13,9 +15,9 @@ interface ProjectMetricsOverviewProps {
 }
 
 const defaultMetrics: MetricData[] = [
-  { label: 'Mental Health', value: 75, color: '#60a5fa', type: 'mental_health' },
-  { label: 'Attrition Risk', value: 70, color: '#4ade80', type: 'attrition_risk' },
-  { label: 'Project Health', value: 83, color: '#fb923c', type: 'project_health' }
+  { label: 'Mental Health', value: 70, color: '#f97316', type: 'mental_health' },
+  { label: 'Attrition Risk', value: 47, color: '#eab308', type: 'attrition_risk' },
+  { label: 'Project Health', value: 67.5, color: '#84cc16', type: 'project_health' }
 ];
 
 // Helper function to interpolate between two colors
@@ -106,9 +108,9 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   const darkerColor = createDarkerShade(dynamicColor);
   
   return (
-    <VStack gap={0.5} h="full" justify="center">
-      <Text fontSize="md" fontWeight="bold" color="gray.800" textAlign="center">{label}</Text>
-      <Box position="relative" w="full" aspectRatio="1">
+    <VStack gap={0} w="full" align="center">
+      <Text fontSize="xs" fontWeight="bold" color="gray.900" textAlign="center">{label}</Text>
+      <Box position="relative" w="160px" h="160px">
         <svg width="100%" height="100%" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -119,19 +121,19 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           <circle
             cx="50"
             cy="50"
-            r="40"
+            r="38"
             stroke="#e2e8f0"
-            strokeWidth="6"
+            strokeWidth="7"
             fill="none"
           />
           <circle
             cx="50"
             cy="50"
-            r="40"
+            r="38"
             stroke={dynamicColor}
-            strokeWidth="6"
+            strokeWidth="7"
             fill="none"
-            strokeDasharray={`${(value / 100) * 251.2}, 251.2`}
+            strokeDasharray={`${(value / 100) * 238.8}, 238.8`}
             strokeDashoffset="0"
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
@@ -142,14 +144,18 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           top="50%"
           left="50%"
           transform="translate(-50%, -50%)"
-          fontSize="md"
-          fontWeight="bold"
-          color="gray.800"
+          textAlign="center"
         >
-          {value}%
+          <VStack gap={0}>
+            <Text fontSize="sm" fontWeight="semi-bold" color="gray.800" lineHeight="1">
+              {value}%
+            </Text>
+            <Text fontSize="xs" color="gray.600" fontWeight="medium">
+              {type === 'attrition_risk' ? 'Satisfactory' : 'Good'}
+            </Text>
+          </VStack>
         </Box>
       </Box>
-      <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">Good</Text>
     </VStack>
   );
 };
@@ -158,12 +164,12 @@ export const ProjectMetricsOverview: React.FC<ProjectMetricsOverviewProps> = ({
   metrics = defaultMetrics
 }) => {
   return (
-    <Card.Root bg="white" shadow="sm" borderRadius="xl" h="full" display="flex" flexDirection="column">
-      <Card.Header p={3} borderBottom="1px solid" borderColor="gray.100">
-        <Heading size="md" color="gray.800">Project Metrics Overview</Heading>
+    <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" h="full" maxW="250px" w="full" display="flex" flexDirection="column" border="1px solid" borderColor="gray.200">
+      <Card.Header p={2} pb={1} textAlign="center">
+        <Heading size="sm" color="gray.800" fontWeight="semibold">Health Metrics</Heading>
       </Card.Header>
-      <Card.Body flex="1" display="flex" alignItems="center">
-        <SimpleGrid columns={3} gap={1} w="full" h="full" alignItems="center">
+      <Card.Body flex="1" display="flex" alignItems="center" p={0.5} pt={0}>
+        <VStack gap={2} w="full" h="full" justify="center" align="center">
           {metrics.map((metric, index) => (
             <CircularProgress
               key={index}
@@ -173,7 +179,7 @@ export const ProjectMetricsOverview: React.FC<ProjectMetricsOverviewProps> = ({
               type={metric.type}
             />
           ))}
-        </SimpleGrid>
+        </VStack>
       </Card.Body>
     </Card.Root>
   );
