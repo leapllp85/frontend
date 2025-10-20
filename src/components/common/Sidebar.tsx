@@ -102,7 +102,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       minW="220px"
       maxW="300px"
       h="100vh" 
-      bg="#2d6a75"
+      // bg="#2d6a75"
+      bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
       overflow="hidden"
       flexDirection="column"
       justify="space-between"
@@ -118,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             w="50px"
             h="50px"
             borderRadius="full"
-            bg="purple.500"
+            bg="teal.800"
             display="flex"
             alignItems="center"
             justifyContent="center"
@@ -192,12 +193,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </VStack>
 
       {/* AI Assistant - Bottom Section */}
-      <Box w="full" p={3} pb={6} bg="#2d6a75">
+      <Box w="full" p={3} pb={6} bg= 'circular-gradient(135deg,rgb(27, 93, 105) 0%,rgb(20, 71, 80)) 50%, #1a525c 100%)'>
         <VStack gap={6} align="stretch">
           <HStack gap={3}>
             <Bot size={20} color="white" />
             <Text fontSize="md" color="white" fontWeight="semi-bold">
-              AI Assistant
+              Clyra AI
             </Text>
           </HStack>
           

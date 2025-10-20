@@ -126,7 +126,7 @@ export default function LoginPage() { // 👈 NO async here
                         color="#FFFFFF"
                         mb={4}
                     >
-                        <span style={{ fontWeight: 'semi-bold' }}>Pulse </span>
+                        <span style={{ fontWeight: 'semi-bold' }}>Clyra </span>
                     </Text>
 
                     <Heading 
