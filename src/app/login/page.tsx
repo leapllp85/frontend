@@ -73,7 +73,7 @@ export default function LoginPage() { // 👈 NO async here
     });
 
     return (
-        <div className="w-full min-h-screen flex" style={{ background: '#226773' }}>
+        <div className="w-full min-h-screen flex" style={{ background: '#1a525c' }}>
             <Toaster />
             {/* Left Side - Branding - 40% width */}
             <Box 
@@ -81,7 +81,7 @@ export default function LoginPage() { // 👈 NO async here
                 style={{ 
                     width: '50%',
                     minHeight: '100vh',
-                    background: '#226773',
+                    background: 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)',
                     padding: '2rem',
                     position: 'relative',
                     overflow: 'hidden',
@@ -110,7 +110,8 @@ export default function LoginPage() { // 👈 NO async here
                     width="250px"
                     height="250px"
                     borderRadius="50%"
-                    bg="#226773"
+                    // bg="#226773"
+                    bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
                     zIndex={3}
                     // opacity={0.7}
                 />     
@@ -134,13 +135,13 @@ export default function LoginPage() { // 👈 NO async here
                         fontSize="32px"
                         lineHeight="1.2"
                         color="#FFFFFF"
-                        letterSpacing="0.05em"
+                        // letterSpacing="0.05em"
                         mb={4}
                     >
                         Strong mental health is smart business
                     </Heading>
                     
-                    <Text fontSize="20px"   lineHeight="1.5" color="#FFFFFF" mb={2} letterSpacing="0.05em">
+                    <Text fontSize="20px"   lineHeight="1.5" color="#FFFFFF" letterSpacing="0.05em">
                     You power your business. We support your well-being
                     </Text>
                   
@@ -186,7 +187,8 @@ export default function LoginPage() { // 👈 NO async here
                     width="350px"
                     height="350px"
                     borderRadius="50%"
-                    bg="#036173"
+                    // bg="#036173"
+                    bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
                     zIndex={1}
                     // opacity={0.3}
                    
@@ -319,7 +321,8 @@ export default function LoginPage() { // 👈 NO async here
                                 </Box> */}
 
                                 <Button
-                                    bg="#1b7f8e"
+                                    // bg="#1b7f8e"
+                                    bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
                                     color="#FFFFFF"
                                     _hover={{ bg: "#156570" }}
                                     fontWeight="600"
