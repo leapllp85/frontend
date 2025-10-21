@@ -13,12 +13,13 @@ import {
   GridItem,
   Flex
 } from '@chakra-ui/react';
-import { Bar } from 'react-chartjs-2';
+import { Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
@@ -30,6 +31,7 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend
@@ -63,41 +65,186 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     return () => clearTimeout(timer);
   }, [userId]);
 
-  // Bar chart data for risk distribution
-  const chartData = {
+  // Risk distribution data from API
+  const riskData = {
+    "Mental Health": {
+      "Concerns with Manager": 66,
+      "Concerns with peers": 61,
+      "Unrealistic Expectations": 68
+    },
+    "Motivation": {
+      "Return to Office": 69,
+      "Rewards and Recognition": 64
+    },
+    "Career Opputunities": {
+      "Lack Of role clarity": 61,
+      "No growth": 61,
+      "Onsite Opputunity": 63
+    },
+    "Personal": {
+      "Health Issues": 58,
+      "Higher Education": 63
+    }
+  };
+
+
+  // Criticality vs Risk Donut Chart Data
+  const criticalityRiskPieData = {
     labels: [
-      'High Risk',
-      'Medium Risk', 
-      'Low Risk'
+      'High-High', 'High-Med', 'High-Low',
+      'Med-High', 'Med-Med', 'Med-Low', 
+      'Low-High', 'Low-Med', 'Low-Low'
     ],
+    datasets: [{
+      label: 'Risk Distribution',
+      data: [15, 25, 35, 20, 45, 55, 12, 30, 68],
+      backgroundColor: [
+        '#dc2626', '#ea580c', '#f59e0b', // High Criticality
+        '#eab308', '#84cc16', '#22c55e', // Medium Criticality  
+        '#06b6d4', '#3b82f6', '#8b5cf6'  // Low Criticality
+      ],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  };
+
+  // Double Donut Chart Data - Inner (9 partitions) + Outer (3 partitions)
+  const doubleDonutData = {
     datasets: [
+      // Inner Ring - 9 Criticality Subdivisions (3 for each High, Med, Low)
       {
-        label: 'Risk Distribution',
-        data: [35, 28, 22], // Top 3 risk distribution data
-        backgroundColor: [
-          '#F56565', // Red - High Risk (from CriticalityMetrics)
-          '#ED8936', // Orange - Medium Risk (from CriticalityMetrics)
-          '#4299E1'  // Blue - Low Risk (from CriticalityMetrics)
+        label: 'Criticality',
+        data: [
+          // 3 partitions for High Criticality
+          25, 25, 25,
+          // 3 partitions for Medium Criticality  
+          40, 40, 40,
+          // 3 partitions for Low Criticality
+          37, 37, 36
         ],
-        borderWidth: 0,
-        borderColor: 'transparent',
-        borderRadius: 8, // Rounded bar tops
-        borderSkipped: false,
-        barThickness: 20, // Make bars slimmer
-        categoryPercentage: 0.6, // Reduce category width
-        hoverBackgroundColor: [
-          '#E53E3E', // Darker red on hover
-          '#DD6B20', // Darker orange on hover
-          '#3182CE'  // Darker blue on hover
-        ]
+        backgroundColor: [
+          // High Criticality partitions (red variations)
+          '#dc2626', '#ef4444', '#f87171',
+          // Medium Criticality partitions (orange/yellow variations)
+          '#ea580c', '#f59e0b', '#fbbf24',
+          // Low Criticality partitions (green variations)
+          '#16a34a', '#22c55e', '#4ade80'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 4
+      },
+      // Outer Ring - 3 Risk Levels
+      {
+        label: 'Risk',
+        data: [75, 120, 110], // High, Medium, Low Risk
+        backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 6
       }
     ]
   };
 
-  const chartOptions = {
+  const doubleDonutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y' as const, // Horizontal bars
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#FFFFFF',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          label: (context: any) => {
+            const datasetLabel = context.dataset.label;
+            const value = context.parsed || 0;
+            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1);
+            if (datasetLabel === 'Criticality') {
+              const riskLabels = [
+                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk',
+                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk', 
+                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk'
+              ];
+              return `${riskLabels[context.dataIndex]}: ${value} (${percentage}%)`;
+            } else {
+              const labels = ['High Criticality', 'Medium Criticality', 'Low Criticality'];
+              return `${labels[context.dataIndex]}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    },
+    cutout: '55%', // Inner cutout for double ring effect
+    radius: '100%', // Outer radius
+    animation: {
+      duration: 1500,
+      easing: 'easeOutQuart' as const
+    },
+    elements: {
+      arc: {
+        borderWidth: 2
+      }
+    }
+  };
+
+  // Merged donut chart with nested data
+  const mergedDonutData = {
+    labels: [
+      'Concerns with Manager', 'Concerns with peers', 'Unrealistic Expectations',
+      'Return to Office', 'Rewards and Recognition',
+      'Lack Of role clarity', 'No growth', 'Onsite Opportunity',
+      'Health Issues', 'Higher Education'
+    ],
+    datasets: [
+      // Outer ring - Sub-categories (detailed triggers)
+      {
+        label: 'Top Triggers',
+        data: [66, 61, 68, 69, 64, 61, 61, 63, 58, 63],
+        backgroundColor: [
+          '#E53E3E', '#F56565', '#FC8181', // Mental Health - red gradient
+          '#2B6CB0', '#4299E1', // Motivation - blue gradient
+          '#D69E2E', '#ECC94B', '#F6E05E', // Career - yellow gradient
+          '#38A169', '#48BB78' // Personal - green gradient
+        ],
+        borderWidth: 0,
+        cutout: '40%',
+        hoverOffset: 6
+      },
+      // Inner ring - Main categories
+      {
+        label: 'Main Categories',
+        data: [
+          Object.values(riskData["Mental Health"]).reduce((a, b) => a + b, 0), // Total for Mental Health
+          Object.values(riskData["Motivation"]).reduce((a, b) => a + b, 0), // Total for Motivation
+          Object.values(riskData["Career Opputunities"]).reduce((a, b) => a + b, 0), // Total for Career
+          Object.values(riskData["Personal"]).reduce((a, b) => a + b, 0) // Total for Personal
+        ],
+        backgroundColor: [
+          '#F56565', // Mental Health
+          '#4299E1', // Motivation  
+          '#ECC94B', // Career Opportunities
+          '#48BB78'  // Personal
+        ],
+        borderWidth: 2,
+        borderColor: '#FFFFFF',
+        cutout: '70%',
+        hoverOffset: 4
+      }
+    ]
+  };
+
+  const donutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false
@@ -113,56 +260,25 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
         displayColors: true,
         callbacks: {
           label: (context: any) => {
-            const label = context.dataset.label || '';
-            const value = context.parsed.x || 0;
-            return `${context.label}: ${value}%`;
+            const value = context.parsed || 0;
+            return `${context.label}: ${Math.round(value)}`;
           }
         }
       }
     },
-    scales: {
-      x: {
-        beginAtZero: true,
-        max: 40,
-        grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.1)'
-        },
-        ticks: {
-          color: '#666',
-          font: {
-            size: 11
-          },
-          callback: function(value: any) {
-            return value + '%';
-          }
-        }
-      },
-      y: {
-        grid: {
-          display: false
-        },
-        ticks: {
-          color: '#666',
-          font: {
-            size: 11,
-            weight: 'bold'
-          }
-        },
-        categoryPercentage: 0.6, // Make bars slimmer
-        barPercentage: 0.8 // Additional bar thickness control
-      }
+    cutout: '60%',
+    animation: {
+      duration: 1500,
+      easing: 'easeOutQuart' as const
     },
     interaction: {
       intersect: false,
-      mode: 'index'
+      mode: 'index' as const
     },
-    animation: {
-      duration: 1000,
-      easing: 'easeOutQuart'
-    },
-    hover: {
-      animationDuration: 200
+    elements: {
+      arc: {
+        borderWidth: 0
+      }
     }
   };
 
@@ -189,7 +305,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     return (
       <Card.Root bg="white" shadow="lg" borderRadius="2xl" h="full" display="flex" flexDirection="column" border="1px solid" borderColor="gray.200">
         <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
-          <Heading size="sm" color="gray.800">Criticality- Attrition Chart</Heading>
+          {/* <Heading size="sm" color="gray.800">Criticality- Attrition Risk Statistics</Heading> */}
         </Card.Header>
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
@@ -213,29 +329,239 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       shadow="sm" 
       borderRadius="2xl"
       border="1px solid" 
-      borderColor="gray.100"
+      borderColor="gray.50"
       h="full" 
       display="flex" 
       flexDirection="column"
-      maxH="320px"
-      minH="240px"
+      maxH="300px"
+      minH="260px"
+      _hover={{ 
+        transform: "translateY(-2px)", 
+        shadow: "md",
+        transition: "all 0.1s ease"
+      }}
+      transition="all 0.2s ease"
     >
-      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
-        <HStack justify="space-between" align="center">
-          <Heading size="md" color="gray.800">Criticality- Attrition Chart</Heading>
-          <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
+      <Card.Header p={0} pb={0}  borderColor="gray.100">
+        <HStack justify="space-between" align="left">
+          {/* <Heading size="md" color="gray.800">Criticality- Attrition Chart</Heading> */}
+          {/* <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text> */}
         </HStack>
       </Card.Header>
-      <Card.Body p={6} h="full" display="flex" flexDirection="column">
-        <Flex h="full" gap={10} align="start" justify="flex-end" pr={4} pt={-1}>
-          {/* Chart and Legend Container - positioned to the right */}
-          {/* Empty content area */}
-          <Box w="full" h="200px" display="flex" align="center" justify="center">
-            <Text color="gray.500" fontSize="sm">
-              Chart content will be displayed here
-            </Text>
-          </Box>
-        </Flex>
+      <Card.Body p={7} h="full" display="flex" flexDirection="row" gap={0}>
+        {/* Left side - Critical Team Members */}
+        <Box w="20%" display="flex" flexDirection="column">
+          <Text fontSize="sm" fontWeight="600" color="gray.800" mb={4} textAlign="left">
+            Top Talent - Attrition Risk Levels
+          </Text>
+          
+          <VStack gap={1} align="left" flex="1">
+            {/* Team Member 1 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Hans Zeimer</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="red.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Hans Zeimer
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+            {/* Team Member 2 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Cristopher hussain</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="orange.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Cristopher hussain
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+            {/* Team Member 3 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Fatimatul Robert</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="red.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Fatimatul Robert
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+            {/* Team Member 4 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Ahmed Sharma</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="green.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Ahmed Sharma
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+            {/* Team Member 5 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Maria Johnson</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="orange.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Maria Johnson
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+              {/* Team Member 6 */}
+            <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Tim Johnson</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="orange.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Tim Johnson
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+               <Box pb={1} borderBottom="1px solid" borderColor="gray.200">
+              <HStack justify="left" align="left" mb={1}>
+                <HStack gap={1.5}>
+                  {/* <Box w={2} h={2} bg="gray.400" borderRadius="full" /> */}
+                  {/* <Text fontSize="xs" fontWeight="medium" color="gray.800">Hans Zeimer</Text> */}
+                </HStack>
+                <Box px={1.5} py={0.5} bg="red.500" color="white" borderRadius="sm" fontSize="2xs" fontWeight="semi-bold">
+                  Hans Zeimer
+                </Box>
+              </HStack>
+              {/* <Text fontSize="2xs" color="gray.400">#stats risk data</Text> */}
+            </Box>
+
+            
+          </VStack>
+        </Box>
+
+        {/* Middle section - Double Donut Chart */}
+        <Box w="50%" display="flex" flexDirection="column" alignItems="center">
+          <Text fontSize="sm" fontWeight="600" color="gray.800" mb={4} textAlign="left">
+            Criticality & Attrition Risk Analysis
+          </Text>
+          
+          {/* Double Donut Chart and Legend Container */}
+          <HStack gap={4} align="center" w="full" justify="center" flex="1">
+            {/* Double Donut Chart */}
+            <Box 
+              w="200px" 
+              h="200px"
+              filter="drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))"
+              _hover={{ 
+                filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))",
+                transform: "translateY(-1px)",
+                transition: "all 0.2s ease"
+              }}
+              transition="all 0.2s ease"
+              position="relative"
+            >
+              <Doughnut data={doubleDonutData} options={doubleDonutOptions} />
+              
+              {/* Center Label */}
+              <Box
+                position="absolute"
+                top="50%"
+                left="50%"
+                transform="translate(-50%, -50%)"
+                textAlign="center"
+                pointerEvents="none"
+              >
+               
+               
+              </Box>
+            </Box>
+            
+            {/* Updated Legend */}
+            <VStack gap={4} align="start" w="150px">
+              {/* Inner Circle Legend */}
+              <Box>
+                <Text fontSize="xs" fontWeight="600" color="gray.700" mb={2}>
+                  Inner Circle
+                </Text>
+                <HStack gap={2} align="center">
+                  <Box w={4} h={4} bg="#ff0000" borderRadius="full" />
+                  <Text fontSize="xs" color="gray.700" fontWeight="500">
+                    Criticality
+                  </Text>
+                </HStack>
+              </Box>
+
+              {/* Outer Circle Legend */}
+              <Box>
+                <Text fontSize="xs" fontWeight="600" color="gray.700" mb={2}>
+                  Outer Circle
+                </Text>
+                <HStack gap={2} align="center">
+                  <Box w={4} h={4} bg="#ff0000" borderRadius="full" />
+                  <Text fontSize="xs" color="gray.700" fontWeight="500">
+                    Attrition Risk
+                  </Text>
+                </HStack>
+              </Box>
+            </VStack>
+          </HStack>
+
+     
+        </Box>
+        
+        {/* Right side container for chart and legend */}
+        <Box w="30%" display="flex" flexDirection="column" alignItems="center">
+          <Text fontSize="sm" fontWeight="600" color="gray.800" mb={4} textAlign="left">
+            Attrition Risk Analysis
+          </Text>
+          
+          <HStack gap={3} align="center" flex="1">
+            <Box 
+              w="180px" 
+              h="180px"
+              filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
+              _hover={{ 
+                filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
+                transform: "translateY(-2px)",
+                transition: "all 0.1s ease"
+              }}
+              transition="all 0.2s ease"
+            >
+              <Doughnut data={mergedDonutData} options={donutOptions} />
+            </Box>
+
+            {/* Legend positioned close to chart */}
+            <Box display="flex" flexDirection="column" justifyContent="center" ml={2}>
+              <Text fontSize="sm" fontWeight="bold" color="gray.700" mb={2}>
+                Categories
+              </Text>
+              <VStack gap={3} align="start">
+                <LegendItem color="#F56565" label="Mental Health" />
+                <LegendItem color="#4299E1" label="Motivation" />
+                <LegendItem color="#ECC94B" label="Career Opportunities" />
+                <LegendItem color="#48BB78" label="Personal" />
+              </VStack>
+            </Box>
+          </HStack>
+        </Box>
       </Card.Body>
     </Card.Root>
   );

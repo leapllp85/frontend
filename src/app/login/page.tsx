@@ -249,8 +249,9 @@ export default function LoginPage() { // 👈 NO async here
                                             pl={12}
                                             pr={4}
                                             fontSize="13px"
+                                            boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                                             _placeholder={{ color: '#999999', fontSize: '13px' }}
-                                            _focus={{ bg: '#d0d0d0', outline: 'none', boxShadow: 'none' }}
+                                            _focus={{ bg: '#d0d0d0', outline: 'none', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}
                                             {...register("username")}
                                         />
                                     </Box>
@@ -282,8 +283,9 @@ export default function LoginPage() { // 👈 NO async here
                                             pl={12}
                                             pr={12}
                                             fontSize="13px"
+                                            boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
                                             _placeholder={{ color: '#999999', fontSize: '13px' }}
-                                            _focus={{ bg: '#d0d0d0', outline: 'none', boxShadow: 'none' }}
+                                            _focus={{ bg: '#d0d0d0', outline: 'none', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)' }}
                                             {...register("password")}
                                         />
                                     </Box>
@@ -324,7 +326,7 @@ export default function LoginPage() { // 👈 NO async here
                                     // bg="#1b7f8e"
                                     bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
                                     color="#FFFFFF"
-                                    _hover={{ bg: "#156570" }}
+                                    _hover={{ bg: "#156570", boxShadow: "0 6px 16px rgba(0, 0, 0, 0.2)" }}
                                     fontWeight="600"
                                     borderRadius="full"
                                     height="46px"
@@ -332,6 +334,7 @@ export default function LoginPage() { // 👈 NO async here
                                     type="submit"
                                     width="full"
                                     fontSize="15px"
+                                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.15)"
                                 >
                                     Submit
                                 </Button>

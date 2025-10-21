@@ -105,8 +105,14 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
       borderColor="gray.200"
       maxH="320px"
       minH="280px"
+      _hover={{ 
+        transform: "translateY(-2px)", 
+        shadow: "md",
+        transition: "all 0.1s ease"
+      }}
+      transition="all 0.2s ease"
     >
-      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.200">
         <HStack justify="space-between" align="center">
           <Heading size="sm" color="gray.800">Projects At Risk</Heading>
           <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
@@ -147,7 +153,11 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
                     bg={riskColors.bgColor} 
                     borderRadius="full" 
                     h="1.5" 
-                    transition="width 0.3s ease"
+                    transition="all 0.2s ease"
+                    _hover={{ 
+                      transform: "translateY(-2px)", 
+                      shadow: "md"
+                    }}
                   />
                 </Box>
               </Box>

@@ -8,8 +8,8 @@ import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, Not
 import type { UserProfile } from "../../services/userApi";
 import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
 import { StatsRow } from "../profile/StatsRow";
-import { NotificationsPanel } from "../profile/NotificationsPanel";
-import { ProjectMetricsOverview } from "../profile/ProjectMetricsOverview";
+import { AttritionTrendsPanel } from "../profile/AttritionTrendsPanel";
+import { HealthMetrics } from "../profile/HealthMetrics";
 import { ProjectRisks } from "../profile/ProjectRisks";
 
 type ProfileData = UserProfile;
@@ -117,7 +117,7 @@ export const Profile = ({
       <Box 
         w={width} 
         h="full" 
-        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        bg="#d4f1f4"
         display="flex"
         alignItems="center"
         justifyContent="center"
@@ -140,7 +140,7 @@ export const Profile = ({
                 h="16"
                 borderRadius="full"
                 border="4px solid"
-                borderColor="purple.500"
+                bg="#d4f1f4"
                 borderTopColor="transparent"
                 animation="spin 1s linear infinite"
               />
@@ -228,7 +228,7 @@ export const Profile = ({
               overflow="hidden"
             >
               <Box h="full">
-                <ProjectMetricsOverview 
+                <HealthMetrics 
                   metrics={metrics ? [
                     { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
                     { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
@@ -245,8 +245,8 @@ export const Profile = ({
                 {/* Bottom Row - Notifications and Project Risks */}
                 <HStack gap={4} align="stretch" w="full">
                   <Box w="full">
-                    <NotificationsPanel 
-                      notifications={notifications?.notifications}
+                    <AttritionTrendsPanel 
+                      trends={notifications?.notifications}
                     />
                   </Box>
                   <Box w="full">

@@ -10,7 +10,7 @@ interface MetricData {
   type?: 'mental_health' | 'attrition_risk' | 'project_health';
 }
 
-interface ProjectMetricsOverviewProps {
+interface HealthMetricsProps {
   metrics?: MetricData[];
 }
 
@@ -109,34 +109,65 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   
   return (
     <VStack gap={0} w="full" align="center">
-      <Text fontSize="xs" fontWeight="bold" color="gray.900" textAlign="center">{label}</Text>
-      <Box position="relative" w="160px" h="160px">
+      
+      <Text 
+        fontSize="sm" 
+        fontWeight="bold" 
+        color="gray.900" 
+        textAlign="center"
+        borderBottom="2px solid"
+        borderColor={dynamicColor}
+        pb={1}
+        mb={2}
+      >
+        {label}
+
+        
+      </Text>
+      <Box 
+        position="relative" 
+        w="190px" 
+        h="175px"
+        filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
+        _hover={{ 
+          filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
+          transform: "translateY(-2px)",
+          transition: "all 0.1s ease"
+        }}
+        transition="all 0.2s ease"
+      >
         <svg width="100%" height="100%" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor={dynamicColor} />
               <stop offset="100%" stopColor={darkerColor} />
             </linearGradient>
+            <filter id={`shadow-${gradientId}`} x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="rgba(0,0,0,0.3)" />
+            </filter>
           </defs>
+          {/* Background circle with shadow */}
           <circle
             cx="50"
             cy="50"
-            r="38"
+            r="35"
             stroke="#e2e8f0"
-            strokeWidth="7"
+            strokeWidth="8"
             fill="none"
+            filter={`url(#shadow-${gradientId})`}
           />
+          {/* Progress circle with enhanced thickness and shadow */}
           <circle
             cx="50"
             cy="50"
-            r="38"
-            stroke={dynamicColor}
-            strokeWidth="7"
+            r="35"
+            stroke={`url(#${gradientId})`}
+            strokeWidth="9"
             fill="none"
-            strokeDasharray={`${(value / 100) * 238.8}, 238.8`}
-            strokeDashoffset="0"
+            strokeDasharray={`${(value / 100) * 219.9}, 219.9`}
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
+            filter={`url(#shadow-${gradientId})`}
           />
         </svg>
         <Box
@@ -160,27 +191,31 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   );
 };
 
-export const ProjectMetricsOverview: React.FC<ProjectMetricsOverviewProps> = ({
+export const HealthMetrics: React.FC<HealthMetricsProps> = ({
   metrics = defaultMetrics
 }) => {
   return (
-    <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" h="full" maxW="250px" w="full" display="flex" flexDirection="column" border="1px solid" borderColor="gray.200">
-      <Card.Header p={2} pb={1} textAlign="center">
-        <Heading size="sm" color="gray.800" fontWeight="semibold">Health Metrics</Heading>
-      </Card.Header>
-      <Card.Body flex="1" display="flex" alignItems="center" p={0.5} pt={0}>
-        <VStack gap={2} w="full" h="full" justify="center" align="center">
-          {metrics.map((metric, index) => (
-            <CircularProgress
-              key={index}
-              value={metric.value}
-              color={metric.color}
-              label={metric.label}
-              type={metric.type}
-            />
-          ))}
-        </VStack>
-      </Card.Body>
-    </Card.Root>
+    <Box w="full" h="full" maxW="250px" display="flex" flexDirection="column">
+      {/* <Heading 
+        size="md" 
+        color="gray.800" 
+        pb={3}
+        textAlign="center"
+        mb={4}
+      >
+        Health Metrics
+      </Heading> */}
+      <VStack gap={4} w="full" h="full" justify="center" align="center">
+        {metrics.map((metric, index) => (
+          <CircularProgress
+            key={index}
+            value={metric.value}
+            color={metric.color}
+            label={metric.label}
+            type={metric.type}
+          />
+        ))}
+      </VStack>
+    </Box>
   );
 };
