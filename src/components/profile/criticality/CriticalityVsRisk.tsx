@@ -335,11 +335,11 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       flexDirection="column"
       maxH="300px"
       minH="260px"
-      _hover={{ 
-        transform: "translateY(-2px)", 
-        shadow: "md",
-        transition: "all 0.1s ease"
-      }}
+      // _hover={{ 
+      //   transform: "translateY(-2px)", 
+      //   shadow: "md",
+      //   transition: "all 0.1s ease"
+      // }}
       transition="all 0.2s ease"
     >
       <Card.Header p={0} pb={0}  borderColor="gray.100">
@@ -470,11 +470,11 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
               w="200px" 
               h="200px"
               filter="drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))"
-              _hover={{ 
-                filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))",
-                transform: "translateY(-1px)",
-                transition: "all 0.2s ease"
-              }}
+              // _hover={{ 
+              //   filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))",
+              //   transform: "translateY(-1px)",
+              //   transition: "all 0.2s ease"
+              // }}
               transition="all 0.2s ease"
               position="relative"
             >
@@ -538,11 +538,11 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
               w="180px" 
               h="180px"
               filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
-              _hover={{ 
-                filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
-                transform: "translateY(-2px)",
-                transition: "all 0.1s ease"
-              }}
+              // _hover={{ 
+              //   filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
+              //   transform: "translateY(-2px)",
+              //   transition: "all 0.1s ease"
+              // }}
               transition="all 0.2s ease"
             >
               <Doughnut data={mergedDonutData} options={donutOptions} />

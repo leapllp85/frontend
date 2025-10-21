@@ -203,6 +203,7 @@ export const Profile = ({
       bg="#d4f1f4"
       position="relative"
       gap={0}
+      px={4}
     >
       {/* Main Content */}
       <Box position="relative" h="full" overflow="auto" w="full">

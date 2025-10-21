@@ -112,13 +112,14 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
       
       <Text 
         fontSize="sm" 
-        fontWeight="bold" 
+        fontWeight="semi-bold" 
         color="gray.900" 
         textAlign="center"
-        borderBottom="2px solid"
-        borderColor={dynamicColor}
-        pb={1}
-        mb={2}
+        letterSpacing={0.5}
+        // borderBottom="2px solid"
+        // borderColor={dynamicColor}
+        // pb={1}
+        // mb={2}
       >
         {label}
 
@@ -129,11 +130,11 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
         w="190px" 
         h="175px"
         filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
-        _hover={{ 
-          filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
-          transform: "translateY(-2px)",
-          transition: "all 0.1s ease"
-        }}
+        // _hover={{ 
+        //   filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
+        //   transform: "translateY(-2px)",
+        //   transition: "all 0.1s ease"
+        // }}
         transition="all 0.2s ease"
       >
         <svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -195,27 +196,54 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
   metrics = defaultMetrics
 }) => {
   return (
-    <Box w="full" h="full" maxW="250px" display="flex" flexDirection="column">
-      {/* <Heading 
-        size="md" 
-        color="gray.800" 
-        pb={3}
-        textAlign="center"
-        mb={4}
-      >
-        Health Metrics
-      </Heading> */}
-      <VStack gap={4} w="full" h="full" justify="center" align="center">
-        {metrics.map((metric, index) => (
-          <CircularProgress
-            key={index}
-            value={metric.value}
-            color={metric.color}
-            label={metric.label}
-            type={metric.type}
-          />
-        ))}
-      </VStack>
-    </Box>
+    <Card.Root 
+      bg="#e6fffa" 
+      shadow="sm" 
+      borderRadius="2xl"
+      border="1px solid" 
+      borderColor="gray.50"
+      h="full" 
+      w="full"
+      maxW="280px"
+      display="flex" 
+      flexDirection="column"
+      // _hover={{ 
+      //   transform: "translateY(-2px)", 
+      //   shadow: "md",
+      //   transition: "all 0.1s ease"
+      // }}
+      transition="all 0.2s ease"
+    >
+      <Card.Header p={4} pb={2} borderBottom="1px solid" borderColor="gray.100">
+        <VStack gap={1}>
+        <Heading 
+          size="md" 
+          color="gray.800" 
+          textAlign="center"
+          fontWeight="600"
+        >
+          Health Metrics
+        </Heading>
+        <Box 
+          w="100%" 
+          h="1.2px" 
+          bg="linear-gradient(90deg, transparent 0%, #10b981 50%, transparent 100%)"
+        />
+        </VStack>
+      </Card.Header>
+      <Card.Body p={2} display="flex" flexDirection="column">
+        <VStack gap={2} w="full" h="full" justify="center" align="center">
+          {metrics.map((metric, index) => (
+            <CircularProgress
+              key={index}
+              value={metric.value}
+              color={metric.color}
+              label={metric.label}
+              type={metric.type}
+            />
+          ))}
+        </VStack>
+      </Card.Body>
+    </Card.Root>
   );
 };
