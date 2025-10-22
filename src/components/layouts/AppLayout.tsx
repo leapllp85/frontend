@@ -84,7 +84,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <Box 
         h="100vh" 
-        flex={1} 
+        w="80%"
         overflowY="auto"
         position="relative"
       >

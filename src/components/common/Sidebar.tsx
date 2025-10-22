@@ -98,16 +98,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   
   return (
     <VStack 
-      w="290px"
-      minW="220px"
-      maxW="300px"
+      w="20%"
       h="100vh" 
       // bg="#2d6a75"
       bg= 'linear-gradient(135deg, #226773 0%,rgb(6, 80, 93) 50%, #1a525c 100%)'
       overflow="hidden"
       flexDirection="column"
       justify="space-between"
-      p={6}
+      p={2}
       gap={2}
     >
       {/* Top Section */}

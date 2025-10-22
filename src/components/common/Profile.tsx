@@ -7,6 +7,8 @@ import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsA
 import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
 import type { UserProfile } from "../../services/userApi";
 import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
+import { AttritionRisk } from "../profile/criticality/AttritionRisk";
+import { CriticalTeamMembers } from "../profile/criticality/CriticalTeamMembers";
 import { StatsRow } from "../profile/StatsRow";
 import { AttritionTrendsPanel } from "../profile/AttritionTrendsPanel";
 import { HealthMetrics } from "../profile/HealthMetrics";
@@ -190,20 +192,14 @@ export const Profile = ({
     );
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('username');
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-  };
-
   return (
     <Box 
-      w={width} 
+      w="full"
       h="100vh" 
       bg="#d4f1f4"
       position="relative"
       gap={0}
-      px={4}
+      px={2}
     >
       {/* Main Content */}
       <Box position="relative" h="full" overflow="auto" w="full">
@@ -225,8 +221,8 @@ export const Profile = ({
               // flex="1"
               w="full"
               gap={4}
+              h="full"
               align="stretch"
-              overflow="hidden"
             >
               <Box h="full">
                 <HealthMetrics 
@@ -239,18 +235,20 @@ export const Profile = ({
               </Box>
               <VStack w="full" gap={4} align="stretch" h="full">
                 {/* Top - Criticality vs Attrition Risk (Reduced Height) */}
-                <Box w="full">
+                <HStack w="full" h="55%" gap={4}>
+                  <CriticalTeamMembers userId={user?.id?.toString()} />
                   <CriticalityVsRisk userId={user?.id?.toString()} />
-                </Box>
+                  <AttritionRisk userId={user?.id?.toString()} />
+                </HStack>
                                 
                 {/* Bottom Row - Notifications and Project Risks */}
-                <HStack gap={4} align="stretch" w="full">
-                  <Box w="full">
+                <HStack gap={4} align="stretch" w="full" h="40%">
+                  <Box w="full" h="full">
                     <AttritionTrendsPanel 
                       trends={notifications?.notifications}
                     />
                   </Box>
-                  <Box w="full">
+                  <Box w="full" h="full">
                     <ProjectRisks 
                       projects={projectRisks?.projects}
                     />

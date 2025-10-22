@@ -109,32 +109,10 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   
   return (
     <VStack gap={0} w="full" align="center">
-      
-      <Text 
-        fontSize="sm" 
-        fontWeight="semi-bold" 
-        color="gray.900" 
-        textAlign="center"
-        letterSpacing={0.5}
-        // borderBottom="2px solid"
-        // borderColor={dynamicColor}
-        // pb={1}
-        // mb={2}
-      >
-        {label}
-
-        
-      </Text>
       <Box 
         position="relative" 
         w="190px" 
         h="175px"
-        filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
-        // _hover={{ 
-        //   filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
-        //   transform: "translateY(-2px)",
-        //   transition: "all 0.1s ease"
-        // }}
         transition="all 0.2s ease"
       >
         <svg width="100%" height="100%" viewBox="0 0 100 100">
@@ -168,7 +146,7 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
             strokeDasharray={`${(value / 100) * 219.9}, 219.9`}
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
-            filter={`url(#shadow-${gradientId})`}
+            // filter={`url(#shadow-${gradientId})`}
           />
         </svg>
         <Box
@@ -179,15 +157,24 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           textAlign="center"
         >
           <VStack gap={0}>
-            <Text fontSize="sm" fontWeight="semi-bold" color="gray.800" lineHeight="1">
+            <Text fontSize="sm" fontWeight="semibold" color="gray.800" letterSpacing={0.5}>
               {value}%
             </Text>
-            <Text fontSize="xs" color="gray.600" fontWeight="medium">
+            <Text fontSize="xs" color="gray.600" fontWeight="medium" letterSpacing={0.5}>
               {type === 'attrition_risk' ? 'Satisfactory' : 'Good'}
             </Text>
           </VStack>
         </Box>
       </Box>
+      <Text 
+        fontSize="sm" 
+        fontWeight="semibold" 
+        color="gray.700" 
+        textAlign="center"
+        letterSpacing={0.5}
+      >
+        {label}
+      </Text>
     </VStack>
   );
 };
@@ -202,19 +189,16 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
       borderRadius="2xl"
       border="1px solid" 
       borderColor="gray.50"
-      h="full" 
+      h="99%" 
       w="full"
       maxW="280px"
       display="flex" 
       flexDirection="column"
-      // _hover={{ 
-      //   transform: "translateY(-2px)", 
-      //   shadow: "md",
-      //   transition: "all 0.1s ease"
-      // }}
       transition="all 0.2s ease"
+      py={2}
+      pb={4}
     >
-      <Card.Header p={4} pb={2} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
         <VStack gap={1}>
         <Heading 
           size="md" 
@@ -231,8 +215,8 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
         />
         </VStack>
       </Card.Header>
-      <Card.Body p={2} display="flex" flexDirection="column">
-        <VStack gap={2} w="full" h="full" justify="center" align="center">
+      <Card.Body px={2} py={0} display="flex" flexDirection="column">
+        <VStack gap={1} w="full" h="full" justify="center" align="center">
           {metrics.map((metric, index) => (
             <CircularProgress
               key={index}
