@@ -203,10 +203,10 @@ export const Profile = ({
       overflow="hidden"
     >
       {/* Main Content */}
-      <Box position="relative" h="full" overflow="hidden" w="full">
+      <Box position="relative" h="full" overflow="hidden" w="99%">
         {/* Dashboard Content */}
         <Box h="full" p={1} position="relative">
-          <VStack h="full" align="center" gap={2} w="full">
+          <VStack h="full" align="center" gap={2} w="99%">
             {/* Portfolio Health + Stats Row - Separate Entities */}
             <HStack gap={0} w="100%" flexShrink={0}>
               {/* Portfolio Health Section - 25% width */}
