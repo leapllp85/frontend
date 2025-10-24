@@ -90,84 +90,114 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
   // Show only the first 3 trends
   const topTrends = trends.slice(0, 3);
 
-  // Default data if none provided
+  // Default data if none provided with more variation
   const defaultData: AttritionData[] = [
     {
       id: 1,
       year: 2025,
       month: 6,
-      high: 280,
-      medium: 320,
-      low: 290,
+      high: 245,
+      medium: 380,
+      low: 420,
       manager: 1
     },
     {
       id: 2,
       year: 2025,
       month: 7,
-      high: 295,
-      medium: 335,
-      low: 305,
+      high: 320,
+      medium: 295,
+      low: 385,
       manager: 1
     },
     {
       id: 3,
       year: 2025,
       month: 8,
-      high: 310,
-      medium: 350,
-      low: 295,
+      high: 180,
+      medium: 450,
+      low: 370,
       manager: 1
     },
     {
       id: 4,
       year: 2025,
       month: 9,
-      high: 318,
-      medium: 360,
-      low: 302,
+      high: 410,
+      medium: 220,
+      low: 340,
       manager: 1
     },
     {
       id: 5,
       year: 2025,
       month: 10,
-      high: 326,
-      medium: 368,
-      low: 310,
+      high: 275,
+      medium: 390,
+      low: 465,
       manager: 1
     },
     {
       id: 6,
       year: 2025,
       month: 11,
-      high: 340,
-      medium: 375,
-      low: 315,
+      high: 350,
+      medium: 180,
+      low: 290,
+      manager: 1
+    },
+    {
+      id: 7,
+      year: 2025,
+      month: 12,
+      high: 195,
+      medium: 425,
+      low: 380,
+      manager: 1
+    },
+    {
+      id: 8,
+      year: 2026,
+      month: 1,
+      high: 440,
+      medium: 260,
+      low: 300,
       manager: 1
     }
   ];
 
   const attritionData = data || defaultData;
 
-  // Prepare chart data
+  // Create gradient backgrounds for chart
+  const createGradient = (ctx: CanvasRenderingContext2D, color1: string, color2: string) => {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, color1);
+    gradient.addColorStop(1, color2);
+    return gradient;
+  };
+
+  // Prepare chart data with single straight line
   const chartData = {
     labels: attritionData.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`),
     datasets: [
       {
-        label: 'High Attrition Risk',
+        label: 'High Risk',
         data: attritionData.map(item => item.high),
-        borderColor: '#FF4757',
-        backgroundColor: 'transparent',
+        borderColor: '#EF4444',
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx } = chart;
+          return createGradient(ctx, 'rgba(239, 68, 68, 0.001)', 'rgba(239, 68, 68, 0.9)');
+        },
         borderWidth: 3,
-        pointBackgroundColor: '#FF4757',
+        pointBackgroundColor: '#EF4444',
         pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 2,
-        pointRadius: 6,
-        pointHoverRadius: 10,
-        pointHoverBorderWidth: 3,
-        fill: false,
-        tension: 0.5,
+        pointBorderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 12,
+        pointHoverBorderWidth: 4,
+        fill: true,
+        tension: 0,
         borderCapStyle: 'round' as const,
         borderJoinStyle: 'round' as const
       }
@@ -236,7 +266,8 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
       },
       y: {
         beginAtZero: false,
-        min: 250,
+        min: 150,
+        max: 500,
         grid: {
           display: true,
           color: 'rgba(0, 0, 0, 0.05)',
@@ -281,12 +312,12 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
 
   return (
     <Card.Root 
-      bg="#e6fffa" 
+      bg="#ffffff" 
       shadow="sm" 
       borderRadius="2xl" 
-      h="full" 
-      display="flex" 
-      flexDirection="column" 
+      h="full"
+      display="flex"
+      flexDirection="column"
       border="1px solid" 
       borderColor="gray.200"
       maxH="320px"
@@ -299,22 +330,28 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
       transition="all 0.2s ease"
     >
       <Card.Header p={3} pb={0} borderBottom="1px solid" borderColor="gray.100">
-        <HStack justify="space-between" align="center">
-          <Heading size="sm" color="gray.800" textAlign="center">High Attrition Risk Trends</Heading>
+        <VStack justify="space-between" align="center">
+          <Heading
+                      size="md"
+                      color="gray.800"
+                      textAlign="center"
+                      fontWeight="normal"
+                    >
+                       Attrition Risk Trends
+                      </Heading>
           <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
-        </HStack>
+        </VStack>
       </Card.Header>
       
-      <Card.Body p={4} flex="1" display="flex" flexDirection="column">
-        {/* Line Chart Only */}
+      <Card.Body p={3} flex="1" display="flex" flexDirection="column">
+        {/* Line Chart with Area Fill */}
         <Box w="full" h="full" flex="1">
-         
           <Box 
             w="full" 
             h="full" 
             bg="transparent" 
-            borderRadius="xl" 
-            p={6}
+            borderRadius="lg" 
+            p={2}
             position="relative"
           >
             <Line data={chartData} options={chartOptions} />

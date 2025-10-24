@@ -46,7 +46,7 @@ const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }
   <HStack gap={2} align="center" minH="18px">
     <Box w={4} h={3} bg={color} borderRadius="sm" />
     {label && (
-      <Text fontSize="xs" color="gray.700" fontWeight="semibold" minW="35px">
+      <Text fontSize="xs" color="gray.700" fontWeight="normal" minW="35px">
         {label}
       </Text>
     )}
@@ -310,7 +310,7 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
             <VStack gap={2} align="start">
-              <Text fontSize="sm" fontWeight="semibold" color="red.800">
+              <Text fontSize="sm" fontWeight="normal" color="red.800">
                 Error loading chart
               </Text>
               <Text fontSize="sm" color="red.600">
@@ -325,54 +325,55 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
 
   return (
     <Card.Root
-      bg="#e6fffa"
+      bg="#ffffff"
       shadow="sm"
-      borderRadius="2xl"
-      border="1px solid"
+      borderRadius="3xl"
+      border="2px solid"
       borderColor="gray.50"
       h="full"
       display="flex"
       flexDirection="column"
-      // _hover={{ 
-      //   transform: "translateY(-2px)", 
-      //   shadow: "md",
-      //   transition: "all 0.1s ease"
-      // }}
+      w="full"
       transition="all 0.2s ease"
     >
       <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
         <VStack gap={1}>
           <Heading
             size="md"
-            color="gray.800"
+            color="gray.900"
             textAlign="center"
-            fontWeight="600"
+            fontWeight="normal"
           >
-            Attrition Risk Analysis
+            Critical Members Attrition Risk Analysis
           </Heading>
-          <Box
-            w="100%"
-            h="1.2px"
+          <Box 
+            w="80%" 
+            h="1.1px" 
             bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
           />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="row" gap={0} w="full" p={2}>
+      <Card.Body h="full" display="flex" flexDirection="row" gap={3} w="full" p={2}>
         <HStack gap={3} align="center" flex="1">
           <Box
-            w="180px"
-            h="180px"
-            filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
+            w="190px"
+            h="190px"
+            // filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.0))"
             transition="all 0.2s ease"
           >
             <Doughnut data={mergedDonutData} options={donutOptions} />
           </Box>
 
           {/* Legend positioned close to chart */}
-          <Box display="flex" flexDirection="column" justifyContent="center" ml={2}>
-            <Text fontSize="sm" fontWeight="bold" color="gray.700" mb={2}>
+          <Box display="flex" flexDirection="flex-start" justifyContent="right" ml={7}>
+            {/* <Text fontSize="md" fontWeight="normal" color="gray.900" mb={0}>
               Categories
-            </Text>
+            </Text> */}
+            {/* <Box 
+            w="80%" 
+            h="1px" 
+            bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+          /> */}
             <VStack gap={3} align="start">
               <LegendItem color="#F56565" label="Mental Health" />
               <LegendItem color="#4299E1" label="Motivation" />

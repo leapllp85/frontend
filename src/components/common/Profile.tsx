@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Box, Grid, VStack, Card, Text, Spinner, GridItem, HStack } from "@chakra-ui/react";
+import { Box, Grid, VStack, Card, Text, Spinner, GridItem, HStack, Heading } from "@chakra-ui/react";
 import { User } from "lucide-react";
 import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsApi } from '../../services';
 import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
@@ -195,60 +195,122 @@ export const Profile = ({
   return (
     <Box 
       w="full"
-      h="100vh" 
-      bg="#d4f1f4"
+      h="full" 
+      bg="#ffffff"
       position="relative"
       gap={0}
-      px={2}
+      p={0}
+      overflow="hidden"
     >
       {/* Main Content */}
-      <Box position="relative" h="full" overflow="auto" w="full">
+      <Box position="relative" h="full" overflow="hidden" w="full">
         {/* Dashboard Content */}
-        <Box h="full" p={4} position="relative">
-          <VStack h="full" align="stretch" gap={4} w="full">
-            {/* Top Stats Row */}
-            <Box flexShrink={0}>
-              <StatsRow 
-                activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
-                teamMembers={teamStats?.team_members_count}
-                avgUtilization={teamStats?.utilization_percentage}
-                highRiskProjects={projectStats?.high_risk_projects}
-              />
-            </Box>
-
-            {/* Main Content Grid - Compact Layout */}
-            <HStack 
-              // flex="1"
-              w="full"
-              gap={4}
-              h="full"
-              align="stretch"
-            >
-              <Box h="full">
-                <HealthMetrics 
-                  metrics={metrics ? [
-                    { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                    { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                    { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                  ] : undefined}
+        <Box h="full" p={1} position="relative">
+          <VStack h="full" align="center" gap={2} w="full">
+            {/* Portfolio Health + Stats Row - Separate Entities */}
+            <HStack gap={0} w="100%" flexShrink={0}>
+              {/* Portfolio Health Section - 25% width */}
+              <Card.Root
+                bg="#ffffff"
+                shadow="sm"
+                borderRadius="2xl"
+                border="1px solid"
+                borderColor="gray.50"
+                borderRight="none"
+                h="80px"
+                display="flex"
+                flexDirection="column"
+                transition="all 0.2s ease"
+                w="25%"
+              >
+                <VStack h="full" justify="center" px={2} py={2}>
+                  <VStack gap={0}>
+                    <Heading 
+                      size="sm" 
+                      color="gray.900" 
+                      textAlign="center"
+                      fontWeight="normal"
+                    >
+                      Portfolio Health
+                    </Heading>
+                    <Box 
+                      w="100%" 
+                      h="1px" 
+                      bg="linear-gradient(90deg, transparent 0%, #ef4444 50%, transparent 100%)"
+                    />
+                  </VStack>
+                  
+                  <VStack gap={1} align="center" w="full">
+                    <Text fontSize="md" fontWeight="bold" color="#ef4444">
+                      Average
+                    </Text>
+                    <Box w="full" bg="gray.200" borderRadius="full" h="2">
+                      <Box 
+                        w="76%" 
+                        bg="linear-gradient(90deg, #fef3c7 0%, #fbbf24 25%, #f59e0b 50%, #ef4444 100%)" 
+                        borderRadius="full" 
+                        h="2" 
+                        transition="all 0.3s ease"
+                      />
+                    </Box>
+                  </VStack>
+                </VStack>
+              </Card.Root>
+              
+              {/* Stats Row Section - 75% width */}
+              <Box flex="1" w="75%">
+                <StatsRow 
+                  activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
+                  teamMembers={teamStats?.team_members_count}
+                  avgUtilization={teamStats?.utilization_percentage}
+                  highRiskProjects={projectStats?.high_risk_projects}
                 />
               </Box>
-              <VStack w="full" gap={4} align="stretch" h="full">
-                {/* Top - Criticality vs Attrition Risk (Reduced Height) */}
-                <HStack w="full" h="55%" gap={4}>
-                  <CriticalTeamMembers userId={user?.id?.toString()} />
-                  <CriticalityVsRisk userId={user?.id?.toString()} />
-                  <AttritionRisk userId={user?.id?.toString()} />
+            </HStack>
+
+            {/* Main Content Grid - Full Screen Layout */}
+            <HStack 
+              flex="1"
+              w="full"
+              gap={2}
+              h="full"
+              align="stretch"
+              minH="0"
+            >
+              <VStack h="full" w="280px" flexShrink={0} gap={2} align="stretch">
+                {/* Health Metrics - Moved Up */}
+                <Box h="full" minH="0">
+                  <HealthMetrics 
+                    metrics={metrics ? [
+                      { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                      { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                      { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
+                    ] : undefined}
+                  />
+                </Box>
+              </VStack>
+              <VStack w="full" gap={2} align="stretch" h="full" flex="1">
+                {/* Top - Criticality vs Attrition Risk */}
+                <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
+                  <Box w="45%" h="full" minW="0">
+                    <CriticalTeamMembers userId={user?.id?.toString()} />
+                  </Box>
+                  <Box w="25%" h="full" minW="0">
+                    <CriticalityVsRisk userId={user?.id?.toString()} />
+                  </Box>
+                  <Box w="30%" h="full" minW="0">
+                    <AttritionRisk userId={user?.id?.toString()} />
+                  </Box>
                 </HStack>
                                 
                 {/* Bottom Row - Notifications and Project Risks */}
-                <HStack gap={4} align="stretch" w="full" h="40%">
-                  <Box w="full" h="full">
+                <HStack gap={2} align="stretch" w="full" h="42%" minH="0">
+                  <Box flex="1" h="full" minH="0">
                     <AttritionTrendsPanel 
                       trends={notifications?.notifications}
                     />
                   </Box>
-                  <Box w="full" h="full">
+                  <Box flex="1" h="full" minH="0">
                     <ProjectRisks 
                       projects={projectRisks?.projects}
                     />

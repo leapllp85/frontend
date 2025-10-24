@@ -10,6 +10,7 @@ import {
   Heading,
   Spinner,
   Badge,
+  SimpleGrid,
 } from '@chakra-ui/react';
 
 import { criticalityApi, CriticalityVsRiskData, RiskDistribution } from '../../../services';
@@ -34,6 +35,81 @@ const CriticalTeamMembersData = [
     criticality: 'Low',
     attritionRisk: 'Low',
   },
+  {
+    name: 'Alice Brown',
+    criticality: 'High',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Mike Wilson',
+    criticality: 'Medium',
+    attritionRisk: 'Medium',
+  },
+  {
+    name: 'Sarah Davis',
+    criticality: 'High',
+    attritionRisk: 'Low',
+  },
+  {
+    name: 'Tom Garcia',
+    criticality: 'Medium',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Lisa Chen',
+    criticality: 'High',
+    attritionRisk: 'Medium',
+  },
+  {
+    name: 'David Martinez',
+    criticality: 'High',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Emma Thompson',
+    criticality: 'Medium',
+    attritionRisk: 'Low',
+  },
+  {
+    name: 'James Rodriguez',
+    criticality: 'Low',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Sophia Lee',
+    criticality: 'High',
+    attritionRisk: 'Medium',
+  },
+  {
+    name: 'Ryan Anderson',
+    criticality: 'Medium',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Olivia Taylor',
+    criticality: 'High',
+    attritionRisk: 'Low',
+  },
+  {
+    name: 'Kevin White',
+    criticality: 'Low',
+    attritionRisk: 'Medium',
+  },
+  {
+    name: 'Maya Patel',
+    criticality: 'High',
+    attritionRisk: 'High',
+  },
+  {
+    name: 'Alex Johnson',
+    criticality: 'Medium',
+    attritionRisk: 'Medium',
+  },
+  {
+    name: 'Grace Kim',
+    criticality: 'High',
+    attritionRisk: 'Low',
+  },
 ];  
 
 const CriticalTeamMember = ({ name, criticality, attritionRisk }: { name: string; criticality: string; attritionRisk: string }) => {
@@ -53,7 +129,7 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk }: { name: string
           fontSize="sm" 
           color="gray.600" 
           textAlign="center"
-          fontWeight="semibold"
+          fontWeight="normal"
         >{name}</Text>
       </HStack>
       {/* Red Color Badge for High Criticality, High Attrition Risk */}
@@ -92,8 +168,7 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = ({ userId }
       <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <HStack justify="space-between" align="center">
-            <Heading size="sm" color="gray.800">Criticality - Attrition Data</Heading>
-            <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
+     
           </HStack>
         </Card.Header>
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
@@ -115,7 +190,7 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = ({ userId }
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
             <VStack gap={2} align="start">
-              <Text fontSize="sm" fontWeight="semibold" color="red.800">
+              <Text fontSize="sm" fontWeight="normal" color="red.800">
                 Error loading chart
               </Text>
               <Text fontSize="sm" color="red.600">
@@ -130,55 +205,46 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = ({ userId }
 
   return (
     <Card.Root 
-      bg="#e6fffa" 
+      bg="#ffffff" 
       shadow="sm" 
-      borderRadius="2xl"
+      borderRadius="3xl"
       border="1px solid" 
       borderColor="gray.50"
       h="full" 
       display="flex" 
       flexDirection="column"
       transition="all 0.2s ease"
+      w="full"
     >
-      <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
         <VStack gap={1}>
           <Heading 
             size="md" 
             color="gray.800" 
             textAlign="center"
-            fontWeight="600"
+            fontWeight="normal"
           >
-            Critical Team Members
+            Top 5% Critical Members
           </Heading>
           <Box 
-            w="100%" 
-            h="1.2px" 
+            w="80%" 
+            h="1.1px" 
             bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
           />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="row" gap={0} w="full" px={4} py={0} pb={2}>
-        <Box display="flex" flexDirection="column" w="full">
-          <VStack gap={1} w="full">
-            {CriticalTeamMembersData.map((member, index) => (
-              <>
+      <Card.Body h="full" display="flex" flexDirection="row" gap={0} w="full" px={7} py={6} pb={10}>
+        <SimpleGrid columns={2} gap={5} w="full" h="full">
+          {CriticalTeamMembersData.map((member, index) => (
+            <Box key={index} w="full">
               <CriticalTeamMember 
-                key={index}
                 name={member.name}
                 criticality={member.criticality}
                 attritionRisk={member.attritionRisk}
               />
-              {index < CriticalTeamMembersData.length - 1 && (
-                <Box 
-                  w="100%" 
-                  h="0.8px" 
-                  bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                />
-              )}
-              </>
-            ))}
-          </VStack>
-        </Box>
+            </Box>
+          ))}
+        </SimpleGrid>
       </Card.Body>
     </Card.Root>
   );

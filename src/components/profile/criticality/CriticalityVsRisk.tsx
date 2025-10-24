@@ -13,7 +13,7 @@ import {
   GridItem,
   Flex
 } from '@chakra-ui/react';
-import { Doughnut } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -46,7 +46,7 @@ const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }
   <HStack gap={2} align="center" minH="18px">
     <Box w={4} h={3} bg={color} borderRadius="sm" />
     {label && (
-      <Text fontSize="xs" color="gray.700" fontWeight="semibold" minW="35px">
+      <Text fontSize="xs" color="gray.700" fontWeight="normal" minW="35px">
         {label}
       </Text>
     )}
@@ -87,45 +87,31 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     }
   };
 
-  // Double Donut Chart Data - Inner (9 partitions) + Outer (3 partitions)
-  const doubleDonutData = {
+  // Bar Chart Data - 3 categories
+  const barChartData = {
+    labels: ['High Risk', 'Medium Risk', 'Low Risk'],
     datasets: [
-      // Inner Ring - 9 Criticality Subdivisions (3 for each High, Med, Low)
       {
-        label: 'Criticality',
-        data: [
-          // 3 partitions for High Criticality
-          25, 25, 25,
-          // 3 partitions for Medium Criticality  
-          40, 40, 40,
-          // 3 partitions for Low Criticality
-          37, 37, 36
-        ],
+        label: 'Risk Distribution',
+        data: [35, 45, 20], // High, Medium, Low percentages
         backgroundColor: [
-          // High Criticality partitions (red variations)
-          '#dc2626', '#ef4444', '#f87171',
-          // Medium Criticality partitions (orange/yellow variations)
-          '#ea580c', '#f59e0b', '#fbbf24',
-          // Low Criticality partitions (green variations)
-          '#16a34a', '#22c55e', '#4ade80'
+          '#EF4444', // Red for High Risk
+          '#F59E0B', // Orange for Medium Risk  
+          '#22C55E'  // Green for Low Risk
+        ],
+        borderColor: [
+          '#DC2626',
+          '#D97706',
+          '#16A34A'
         ],
         borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 4
-      },
-      // Outer Ring - 3 Risk Levels
-      {
-        label: 'Risk',
-        data: [75, 120, 110], // High, Medium, Low Risk
-        backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 6
+        borderRadius: 8,
+        borderSkipped: false,
       }
     ]
   };
 
-  const doubleDonutOptions = {
+  const barChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -143,33 +129,45 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
         displayColors: true,
         callbacks: {
           label: (context: any) => {
-            const datasetLabel = context.dataset.label;
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            if (datasetLabel === 'Criticality') {
-              const riskLabels = [
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk',
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk', 
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk'
-              ];
-              return `${riskLabels[context.dataIndex]}: ${value} (${percentage}%)`;
-            } else {
-              const labels = ['High Criticality', 'Medium Criticality', 'Low Criticality'];
-              return `${labels[context.dataIndex]}: ${value} (${percentage}%)`;
-            }
+            const value = context.parsed.y || 0;
+            return `${context.label}: ${value}%`;
           }
         }
       }
     },
-    cutout: '55%', // Inner cutout for double ring effect
-    radius: '100%', // Outer radius
-    animation: {
-      duration: 1500,
-      easing: 'easeOutQuart' as const
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 50,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.1)',
+          drawBorder: false
+        },
+        ticks: {
+          color: '#6B7280',
+          font: {
+            size: 10
+          },
+          callback: function(value: any) {
+            return value + '%';
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          color: '#6B7280',
+          font: {
+            size: 10,
+            weight: '500'
+          }
+        }
+      }
     },
     elements: {
-      arc: {
+      bar: {
         borderWidth: 2
       }
     }
@@ -178,7 +176,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
   if (loading) {
     return (
       <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
-        <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
+        {/* <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <HStack justify="space-between" align="center">
             <Heading size="sm" color="gray.800">Criticality - Attrition Data</Heading>
             <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
@@ -189,7 +187,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
             <Spinner size="lg" color="teal.500" />
             <Text color="gray.500" fontSize="sm">Loading chart...</Text>
           </VStack>
-        </Card.Body>
+        </Card.Body> */}
       </Card.Root>
     );
   }
@@ -203,7 +201,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <Box p={4} bg="red.50" borderRadius="md" border="1px solid" borderColor="red.200">
             <VStack gap={2} align="start">
-              <Text fontSize="sm" fontWeight="semibold" color="red.800">
+              <Text fontSize="sm" fontWeight="normal" color="red.800">
                 Error loading chart
               </Text>
               <Text fontSize="sm" color="red.600">
@@ -218,93 +216,47 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   return (
     <Card.Root 
-      bg="#e6fffa" 
+      bg="#ffffff" 
       shadow="sm" 
-      borderRadius="2xl"
+      borderRadius="3xl"
       border="1px solid" 
       borderColor="gray.50"
       h="full" 
       display="flex" 
       flexDirection="column"
       transition="all 0.2s ease"
+      w="full"
     >
       <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
         <VStack gap={1}>
           <Heading 
             size="md" 
-            color="gray.800" 
+            color="gray.900" 
             textAlign="center"
-            fontWeight="600"
+            fontWeight="normal"
           >
-            Critical Team Members
+            Critical Members Attrition Risks
           </Heading>
           <Box 
             w="100%" 
-            h="1.2px" 
+            h="1.1px" 
             bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
           />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="row" gap={0} w="full" p={2} px={4} py={0} pb={2}>          
-          <HStack gap={4} align="center" w="full" justify="center" flex="1">
-            {/* Double Donut Chart */}
-            <Box 
-              w="200px" 
-              h="200px"
-              filter="drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))"
-              // _hover={{ 
-              //   filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))",
-              //   transform: "translateY(-1px)",
-              //   transition: "all 0.2s ease"
-              // }}
-              transition="all 0.2s ease"
-              position="relative"
-            >
-              <Doughnut data={doubleDonutData} options={doubleDonutOptions} />
-              
-              {/* Center Label */}
-              <Box
-                position="absolute"
-                top="50%"
-                left="50%"
-                transform="translate(-50%, -50%)"
-                textAlign="center"
-                pointerEvents="none"
-              >
-               
-               
-              </Box>
-            </Box>
-            
-            {/* Updated Legend */}
-            <VStack gap={4} w="150px">
-              {/* Inner Circle Legend */}
-              <Box>
-                <Text fontSize="xs" fontWeight="600" color="gray.700" mb={2}>
-                  Inner Circle
-                </Text>
-                <HStack gap={2} align="center">
-                  <Box w={4} h={4} bg="#ff0000" borderRadius="full" />
-                  <Text fontSize="xs" color="gray.700" fontWeight="500">
-                    Criticality
-                  </Text>
-                </HStack>
-              </Box>
-
-              {/* Outer Circle Legend */}
-              <Box>
-                <Text fontSize="xs" fontWeight="600" color="gray.700" mb={2}>
-                  Outer Circle
-                </Text>
-                <HStack gap={2} align="center">
-                  <Box w={4} h={4} bg="#ff0000" borderRadius="full" />
-                  <Text fontSize="xs" color="gray.700" fontWeight="500">
-                    Attrition Risk
-                  </Text>
-                </HStack>
-              </Box>
-            </VStack>
-          </HStack>
+      <Card.Body h="full" display="flex" flexDirection="column" gap={0} w="full" p={2} px={1} py={1} pb={0}>
+        <VStack 
+          gap={0} 
+          align="center" 
+          justify="center" 
+          h="full" 
+          w="full"
+        >
+          {/* Bar Chart Container - Centered */}
+          <Box w="190px" h="80%" position="relative" display="flex" alignItems="center" justifyContent="center">
+            <Bar data={barChartData} options={barChartOptions} />
+          </Box>
+        </VStack>
       </Card.Body>
     </Card.Root>
   );

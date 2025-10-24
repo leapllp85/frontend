@@ -255,10 +255,10 @@ export default function ActionItemsPage() {
 
                         {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="blue.100" borderRadius="lg">
+                                <Box p={2} bg="blue.100" borderRadius="2xl">
                                     <Clock size={20} color="#3182ce" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -271,10 +271,10 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="orange.100" borderRadius="lg">
+                                <Box p={2} bg="orange.100" borderRadius="2xl">
                                     <Clock size={20} color="#ea580c" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -287,10 +287,10 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="green.100" borderRadius="lg">
+                                <Box p={2} bg="green.100" borderRadius="2xl">
                                     <CheckCircle size={20} color="#16a34a" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -303,10 +303,10 @@ export default function ActionItemsPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="purple.100" borderRadius="lg">
+                                <Box p={2} bg="purple.100" borderRadius="2xl">
                                     <CheckCircle size={20} color="#9333ea" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -321,7 +321,7 @@ export default function ActionItemsPage() {
                 </SimpleGrid>
 
                 {/* Action Items List */}
-                <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                     <Card.Header p={6}>
                         <HStack justify="space-between">
                             <VStack align="start" gap={1}>
@@ -354,7 +354,7 @@ export default function ActionItemsPage() {
                                 </Box>
                             ) : (
                                 actionItems.map((item) => (
-                                    <Card.Root key={item.id} bg="gray.50" borderRadius="lg">
+                                    <Card.Root key={item.id} bg="gray.50" borderRadius="2xl">
                                         <Card.Body p={4}>
                                             <HStack justify="space-between" align="start">
                                                 <VStack align="start" gap={2} flex="1">
@@ -383,7 +383,7 @@ export default function ActionItemsPage() {
                                                     bg="purple.500"
                                                     color="white"
                                                     borderWidth="1px"
-                                                    borderRadius="lg"
+                                                    borderRadius="2xl"
                                                     px={2}
                                                     py={1}
                                                     fontSize="md"

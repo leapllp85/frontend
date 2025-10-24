@@ -84,8 +84,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <Box 
         h="100vh" 
-        w="80%"
-        overflowY="auto"
+        w="calc(100vw - 80px)"
+        overflow="hidden"
         position="relative"
       >
         {!hasQueried ? 

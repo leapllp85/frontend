@@ -88,15 +88,15 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
     const riskPriority = { 'High Risk': 3, 'Medium Risk': 2, 'Low Risk': 1 };
     return projects
       .sort((a, b) => riskPriority[b.riskLevel] - riskPriority[a.riskLevel])
-      .slice(0, 4);
+      .slice(0, 3);
   };
 
   const topProjects = getTopPriorityProjects(projects);
 
   return (
     <Card.Root 
-      bg="#e6fffa"
-      shadow="sm" 
+      bg="#ffffff"
+      shadow="xs" 
       borderRadius="2xl" 
       h="full" 
       display="flex" 
@@ -105,66 +105,87 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
       borderColor="gray.200"
       maxH="320px"
       minH="280px"
-      _hover={{ 
-        transform: "translateY(-2px)", 
-        shadow: "md",
-        transition: "all 0.1s ease"
-      }}
+     
       transition="all 0.2s ease"
     >
       <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.200">
-        <HStack justify="space-between" align="center">
-          <Heading size="sm" color="gray.800">Projects At Risk</Heading>
-          <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
-        </HStack>
-      </Card.Header>
-      <Card.Body p={3} flex="1" overflow="auto">
-        <VStack gap={2.5} align="start">
-          {topProjects.map((project) => {
-            const riskColors = getRiskColor(project.riskLevel);
-            return (
-              <Box key={project.id}>
-                <HStack justify="space-between" mb={1.5} align="start">
-                  <VStack align="start" gap={0.5} flex={1} minW={0}>
-                    <HStack gap={2} wrap="wrap">
-                      <Text fontSize="xs" fontWeight="semibold" color="gray.800" truncate>
-                        {project.title}
-                      </Text>
-                      <Text fontSize="xs" color="gray.600">
-                        {project.team_members_count}m
-                      </Text>
-                    </HStack>
-                    <Text fontSize="xs" color="gray.500">
-                      Due: {project.go_live_date}
-                    </Text>
-                  </VStack>
-                  <VStack align="end" gap={0.5} flexShrink={0}>
-                    <Badge colorPalette={riskColors.colorPalette} size="sm">
-                      {project.criticality}
-                    </Badge>
-                    <Text fontSize="xs" color="gray.500">
-                      {project.progress}%
-                    </Text>
-                  </VStack>
-                </HStack>
-                <Box w="full" bg="gray.200" borderRadius="full" h="1.5">
-                  <Box 
-                    w={`${project.progress}%`} 
-                    bg={riskColors.bgColor} 
-                    borderRadius="full" 
-                    h="1.5" 
-                    transition="all 0.2s ease"
-                    _hover={{ 
-                      transform: "translateY(-2px)", 
-                      shadow: "md"
-                    }}
-                  />
-                </Box>
-              </Box>
-            );
-          })}
+        <VStack justify="space-between" align="center">
+          <Heading
+            size="md"
+            color="gray.900"
+            textAlign="center"
+            fontWeight="normal"
+          >
+             Projects At Risk
+             
+            </Heading>
+            {/* <Box 
+                        w="100%" 
+                        h="1.1px" 
+                        bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+                      /> */}
+          
         </VStack>
-      </Card.Body>
+    
+
+      </Card.Header>
+      <Card.Body p={6} flex="1">
+  <VStack gap={1} align="start" w="full">
+    {topProjects.map((project) => {
+      const riskColors = getRiskColor(project.riskLevel);
+      return (
+        <Box key={project.id} w="full">
+          <HStack justify="space-between" align="center" w="full" mb={1} spacing={1}>
+            {/* Left side: Title, Team Members, Due Date */}
+            <HStack gap={1} flex={1} minW={0} overflow="hidden">
+              <Text fontSize="xs" fontWeight="medium" color="gray.900" truncate>
+                {project.title}
+              </Text>
+              <Box height="2px" width="35px" />
+
+              <Text fontSize="xs" color="gray.900">
+                {project.team_members_count}Members
+              </Text>
+              <Box height="1px" width="5px" />
+              <Text fontSize="xs" color="gray.900" whiteSpace="nowrap">
+                Due: {project.go_live_date}
+              </Text>
+            </HStack>
+
+            {/* Right side: Criticality & Progress */}
+            <HStack spacing={1} flexShrink={0}>
+              <Badge colorPalette={riskColors.colorPalette} size="sm">
+                {project.criticality}
+              </Badge>
+              <Text fontSize="sm" color="gray.900">
+                {project.progress}%
+              </Text>
+            </HStack>
+          </HStack>
+
+          {/* Progress Bar */}
+          <Box w="full" bg="gray.200" borderRadius="full" h="1">
+            <Box 
+              w={`${project.progress}%`} 
+              bg={riskColors.bgColor} 
+              borderRadius="full" 
+              h="1" 
+              transition="all 0.2s ease"
+              _hover={{ 
+                transform: "translateY(-1px)", 
+                shadow: "sm"
+              }}
+            />
+          </Box>
+        </Box>
+      );
+    })}
+    <Text fontSize="xs" color="teal.500" cursor="pointer" textAlign="center">
+      view more →
+    </Text>
+  </VStack>
+</Card.Body>
+
     </Card.Root>
   );
 };

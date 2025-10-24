@@ -118,7 +118,7 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
         <svg width="100%" height="100%" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={dynamicColor} />
+              {/* <stop offset="40%" stopColor={dynamicColor} /> */}
               <stop offset="100%" stopColor={darkerColor} />
             </linearGradient>
             <filter id={`shadow-${gradientId}`} x="-50%" y="-50%" width="200%" height="200%">
@@ -131,7 +131,7 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
             cy="50"
             r="35"
             stroke="#e2e8f0"
-            strokeWidth="8"
+            strokeWidth="5"
             fill="none"
             filter={`url(#shadow-${gradientId})`}
           />
@@ -141,7 +141,7 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
             cy="50"
             r="35"
             stroke={`url(#${gradientId})`}
-            strokeWidth="9"
+            strokeWidth="5"
             fill="none"
             strokeDasharray={`${(value / 100) * 219.9}, 219.9`}
             transform="rotate(-90 50 50)"
@@ -157,7 +157,7 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           textAlign="center"
         >
           <VStack gap={0}>
-            <Text fontSize="sm" fontWeight="semibold" color="gray.800" letterSpacing={0.5}>
+            <Text fontSize="sm" fontWeight="normal" color="gray.800" letterSpacing={0.5}>
               {value}%
             </Text>
             <Text fontSize="xs" color="gray.600" fontWeight="medium" letterSpacing={0.5}>
@@ -168,8 +168,8 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
       </Box>
       <Text 
         fontSize="sm" 
-        fontWeight="semibold" 
-        color="gray.700" 
+        fontWeight="normal" 
+        color="gray.900" 
         textAlign="center"
         letterSpacing={0.5}
       >
@@ -184,7 +184,7 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
 }) => {
   return (
     <Card.Root 
-      bg="#e6fffa" 
+      bg="#ffffff" 
       shadow="sm" 
       borderRadius="2xl"
       border="1px solid" 
@@ -202,15 +202,15 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
         <VStack gap={1}>
         <Heading 
           size="md" 
-          color="gray.800" 
+          color="gray.900" 
           textAlign="center"
-          fontWeight="600"
+          fontWeight="normal"
         >
           Health Metrics
         </Heading>
         <Box 
           w="100%" 
-          h="1.2px" 
+          h="1.1px" 
           bg="linear-gradient(90deg, transparent 0%, #10b981 50%, transparent 100%)"
         />
         </VStack>
