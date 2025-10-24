@@ -322,11 +322,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
       borderColor="gray.200"
       maxH="320px"
       minH="280px"
-      _hover={{ 
-        transform: "translateY(-2px)", 
-        shadow: "md",
-        transition: "all 0.1s ease"
-      }}
+   
       transition="all 0.2s ease"
     >
       <Card.Header p={3} pb={0} borderBottom="1px solid" borderColor="gray.100">

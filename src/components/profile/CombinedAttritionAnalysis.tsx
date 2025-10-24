@@ -415,11 +415,7 @@ export const CombinedAttritionAnalysis: React.FC<CombinedAttritionAnalysisProps>
       flexDirection="column"
       maxH="600px"
       minH="550px"
-      _hover={{ 
-        transform: "translateY(-2px)", 
-        shadow: "md",
-        transition: "all 0.1s ease"
-      }}
+     
       transition="all 0.2s ease"
     >
       <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
@@ -469,11 +465,7 @@ export const CombinedAttritionAnalysis: React.FC<CombinedAttritionAnalysisProps>
                 w="180px" 
                 h="180px"
                 filter="drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))"
-                _hover={{ 
-                  filter: "drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))",
-                  transform: "translateY(-1px)",
-                  transition: "all 0.2s ease"
-                }}
+                
                 transition="all 0.2s ease"
                 position="relative"
               >
@@ -510,11 +502,7 @@ export const CombinedAttritionAnalysis: React.FC<CombinedAttritionAnalysisProps>
                 w="160px" 
                 h="160px"
                 filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15))"
-                _hover={{ 
-                  filter: "drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2))",
-                  transform: "translateY(-2px)",
-                  transition: "all 0.1s ease"
-                }}
+                
                 transition="all 0.2s ease"
               >
                 <Doughnut data={attritionDonutData} options={attritionDonutOptions} />
