@@ -65,16 +65,42 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
     }
   };
 
-  // Funnel data for display
-  const funnelData = [
-    { label: 'High Risk', value: 25, color: '#EF4444', width: '60px' },
-    { label: 'Medium Risk', value: 45, color: '#F59E0B', width: '100px' },
-    { label: 'Low Risk', value: 75, color: '#22C55E', width: '140px' }
+  // Pie chart data for display
+  const pieData = [
+    { label: 'High Risk', value: 25, color: '#EF4444', percentage: 17.2 },
+    { label: 'Medium Risk', value: 45, color: '#F59E0B', percentage: 31.0 },
+    { label: 'Low Risk', value: 75, color: '#22C55E', percentage: 51.7 }
   ];
+
+  // Calculate total for percentage calculation
+  const total = pieData.reduce((sum, item) => sum + item.value, 0);
+
+  // Generate SVG path for pie slice
+  const createPieSlice = (startAngle: number, endAngle: number, radius: number, innerRadius: number = 0) => {
+    const x1 = Math.cos(startAngle) * radius;
+    const y1 = Math.sin(startAngle) * radius;
+    const x2 = Math.cos(endAngle) * radius;
+    const y2 = Math.sin(endAngle) * radius;
+
+    const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
+
+    if (innerRadius > 0) {
+      // Donut chart
+      const x3 = Math.cos(endAngle) * innerRadius;
+      const y3 = Math.sin(endAngle) * innerRadius;
+      const x4 = Math.cos(startAngle) * innerRadius;
+      const y4 = Math.sin(startAngle) * innerRadius;
+
+      return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} L ${x3} ${y3} A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4} Z`;
+    } else {
+      // Full pie chart
+      return `M 0 0 L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+    }
+  };
 
   if (loading) {
     return (
-            <Card.Root bg="#ffffff" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
+            <Card.Root bg="#ffffff" shadow="sm" borderRadius="3xl" h="full" display="flex" flexDirection="column">
               <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
                 <HStack justify="space-between" align="center">
                   <Heading size="sm" color="gray.800">Attrition Risks Distribution</Heading>
@@ -144,168 +170,117 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                       />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="column" gap={0} w="full" p={2} px={1} py={1} pb={0}>
-        <VStack 
-          gap={0} 
+      <Card.Body h="full" display="flex" flexDirection="column" w="99%" p={0} overflow="hidden">
+        <Flex 
+          direction={{ base: "column", lg: "row" }}
           align="center" 
           justify="center" 
-          h="full" 
-          w="full"
+          h="99%" 
+          w="99%"
+          gap={0}
+          minH="0"
         >
-          {/* 3D Funnel Chart - Trapezoid Shapes with Depth */}
-          <VStack gap={2} w="full" h="full" justify="center" align="center">
-            {/* High Risk - Top (widest trapezoid) with 3D effect */}
-            <Box
-              position="relative"
-              w="220px"
-              h="60px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              transform="perspective(800px) rotateX(15deg)"
-              _hover={{ 
-                transform: "perspective(800px) rotateX(15deg) translateY(-4px) scale(1.02)", 
-                transition: "all 0.4s ease" 
+          {/* Clean Minimalist Pie Chart */}
+          <Box 
+            position="relative" 
+            w={{ base: "140px", md: "160px" }} 
+            h={{ base: "140px", md: "160px" }} 
+            flex="none"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="-80 -80 160 160"
+              style={{
+                filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
+                maxWidth: "160px",
+                maxHeight: "160px"
               }}
             >
-              {/* 3D Base Layer */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(180deg, #B91C1C, #7F1D1D)"
-                clipPath="polygon(10% 0%, 90% 0%, 80% 100%, 20% 100%)"
-                transform="translateY(4px) translateX(2px)"
-                opacity={1}
-                borderRadius="3xl"
+              {/* Pie slices */}
+              {(() => {
+                let currentAngle = -Math.PI / 2; // Start from top
+                return pieData.map((item, index) => {
+                  const sliceAngle = (item.value / total) * 2 * Math.PI;
+                  const endAngle = currentAngle + sliceAngle;
+                  const path = createPieSlice(currentAngle, endAngle, 70, 0); // Full pie chart
+                  
+                  const slice = (
+                    <g key={index}>
+                      {/* Clean slice */}
+                      <path
+                        d={path}
+                        fill={item.color}
+                        stroke="white"
+                        strokeWidth="5"
+                        style={{
+                          transition: "all 0.2s ease",
+                          cursor: "pointer"
+                        }}
+                      />
+                    </g>
+                  );
+                  
+                  currentAngle = endAngle;
+                  return slice;
+                });
+              })()}
+              
+              {/* Clean center circle */}
+              <circle
+                cx="0"
+                cy="0"
+                r="24"
+                fill="white"
+                stroke="#f1f5f9"
+                strokeWidth="1"
               />
-              {/* Main 3D Surface */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(145deg, #FCA5A5 0%, #F87171 15%, #EF4444 40%, #DC2626 70%, #B91C1C 100%)"
-                clipPath="polygon(10% 0%, 90% 0%, 80% 100%, 20% 100%)"
-                boxShadow="0 8px 25px rgba(239, 68, 68, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.3)"
-                borderRadius="4px"
-                _before={{
-                  content: '""',
-                  position: "absolute",
-                  top: "15%",
-                  left: "20%",
-                  right: "20%",
-                  height: "25%",
-                  // bg: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
-                  borderRadius: "50%",
-                  filter: "blur(3px)"
-                }}
-              />
-              <Text fontSize="md" fontWeight="normal" color="white" zIndex={2} textShadow="0 1px 4px rgba(0,0,0,0.5)">
-                High: 25
-              </Text>
-            </Box>
+       
+            </svg>
+          </Box>
 
-            {/* Medium Risk - Middle trapezoid with 3D effect */}
-            <Box
-              position="relative"
-              w="170px"
-              h="55px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              transform="perspective(800px) rotateX(15deg)"
-              _hover={{ 
-                transform: "perspective(800px) rotateX(15deg) translateY(-4px) scale(1.02)", 
-                transition: "all 0.4s ease" 
-              }}
-            >
-              {/* 3D Base Layer */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(180deg, #B45309, #92400E)"
-                clipPath="polygon(15% 0%, 85% 0%, 75% 100%, 25% 100%)"
-                transform="translateY(4px) translateX(2px)"
-                opacity={1}
-                borderRadius="3xl"
-              />
-              {/* Main 3D Surface */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(145deg, #FDE047 0%, #FACC15 15%, #F59E0B 40%, #D97706 70%, #B45309 100%)"
-                clipPath="polygon(15% 0%, 85% 0%, 75% 100%, 25% 100%)"
-                boxShadow="0 8px 25px rgba(245, 158, 11, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.3)"
-                borderRadius="3xl"
-                _before={{
-                  content: '""',
-                  position: "absolute",
-                  top: "15%",
-                  left: "20%",
-                  right: "20%",
-                  height: "25%",
-                  // bg: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
-                  borderRadius: "50%",
-                  filter: "blur(3px)"
-                }}
-              />
-              <Text fontSize="md" fontWeight="normal" color="white" zIndex={2} textShadow="0 1px 4px rgba(0,0,0,0.5)">
-                Medium: 45
+          {/* Clean Legend */}
+          <VStack align="start" gap={2} flex="1" minW="120px" h="full" justify="center">
+            {pieData.map((item, index) => (
+              <Flex key={index} align="center" justify="space-between" w="full" minH="24px">
+                <HStack gap={2} align="center">
+                  <Box
+                    w="10px"
+                    h="10px"
+                    borderRadius="full"
+                    bg={item.color}
+                    flexShrink={0}
+                  />
+                  <Text fontSize="xs" fontWeight="500" color="gray.700" noOfLines={1}>
+                    {item.label}
+                  </Text>
+                </HStack>
+                <VStack align="end" gap={0} flexShrink={0}>
+                  <Text fontSize="xs" fontWeight="700" color="gray.900">
+                    {item.value}
+                  </Text>
+                  <Text fontSize="2xs" color="gray.500">
+                    {item.percentage}%
+                  </Text>
+                </VStack>
+              </Flex>
+            ))}
+            
+            {/* Summary */}
+            <Box w="full" h="0.5px" bg="gray.200" my={1} />
+            <Flex align="center" justify="space-between" w="full" minH="20px">
+              <Text fontSize="xs" fontWeight="600" color="gray.600">
+                Total Users
               </Text>
-            </Box>
-
-            {/* Low Risk - Bottom (narrowest trapezoid) with 3D effect */}
-            <Box
-              position="relative"
-              w="120px"
-              h="60px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              transform="perspective(800px) rotateX(15deg)"
-              _hover={{ 
-                transform: "perspective(800px) rotateX(15deg) translateY(-4px) scale(1.02)", 
-                transition: "all 0.4s ease" 
-              }}
-            >
-              {/* 3D Base Layer */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(180deg, #15803D, #166534)"
-                clipPath="polygon(20% 0%, 80% 0%, 70% 100%, 30% 100%)"
-                transform="translateY(4px) translateX(2px)"
-                opacity={1}
-                borderRadius="4px"
-              />
-              {/* Main 3D Surface */}
-              <Box
-                position="absolute"
-                w="full"
-                h="full"
-                bg="linear-gradient(145deg, #86EFAC 0%, #4ADE80 15%, #22C55E 40%, #16A34A 70%, #15803D 100%)"
-                clipPath="polygon(20% 0%, 80% 0%, 70% 100%, 30% 100%)"
-                boxShadow="0 8px 25px rgba(34, 197, 94, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4), inset 0 -2px 4px rgba(0, 0, 0, 0.3)"
-                borderRadius="4px"
-                _before={{
-                  content: '""',
-                  position: "absolute",
-                  top: "15%",
-                  left: "20%",
-                  right: "20%",
-                  height: "25%",
-                  borderRadius: "80%",
-                }}
-              />
-              <Text fontSize="md" fontWeight="normal" color="white" zIndex={2} textShadow="0 1px 4px rgba(0,0,0,0.5)">
-                Low: 75
+              <Text fontSize="xs" fontWeight="700" color="gray.900">
+                {total}
               </Text>
-            </Box>
+            </Flex>
           </VStack>
-        </VStack>
+        </Flex>
       </Card.Body>
     </Card.Root>
   );

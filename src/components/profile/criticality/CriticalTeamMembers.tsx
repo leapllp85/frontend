@@ -260,8 +260,8 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
         </VStack>
       </Box>
       <Box h="full" display="flex" flexDirection="column" w="full" px={6} py={4} position="center">
-        <SimpleGrid columns={3} gap={4} w="full" h="fit-content">
-          {CriticalTeamMembersData.map((member, index) => (
+        <SimpleGrid columns={3} gap={7} w="full" h="98%">
+          {CriticalTeamMembersData.slice(0, 15).map((member, index) => (
             <Box key={index} w="full">
               <CriticalTeamMember 
                 name={member.name}

@@ -285,21 +285,22 @@ export const Profile = ({
                       { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
                       { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
                       { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                    ] : undefined}
+                    ] : []}
                   />
                 </Box>
               </VStack>
-              <VStack w="full" gap={2} align="stretch" h="full" flex="1">
+
+              <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
                 {/* Top - Criticality vs Attrition Risk */}
                 <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
-                  <Box w="45%" h="full" minW="0">
-                    <CriticalTeamMembers userId={user?.id?.toString()} />
-                  </Box>
                   <Box w="25%" h="full" minW="0">
                     <CriticalityVsRisk userId={user?.id?.toString()} />
                   </Box>
                   <Box w="30%" h="full" minW="0">
                     <AttritionRisk userId={user?.id?.toString()} />
+                  </Box>
+                  <Box w="45%" h="full" minW="0">
+                    <CriticalTeamMembers userId={user?.id?.toString()} />
                   </Box>
                 </HStack>
                                 
