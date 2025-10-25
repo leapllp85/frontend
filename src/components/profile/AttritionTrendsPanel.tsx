@@ -314,28 +314,32 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
     <Card.Root 
       bg="#ffffff" 
       shadow="sm" 
-      borderRadius="2xl" 
+      borderRadius="3xl" 
       h="full"
       display="flex"
       flexDirection="column"
       border="1px solid" 
-      borderColor="gray.200"
+      // borderColor="gray.200"
       maxH="320px"
       minH="280px"
    
       transition="all 0.2s ease"
     >
-      <Card.Header p={3} pb={0} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header p={3} pb={0} >
         <VStack justify="space-between" align="center">
           <Heading
                       size="md"
-                      color="gray.800"
+                      color="gray.900"
                       textAlign="center"
                       fontWeight="normal"
                     >
                        Attrition Risk Trends
                       </Heading>
-          <Text fontSize="xs" color="teal.500" cursor="pointer">view more →</Text>
+                       <Box 
+                                              w="80%" 
+                                              h="0.9px" 
+                                              bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+                                            />
         </VStack>
       </Card.Header>
       
@@ -346,7 +350,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
             w="full" 
             h="full" 
             bg="transparent" 
-            borderRadius="lg" 
+            borderRadius="3xl" 
             p={2}
             position="relative"
           >

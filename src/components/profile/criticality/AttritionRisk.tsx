@@ -284,7 +284,7 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
 
   if (loading) {
     return (
-      <Card.Root bg="#e6fffa" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
+      <Card.Root bg="#ffffff" shadow="sm" borderRadius="2xl" border="1px solid" borderColor="gray.100" h="full" display="flex" flexDirection="column">
         <Card.Header p={4} borderBottom="1px solid" borderColor="gray.100">
           <HStack justify="space-between" align="center">
             <Heading size="sm" color="gray.800">Criticality - Attrition Data</Heading>
@@ -294,7 +294,7 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
         <Card.Body p={3} flex="1" minH="0" overflow="hidden">
           <VStack gap={4} align="center" justify="center" minH="200px">
             <Spinner size="lg" color="teal.500" />
-            <Text color="gray.500" fontSize="sm">Loading chart...</Text>
+            <Text color="gray.500" fontSize="sm">Loading data...</Text>
           </VStack>
         </Card.Body>
       </Card.Root>
@@ -335,8 +335,9 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
       flexDirection="column"
       w="full"
       transition="all 0.2s ease"
+      suppressHydrationWarning
     >
-      <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header px={4} py={2} >
         <VStack gap={1}>
           <Heading
             size="md"
@@ -344,13 +345,13 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
             textAlign="center"
             fontWeight="normal"
           >
-            Critical Members Attrition Risk Analysis
+            Attrition Risk Analysis
           </Heading>
           <Box 
-            w="80%" 
-            h="1.1px" 
-            bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-          />
+                          w="80%" 
+                          h="0.9px" 
+                          bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+                      />
         </VStack>
       </Card.Header>
       <Card.Body h="full" display="flex" flexDirection="row" gap={3} w="full" p={2}>

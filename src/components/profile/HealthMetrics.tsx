@@ -186,19 +186,19 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
     <Card.Root 
       bg="#ffffff" 
       shadow="sm" 
-      borderRadius="2xl"
+      borderRadius="3xl"
       border="1px solid" 
-      borderColor="gray.50"
+      // borderColor="gray.550"
       h="99%" 
-      w="full"
+      w="99%"
       maxW="280px"
       display="flex" 
       flexDirection="column"
-      transition="all 0.2s ease"
-      py={2}
+      // transition="all 0.2s ease"
+      py={4}
       pb={4}
     >
-      <Card.Header px={4} py={2} borderBottom="1px solid" borderColor="gray.100">
+      <Card.Header px={4} py={2}>
         <VStack gap={1}>
         <Heading 
           size="md" 

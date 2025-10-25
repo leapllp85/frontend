@@ -99,7 +99,7 @@ export const StatsRow: React.FC<StatsRowProps> = ({
         maxW="1600px"
         bg="linear-gradient(135deg, #ffffff 0%, #ffffff 100%)" 
         shadow="xs" 
-        borderRadius="2xl"
+        borderRadius="3xl"
         border="1px solid"
         // borderColor="gray.200"
         p={0}
@@ -108,8 +108,8 @@ export const StatsRow: React.FC<StatsRowProps> = ({
         <SimpleGrid 
           columns={{ base: 2, sm: 3, md: 5 }} 
           gap={1} 
-          w="full" 
-          h="full"
+          w="99%" 
+          h="99%"
           alignItems="center"
         >
           {statData({ activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRiskMembers }).map((stat, index) => (

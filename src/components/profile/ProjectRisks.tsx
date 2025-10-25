@@ -23,81 +23,95 @@ interface ProjectRisksProps {
 const defaultProjects: ProjectRisk[] = [
   {
     id: '1',
-    title: 'Esparza-Jordan Proactive',
-    team_members_count: 7,
+    title: 'Website Redesign',
+    team_members_count: 1,
     go_live_date: 'Dec 25',
     criticality: 'High',
-    progress: 55,
+    progress: 11,
     riskLevel: 'High Risk',
-    tasks: 12345,
-    members: 7,
+    tasks: 1,
+    members: 1,
     dueDate: 'Dec 25'
   },
   {
     id: '2',
-    title: 'Esparza-Jordan Proactive',
-    team_members_count: 3,
+    title: 'Strategy Workshop',
+    team_members_count: 2,
     go_live_date: 'Nov 25',
     criticality: 'Medium',
-    progress: 65,
+    progress: 25,
     riskLevel: 'Medium Risk',
-    tasks: 28340,
-    members: 3,
+    tasks: 2,
+    members: 2,
     dueDate: 'Nov 25'
   },
   {
     id: '3',
-    title: 'Esparza-Jordan Proactive',
-    team_members_count: 3,
+    title: 'Business Plan Development',
+    team_members_count: 4,
     go_live_date: 'Nov 25',
     criticality: 'Low',
-    progress: 85,
+    progress: 61,
     riskLevel: 'Low Risk',
-    tasks: 34340,
-    members: 3,
+    tasks: 4,
+    members: 4,
     dueDate: 'Nov 25'
   },
   {
     id: '4',
-    title: 'Esparza-Jordan Proactive',
-    team_members_count: 3,
+    title: 'Email Marketing Services',
+    team_members_count: 16,
     go_live_date: 'Nov 25',
     criticality: 'Medium',
-    progress: 75,
+    progress: 33,
     riskLevel: 'Medium Risk',
-    tasks: 15000,
-    members: 3,
+    tasks: 16,
+    members: 16,
+    dueDate: 'Nov 25'
+  },
+  {
+    id: '5',
+    title: '6-month design retainer',
+    team_members_count: 1,
+    go_live_date: 'Nov 25',
+    criticality: 'High',
+    progress: 100,
+    riskLevel: 'High Risk',
+    tasks: 1,
+    members: 1,
     dueDate: 'Nov 25'
   }
 ];
 
 const getRiskColor = (level: 'High Risk' | 'Medium Risk' | 'Low Risk') => {
   switch (level) {
-    case 'High Risk': return { colorPalette: 'red', bgColor: 'red.500' };
-    case 'Medium Risk': return { colorPalette: 'yellow', bgColor: 'yellow.500' };
-    case 'Low Risk': return { colorPalette: 'green', bgColor: 'green.500' };
-    default: return { colorPalette: 'gray', bgColor: 'gray.500' };
+    case 'High Risk': return { colorPalette: 'red', bgColor: 'red.500', progressColor: 'red.400' };
+    case 'Medium Risk': return { colorPalette: 'yellow', bgColor: 'yellow.500', progressColor: 'green.400' };
+    case 'Low Risk': return { colorPalette: 'green', bgColor: 'green.500', progressColor: 'green.500' };
+    default: return { colorPalette: 'gray', bgColor: 'gray.500', progressColor: 'gray.400' };
+  }
+};
+
+const getRiskStatus = (level: 'High Risk' | 'Medium Risk' | 'Low Risk') => {
+  switch (level) {
+    case 'High Risk': return 'Needs Attention';
+    case 'Medium Risk': return 'At Risk';
+    case 'Low Risk': return 'At Risk';
+    default: return 'At Risk';
   }
 };
 
 export const ProjectRisks: React.FC<ProjectRisksProps> = ({
   projects = defaultProjects
 }) => {
-  // Sort projects by risk priority (High > Medium > Low) and show only top 4
-  const getTopPriorityProjects = (projects: ProjectRisk[]) => {
-    const riskPriority = { 'High Risk': 3, 'Medium Risk': 2, 'Low Risk': 1 };
-    return projects
-      .sort((a, b) => riskPriority[b.riskLevel] - riskPriority[a.riskLevel])
-      .slice(0, 3);
-  };
-
-  const topProjects = getTopPriorityProjects(projects);
+  // Show all projects as in dashboard
+  const displayProjects = projects;
 
   return (
     <Card.Root 
       bg="#ffffff"
       shadow="xs" 
-      borderRadius="2xl" 
+      borderRadius="3xl" 
       h="full" 
       display="flex" 
       flexDirection="column" 
@@ -108,7 +122,7 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
      
       transition="all 0.2s ease"
     >
-      <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.200">
+      <Card.Header p={3} pb={2}  borderColor="gray.200">
         <VStack justify="space-between" align="center">
           <Heading
             size="md"
@@ -119,72 +133,100 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
              Projects At Risk
              
             </Heading>
-            {/* <Box 
-                        w="100%" 
-                        h="1.1px" 
-                        bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                      /> */}
+            <Box 
+                w="80%" 
+                h="0.9px" 
+                bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+            />
           
         </VStack>
     
 
       </Card.Header>
-      <Card.Body p={6} flex="1">
-  <VStack gap={1} align="start" w="full">
-    {topProjects.map((project) => {
-      const riskColors = getRiskColor(project.riskLevel);
-      return (
-        <Box key={project.id} w="full">
-          <HStack justify="space-between" align="center" w="full" mb={1} spacing={1}>
-            {/* Left side: Title, Team Members, Due Date */}
-            <HStack gap={1} flex={1} minW={0} overflow="hidden">
-              <Text fontSize="xs" fontWeight="medium" color="gray.900" truncate>
-                {project.title}
-              </Text>
-              <Box height="2px" width="35px" />
+      <Card.Body p={2} flex="1">
+        {/* Table Header */}
+        <HStack justify="space-between" align="center" w="full" mb={3} px={1}>
+          <Text fontSize="xs" fontWeight="600" color="gray.500" flex="2">
+            Project
+          </Text>
+          {/* <Text fontSize="xs" fontWeight="600" color="gray.500" textAlign="center" w="60px">
+            Budget
+          </Text> */}
+          <Text fontSize="xs" fontWeight="600" color="gray.500" textAlign="center" w="60px">
+            Progress
+          </Text>
+          <Text fontSize="xs" fontWeight="600" color="gray.500" textAlign="right" w="100px">
+            Status
+          </Text>
+        </HStack>
 
-              <Text fontSize="xs" color="gray.900">
-                {project.team_members_count}Members
-              </Text>
-              <Box height="1px" width="5px" />
-              <Text fontSize="xs" color="gray.900" whiteSpace="nowrap">
-                Due: {project.go_live_date}
-              </Text>
-            </HStack>
+        {/* Project Rows */}
+        <VStack gap={0} align="start" w="full">
+          {displayProjects.map((project) => {
+            const riskColors = getRiskColor(project.riskLevel);
+            const riskStatus = getRiskStatus(project.riskLevel);
+            
+            return (
+              <Box key={project.id} w="full">
+                <HStack justify="space-between" align="center" w="full" mb={2}>
+                  {/* Project Name */}
+                  <Box flex="2">
+                    <Text fontSize="sm" fontWeight="300" color="gray.900" truncate>
+                      {project.title}
+                    </Text>
+                  </Box>
 
-            {/* Right side: Criticality & Progress */}
-            <HStack spacing={1} flexShrink={0}>
-              <Badge colorPalette={riskColors.colorPalette} size="sm">
-                {project.criticality}
-              </Badge>
-              <Text fontSize="sm" color="gray.900">
-                {project.progress}%
-              </Text>
-            </HStack>
-          </HStack>
+                  {/* Budget Progress Bar */}
+                  <Box w="60px" textAlign="center">
+                    <Box w="full" bg="gray.200" borderRadius="full" h="6px" mb={1}>
+                      <Box 
+                        w={`${project.progress}%`} 
+                        bg={riskColors.progressColor} 
+                        borderRadius="full" 
+                        h="full" 
+                        transition="all 0.2s ease"
+                      />
+                    </Box>
+                    {/* <Text fontSize="xs" color="gray.600">
+                      {project.progress}%
+                    </Text> */}
+                  </Box>
 
-          {/* Progress Bar */}
-          <Box w="full" bg="gray.200" borderRadius="full" h="1">
-            <Box 
-              w={`${project.progress}%`} 
-              bg={riskColors.bgColor} 
-              borderRadius="full" 
-              h="1" 
-              transition="all 0.2s ease"
-              _hover={{ 
-                transform: "translateY(-1px)", 
-                shadow: "sm"
-              }}
-            />
-          </Box>
-        </Box>
-      );
-    })}
-    <Text fontSize="xs" color="teal.500" cursor="pointer" textAlign="center">
-      view more →
-    </Text>
-  </VStack>
-</Card.Body>
+                  {/* Tasks Count */}
+                  {/* <Box w="50px" textAlign="center">
+                    <Box 
+                      bg="gray.100" 
+                      borderRadius="md" 
+                      px={2} 
+                      py={1}
+                      display="inline-block"
+                    >
+                      <Text fontSize="xs" fontWeight="500" color="gray.700">
+                        {project.tasks}
+                      </Text>
+                    </Box>
+                  </Box> */}
+
+                  {/* Risk Status */}
+                  <Box w="100px" textAlign="right">
+                    <HStack justify="end" align="center" gap={2}>
+                      <Box 
+                        w={2} 
+                        h={2} 
+                        bg="red.700" 
+                        borderRadius="full"
+                      />
+                      <Text fontSize="xs" fontWeight="500" color="red.700">
+                        {riskStatus}
+                      </Text>
+                    </HStack>
+                  </Box>
+                </HStack>
+              </Box>
+            );
+          })}
+        </VStack>
+      </Card.Body>
 
     </Card.Root>
   );

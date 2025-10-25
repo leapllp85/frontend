@@ -126,6 +126,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             color="white"
             fontSize="lg"
             fontWeight="semi-bold"
+            title={profileData?.user?.username || "Manager User"}
+            cursor="pointer"
+            _hover={{ bg: "gray.500", transform: "scale(1.05)" }}
+            transition="all 0.2s"
           >
             {(profileData?.user?.username || "Manager User").charAt(0).toUpperCase()}
           </Box>
@@ -153,48 +157,72 @@ export const Sidebar: React.FC<SidebarProps> = ({
             
             return (
               <Link key={item.href} href={item.href} onClick={handleNavClick}>
-                <HStack
+                <Box
                   px={3}
                   py={2.5}
                   borderRadius="lg"
-                  bg={isActive ? "#ffff" : "transparent"}
-                  _hover={{ bg: isActive ? "#34aec3ff" : "gray.300" }}
+                  bg={isActive ? "teal.500" : "transparent"}
+                  _hover={{ 
+                    bg: isActive ? "teal.600" : "whiteAlpha.200",
+                    transform: "scale(1.05)"
+                  }}
                   cursor="pointer"
                   transition="all 0.2s"
-                  gap={3}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  title={item.label}
+                  boxShadow={isActive ? "0 4px 12px rgba(56, 178, 172, 0.4)" : "none"}
                 >
-                  <Icon size={50} fontSize={50} color="gray" />
-                  {/* <Text fontSize="md" color="white" fontWeight={isActive ? "semibold" : "normal"}>
-                    {item.label}
-                  </Text> */}
-                </HStack>
+                  <Icon 
+                    size={24} 
+                    color={isActive ? "white" : "#6B7280"} 
+                    style={{
+                      filter: isActive ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : "none"
+                    }}
+                  />
+                </Box>
               </Link>
             );
           })}
           
           {/* Logout */}
-          <HStack
+          <Box
             px={3}
             py={2.5}
             borderRadius="lg"
             bg="transparent"
-            _hover={{ bg: "whiteAlpha.100" }}
+            _hover={{ 
+              bg: "red.500",
+              transform: "scale(1.05)"
+            }}
             cursor="pointer"
             transition="all 0.2s"
-            gap={3}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
             onClick={handleLogout}
+            title="Logout"
+            className="logout-icon-container"
           >
-            <LogOut size={50} color="gray" />
-            {/* <Text fontSize="md" color="gray">
-              Logout
-            </Text> */}
-          </HStack>
+            <LogOut 
+              size={24} 
+              color="#6B7280"
+              style={{
+                transition: "all 0.2s"
+              }}
+            />
+          </Box>
         </VStack>
       </VStack>
 
       {/* Global CSS for Animations */}
       <style dangerouslySetInnerHTML={{
         __html: `
+          .logout-icon-container:hover svg {
+            color: white !important;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+          }
           @keyframes chatbotFloat {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-15px); }

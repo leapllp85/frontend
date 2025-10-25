@@ -203,7 +203,7 @@ export const Profile = ({
       overflow="hidden"
     >
       {/* Main Content */}
-      <Box position="relative" h="full" overflow="hidden" w="99%">
+      <Box position="relative" h="99%" overflow="hidden" w="99%">
         {/* Dashboard Content */}
         <Box h="full" p={1} position="relative">
           <VStack h="full" align="center" gap={2} w="99%">
