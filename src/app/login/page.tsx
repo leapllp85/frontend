@@ -312,7 +312,7 @@ export default function LoginPage() {
                                         color="#718096"
                                         fontWeight="400"
                                     >
-                                        Continue your wellness journey
+                                        {/* Continue your wellness journey */}
                                     </Text>
                                 </Box>
 
@@ -385,7 +385,7 @@ export default function LoginPage() {
                                             </Field.ErrorText>
                                         </Field.Root>
 
-                                        <Box display="flex" alignItems="center" justifyContent="space-between" mt={4}>
+                                        {/* <Box display="flex" alignItems="center" justifyContent="space-between" mt={4}>
                                             <Box display="flex" alignItems="center" gap={3}>
                                                 <input
                                                     type="checkbox"
@@ -414,7 +414,7 @@ export default function LoginPage() {
                                             >
                                                 Forgot password?
                                             </Text>
-                                        </Box>
+                                        </Box> */}
 
                                         <Button
                                             type="submit"
