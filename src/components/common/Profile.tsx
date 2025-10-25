@@ -293,13 +293,13 @@ export const Profile = ({
               <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
                 {/* Top - Criticality vs Attrition Risk */}
                 <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
-                  <Box w="25%" h="full" minW="0">
+                  <Box w="30%" h="full" minW="0">
                     <CriticalityVsRisk userId={user?.id?.toString()} />
                   </Box>
                   <Box w="30%" h="full" minW="0">
                     <AttritionRisk userId={user?.id?.toString()} />
                   </Box>
-                  <Box w="45%" h="full" minW="0">
+                  <Box w="40%" h="full" minW="0">
                     <CriticalTeamMembers userId={user?.id?.toString()} />
                   </Box>
                 </HStack>

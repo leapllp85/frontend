@@ -144,7 +144,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       bg="#ffffff" 
       shadow="sm" 
       borderRadius="3xl"
-      border="2px solid" 
+      // border="2px solid" 
       borderColor="gray.50"
       h="full" 
       display="flex" 
@@ -170,21 +170,21 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                       />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="column" w="99%" p={0} overflow="hidden">
+      <Card.Body h="full" display="flex" flexDirection="column" w="99%" p={4} overflow="hidden">
         <Flex 
           direction={{ base: "column", lg: "row" }}
           align="center" 
           justify="center" 
           h="99%" 
           w="99%"
-          gap={0}
+          gap={6}
           minH="0"
         >
           {/* Clean Minimalist Pie Chart */}
           <Box 
             position="relative" 
-            w={{ base: "140px", md: "160px" }} 
-            h={{ base: "140px", md: "160px" }} 
+            w={{ base: "180px", md: "200px" }} 
+            h={{ base: "180px", md: "200px" }} 
             flex="none"
             display="flex"
             alignItems="center"
@@ -196,8 +196,8 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
               viewBox="-80 -80 160 160"
               style={{
                 filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
-                maxWidth: "160px",
-                maxHeight: "160px"
+                maxWidth: "180px",
+                maxHeight: "180px"
               }}
             >
               {/* Pie slices */}

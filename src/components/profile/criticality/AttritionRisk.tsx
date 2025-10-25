@@ -354,7 +354,7 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
                       />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="row" gap={3} w="full" p={2}>
+      <Card.Body h="full" display="flex" flexDirection="row" gap={3} w="full" p={4}>
         <HStack gap={3} align="center" flex="1">
           <Box
             w="190px"
