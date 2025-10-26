@@ -1,0 +1,363 @@
+'use client';
+
+import React from "react";
+import { Box, Text, HStack, VStack, Card, Heading } from "@chakra-ui/react";
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+interface AttritionTrend {
+  id: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  type: 'error' | 'warning' | 'info';
+}
+
+interface AttritionData {
+  id: number;
+  year: number;
+  month: number;
+  high: number;
+  medium: number;
+  low: number;
+  manager: number;
+}
+
+interface AttritionTrendsPanelProps {
+  trends?: AttritionTrend[];
+  data?: AttritionData[];
+}
+
+const defaultTrends: AttritionTrend[] = [
+  {
+    id: '1',
+    title: 'High Attrition Risk',
+    description: '5 team members show high risk of attrition',
+    timestamp: '10 min ago',
+    type: 'error'
+  },
+  {
+    id: '2',
+    title: 'Project Deadline',
+    description: 'Project Alpha milestone due in 3 days',
+    timestamp: '2 hours ago',
+    type: 'warning'
+  },
+  {
+    id: '3',
+    title: 'New Team Member',
+    description: 'Alex Johnson has joined Project Beta',
+    timestamp: '1 day ago',
+    type: 'info'
+  }
+];
+
+const getTrendColor = (type: AttritionTrend['type']) => {
+  switch (type) {
+    case 'error': return 'red.500';
+    case 'warning': return 'yellow.600';
+    case 'info': return 'blue.500';
+    default: return 'gray.500';
+  }
+};
+
+export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
+  trends = defaultTrends,
+  data
+}) => {
+  // Show only the first 3 trends
+  const topTrends = trends.slice(0, 3);
+
+  // Default data if none provided with more variation
+  const defaultData: AttritionData[] = [
+    {
+      id: 1,
+      year: 2025,
+      month: 6,
+      high: 245,
+      medium: 380,
+      low: 420,
+      manager: 1
+    },
+    {
+      id: 2,
+      year: 2025,
+      month: 7,
+      high: 320,
+      medium: 295,
+      low: 385,
+      manager: 1
+    },
+    {
+      id: 3,
+      year: 2025,
+      month: 8,
+      high: 180,
+      medium: 450,
+      low: 370,
+      manager: 1
+    },
+    {
+      id: 4,
+      year: 2025,
+      month: 9,
+      high: 410,
+      medium: 220,
+      low: 340,
+      manager: 1
+    },
+    {
+      id: 5,
+      year: 2025,
+      month: 10,
+      high: 275,
+      medium: 390,
+      low: 465,
+      manager: 1
+    },
+    {
+      id: 6,
+      year: 2025,
+      month: 11,
+      high: 350,
+      medium: 180,
+      low: 290,
+      manager: 1
+    },
+    {
+      id: 7,
+      year: 2025,
+      month: 12,
+      high: 195,
+      medium: 425,
+      low: 380,
+      manager: 1
+    },
+    {
+      id: 8,
+      year: 2026,
+      month: 1,
+      high: 440,
+      medium: 260,
+      low: 300,
+      manager: 1
+    }
+  ];
+
+  const attritionData = data || defaultData;
+
+  // Create gradient backgrounds for chart
+  const createGradient = (ctx: CanvasRenderingContext2D, color1: string, color2: string) => {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, color1);
+    gradient.addColorStop(1, color2);
+    return gradient;
+  };
+
+  // Prepare chart data with single straight line
+  const chartData = {
+    labels: attritionData.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`),
+    datasets: [
+      {
+        label: 'High Risk',
+        data: attritionData.map(item => item.high),
+        borderColor: '#EF4444',
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx } = chart;
+          return createGradient(ctx, 'rgba(239, 68, 68, 0.001)', 'rgba(239, 68, 68, 0.9)');
+        },
+        borderWidth: 3,
+        pointBackgroundColor: '#EF4444',
+        pointBorderColor: '#FFFFFF',
+        pointBorderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 12,
+        pointHoverBorderWidth: 4,
+        fill: true,
+        tension: 0,
+        borderCapStyle: 'round' as const,
+        borderJoinStyle: 'round' as const
+      }
+    ]
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    backgroundColor: 'transparent',
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top' as const,
+        align: 'end' as const,
+        labels: {
+          boxWidth: 12,
+          boxHeight: 12,
+          padding: 15,
+          font: {
+            size: 11,
+            weight: 'bold' as const
+          },
+          usePointStyle: true,
+          pointStyle: 'circle',
+          color: '#4A5568'
+        }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#FFFFFF',
+        bodyColor: '#FFFFFF',
+        borderColor: '#FF4757',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          title: function(context: any) {
+            return `Month: ${context[0].label}`;
+          },
+          label: function(context: any) {
+            return `${context.dataset.label}: ${context.parsed.y} employees`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)',
+          lineWidth: 1
+        },
+        ticks: {
+          color: '#4A5568',
+          font: {
+            size: 11,
+            weight: 'normal' as const
+          },
+          padding: 8
+        },
+        border: {
+          display: false
+        }
+      },
+      y: {
+        beginAtZero: false,
+        min: 150,
+        max: 500,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)',
+          lineWidth: 1
+        },
+        ticks: {
+          color: '#4A5568',
+          font: {
+            size: 11,
+            weight: 'normal' as const
+          },
+          padding: 8
+        },
+        border: {
+          display: false
+        }
+      }
+    },
+    elements: {
+      point: {
+        hoverBackgroundColor: '#FFFFFF',
+        hoverBorderWidth: 4
+      },
+      line: {
+        borderCapStyle: 'round' as const,
+        borderJoinStyle: 'round' as const
+      }
+    },
+    animation: {
+      duration: 1500,
+      easing: 'easeOutCubic' as const
+    },
+    interaction: {
+      intersect: false,
+      mode: 'nearest' as const
+    },
+    hover: {
+      mode: 'nearest' as const,
+      intersect: false
+    }
+  };
+
+  return (
+    <Card.Root 
+      bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
+      h="full" 
+      display="flex" 
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
+      maxH="320px"
+      minH="280px"
+   
+      transition="all 0.2s ease"
+    >
+      <Card.Header p={3} pb={0} >
+        <VStack justify="space-between" align="center">
+          <Heading
+                      size="md"
+                      color="gray.900"
+                      textAlign="center"
+                      fontWeight="normal"
+                    >
+                       Attrition Risk Trends
+                      </Heading>
+                       <Box 
+                                              w="80%" 
+                                              h="0.9px" 
+                                              bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+                                            />
+        </VStack>
+      </Card.Header>
+      
+      <Card.Body p={3} flex="1" display="flex" flexDirection="column">
+        {/* Line Chart with Area Fill */}
+        <Box w="full" h="full" flex="1">
+          <Box 
+            w="full" 
+            h="full" 
+            bg="transparent" 
+            borderRadius="3xl" 
+            p={2}
+            position="relative"
+          >
+            <Line data={chartData} options={chartOptions} />
+          </Box>
+        </Box>
+      </Card.Body>
+    </Card.Root>
+  );
+};
