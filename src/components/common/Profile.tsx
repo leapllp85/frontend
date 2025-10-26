@@ -203,19 +203,19 @@ export const Profile = ({
       overflow="hidden"
     >
       {/* Main Content */}
-      <Box position="relative" h="99%" overflow="hidden" w="99%">
+      <Box position="relative" h="98%" overflow="hidden" w="98%">
         {/* Dashboard Content */}
         <Box h="full" p={1} position="relative">
           {/* Main Content Grid - Full Screen Layout */}
           <HStack 
             h="full"
             w="full"
-            gap={1}
-            align="stretch"
+            gap={0}
+            align="center"
             minH="0"
           >
             {/* Left Side - Health Metrics (Full Height) */}
-            <VStack h="full" w="320px" flexShrink={0} gap={0} align="stretch">
+            <VStack h="full" w="320px" flexShrink={0} gap={1} align="center">
               <HealthMetrics 
                 metrics={metrics ? [
                   { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
@@ -229,7 +229,7 @@ export const Profile = ({
             {/* Right Side - Stats Row + Main Content */}
             <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
               {/* Stats Row - Top Right */}
-              <Box w="100%" flexShrink={0}>
+              <Box w="full" flexShrink={0}>
                 <StatsRow 
                   activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
                   teamMembers={teamStats?.team_members_count}
@@ -239,7 +239,7 @@ export const Profile = ({
               </Box>
 
               {/* Main Content Area */}
-              <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
+              <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
                 {/* Top - Criticality vs Attrition Risk */}
                 <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
                   <Box w="30%" h="full" minW="0">

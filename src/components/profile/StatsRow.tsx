@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Box, Text, HStack, VStack, Card, SimpleGrid , Icon, IconProps } from "@chakra-ui/react";
-import { File, Users, TrendingUp, AlertTriangle } from "lucide-react";
+import { File, Users, TrendingUp, AlertTriangle, FileText, BarChart3 } from "lucide-react";
 import { AttritionTrendsPanel } from "./AttritionTrendsPanel";
 
 
@@ -11,41 +11,41 @@ interface StatsRowProps {
   teamMembers?: number;
   avgUtilization?: string;
   highRiskProjects?: number;
-  attritionRiskMembers?: number;
+  attritionRisk?: number;
    averageAge?: number;
   genderRatio?: string;
 }
 
-const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRiskMembers, averageAge, genderRatio}: StatsRowProps) => [
+const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRisk, averageAge, genderRatio}: StatsRowProps) => [
   {
-    label: "Active Projects",
-    value: activeProjects,
+    label: "Team Members",
+    value: teamMembers,
     color: "#10b981",
     icon: Users
   },
   {
-    label: "Team Members",
-    value: teamMembers,
-    color: "red",
-    icon: Users
+    label: "Attrition Risk",
+    value: attritionRisk,
+    color: "#ef4444",
+    icon: AlertTriangle
   },
   {
-    label: "Avg Utilization",
-    value: avgUtilization,
-    color: "#f97316",
-    icon: TrendingUp
+    label: "Active Projects",
+    value: activeProjects,
+    color: "#3b82f6",
+    icon: FileText
   },
   {
     label: "High Risk Projects",
     value: highRiskProjects,
-    color: "#3b82f6",
-    icon: File
-  },
-  {
-    label: "Attrition Risk Members",
-    value: attritionRiskMembers,
     color: "#ef4444",
     icon: AlertTriangle
+  },
+  {
+    label: "Avg Utilization",
+    value: avgUtilization,
+    color: "#f59e0b",
+    icon: BarChart3
   },
   {
     label: "Average Age",
@@ -75,9 +75,9 @@ const StatsCard = ({
   return (
     <VStack gap={1} align="center" w="full" h="full" py={2}>
       <VStack gap={0} align="center" w="full" px={1} py={1}>
-        <HStack gap={1} justify="center" align="center" w="full">
+        <HStack gap={5} justify="center" align="center" w="full">
           <Box p={1} borderRadius="lg">
-            <Icon as={icon} size="sm" color={color} />
+            <Icon as={icon} size="md" color={color} />
           </Box>
           <Text fontSize="md" color="gray.700" fontWeight="normal" textAlign="center" lineHeight="1.1">
             {label}
@@ -98,7 +98,7 @@ export const StatsRow: React.FC<StatsRowProps> = ({
   teamMembers = 2597,
   avgUtilization = "87%",
   highRiskProjects = 3,
-  attritionRiskMembers = 259,
+  attritionRisk = 259,
   averageAge = 30,
   genderRatio = "50:50"
 }) => {
@@ -129,7 +129,7 @@ export const StatsRow: React.FC<StatsRowProps> = ({
           h="99%"
           alignItems="center"
         >
-          {statData({ teamMembers,attritionRiskMembers,activeProjects, avgUtilization, highRiskProjects, averageAge, genderRatio }).map((stat, index) => (
+          {statData({ teamMembers,attritionRisk,activeProjects, avgUtilization, highRiskProjects, averageAge, genderRatio }).map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
         </SimpleGrid>

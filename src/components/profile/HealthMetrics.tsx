@@ -176,15 +176,22 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           </VStack>
         </Box>
       </Box>
-      <Text 
-        fontSize={isLarge ? "md" : "sm"}
-        fontWeight="normal" 
-        color="gray.900" 
-        textAlign="center"
-        letterSpacing={0.5}
-      >
-        {label}
-      </Text>
+      <VStack gap={1} align="center">
+        <Text 
+          fontSize={isLarge ? "md" : "sm"}
+          fontWeight="normal" 
+          color="gray.900" 
+          textAlign="center"
+          letterSpacing={0.5}
+        >
+          {label}
+        </Text>
+        <Box 
+          w={isLarge ? "60%" : "50%"}
+          h="0.8px" 
+          bg={`linear-gradient(90deg, transparent 0%, ${dynamicColor} 50%, transparent 100%)`}
+        />
+      </VStack>
     </VStack>
   );
 };
@@ -215,7 +222,7 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
           textAlign="center"
           fontWeight="normal"
         >
-          Health Metrics
+          Team Health Dashboard
         </Heading>
         <Box 
           w="80%" 

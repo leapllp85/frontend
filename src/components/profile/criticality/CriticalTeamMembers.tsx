@@ -160,11 +160,11 @@ const totalMembersCount = 50;
 
 const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: { name: string; criticality: string; attritionRisk: string; avatarImage: string }) => {
   return (
-    <HStack py={1} w="full" justifyContent="space-between" minH="2px" gap={1.0}>
+    <HStack py={1} w="full" minH="2px" gap={1.0}>
       <HStack gap={2} flex="1" minW="0">
         <Box
-          w="24px"
-          h="24px"
+          w="40px"
+          h="40px"
           borderRadius="full"
           overflow="hidden"
           flexShrink={0}
@@ -262,7 +262,7 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
       <Box h="full" display="flex" flexDirection="column" w="full" px={10} py={2} position="center">
         <SimpleGrid columns={2} gap={2} w="95%" h="98%">
           {CriticalTeamMembersData.slice(0, 10).map((member, index) => (
-            <Box key={index} w="full">
+            <Box key={index} w="98%">
               <CriticalTeamMember 
                 name={member.name}
                 criticality={member.criticality}
