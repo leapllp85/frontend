@@ -141,15 +141,14 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   return (
     <Card.Root 
-      bg="#ffffff" 
-      shadow="sm" 
-      borderRadius="3xl"
-      // border="2px solid" 
-      borderColor="gray.50"
+       bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
       h="full" 
       display="flex" 
-      flexDirection="column"
-      w="full"
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
       transition="all 0.2s ease"
       suppressHydrationWarning
     >
@@ -170,34 +169,34 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                       />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="column" w="99%" p={4} overflow="hidden">
-        <Flex 
-          direction={{ base: "column", lg: "row" }}
+      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={2} overflow="hidden">
+        <VStack 
           align="center" 
           justify="center" 
-          h="99%" 
-          w="99%"
-          gap={6}
+          h="full" 
+          w="full"
+          gap={2}
+          flex="1"
           minH="0"
         >
           {/* Clean Minimalist Pie Chart */}
           <Box 
             position="relative" 
-            w={{ base: "180px", md: "200px" }} 
-            h={{ base: "180px", md: "200px" }} 
+            w="220px"
+            h="220px"
             flex="none"
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
             <svg
-              width="100%"
-              height="100%"
+              width="220px"
+              height="220px"
               viewBox="-80 -80 160 160"
               style={{
                 filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
-                maxWidth: "180px",
-                maxHeight: "180px"
+                maxWidth: "220px",
+                maxHeight: "220px"
               }}
             >
               {/* Pie slices */}
@@ -206,7 +205,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                 return pieData.map((item, index) => {
                   const sliceAngle = (item.value / total) * 2 * Math.PI;
                   const endAngle = currentAngle + sliceAngle;
-                  const path = createPieSlice(currentAngle, endAngle, 70, 0); // Full pie chart
+                  const path = createPieSlice(currentAngle, endAngle, 80, -10); // Full pie chart
                   
                   const slice = (
                     <g key={index}>
@@ -242,14 +241,14 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
             </svg>
           </Box>
 
-          {/* Clean Legend */}
-          <VStack align="start" gap={2} flex="1" minW="120px" h="full" justify="center">
-            {pieData.map((item, index) => (
-              <Flex key={index} align="center" justify="space-between" w="full" minH="24px">
-                <HStack gap={2} align="center">
+          {/* Clean Legend - Bottom */}
+          <VStack align="left" gap={0} w="full" maxW="300px">
+            <Grid templateColumns="repeat(3, 1fr)" gap={2} w="full">
+              {pieData.map((item, index) => (
+                <Flex key={index} align="center" gap={2} minH="30px">
                   <Box
-                    w="10px"
-                    h="10px"
+                    w="8px"
+                    h="8px"
                     borderRadius="full"
                     bg={item.color}
                     flexShrink={0}
@@ -257,30 +256,25 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                   <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>
                     {item.label}
                   </Text>
-                </HStack>
-                <VStack align="end" gap={0} flexShrink={0}>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900">
+                  <Text fontSize="xs" fontWeight="700" color="gray.700" ml="auto">
                     {item.value}
                   </Text>
-                  <Text fontSize="2xs" color="gray.500">
-                    {item.percentage}%
-                  </Text>
-                </VStack>
-              </Flex>
-            ))}
+                </Flex>
+              ))}
+            </Grid>
             
             {/* Summary */}
-            <Box w="full" h="0.5px" bg="gray.200" my={1} />
-            <Flex align="center" justify="space-between" w="full" minH="20px">
-              <Text fontSize="xs" fontWeight="600" color="gray.600">
-                Total Users
+            {/* <Box w="full" h="0.5px" bg="gray.200" my={1} /> */}
+            <Flex align="center" justify="center" w="full" minH="16px">
+              {/* <Text fontSize="xs" fontWeight="600" color="gray.600" mr={2}>
+                Total Users:
               </Text>
               <Text fontSize="xs" fontWeight="700" color="gray.900">
-                {total}
-              </Text>
+                {total} */}
+              {/* </Text> */}
             </Flex>
           </VStack>
-        </Flex>
+        </VStack>
       </Card.Body>
     </Card.Root>
   );

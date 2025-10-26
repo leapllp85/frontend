@@ -206,59 +206,30 @@ export const Profile = ({
       <Box position="relative" h="99%" overflow="hidden" w="99%">
         {/* Dashboard Content */}
         <Box h="full" p={1} position="relative">
-          <VStack h="full" align="center" gap={2} w="99%">
-            {/* Portfolio Health + Stats Row - Separate Entities */}
-            <HStack gap={0} w="100%" flexShrink={0}>
-              {/* Portfolio Health Section - 25% width */}
-              <Card.Root
-                bg="#ffffff"
-                shadow="sm"
-                borderRadius="2xl"
-                border="1px solid"
-                borderColor="gray.50"
-                borderRight="none"
-                h="80px"
-                display="flex"
-                flexDirection="column"
-                transition="all 0.2s ease"
-                w="25%"
-              >
-                <VStack h="full" justify="center" px={2} py={2}>
-                  <VStack gap={0}>
-                    <Heading 
-                      size="sm" 
-                      color="gray.900" 
-                      textAlign="center"
-                      fontWeight="normal"
-                    >
-                      Portfolio Health
-                    </Heading>
-                    <Box 
-                      w="100%" 
-                      h="1px" 
-                      bg="linear-gradient(90deg, transparent 0%, #ef4444 50%, transparent 100%)"
-                    />
-                  </VStack>
-                  
-                  <VStack gap={1} align="center" w="full">
-                    <Text fontSize="md" fontWeight="bold" color="#ef4444">
-                      Average
-                    </Text>
-                    <Box w="full" bg="gray.200" borderRadius="full" h="2">
-                      <Box 
-                        w="76%" 
-                        bg="linear-gradient(90deg, #fef3c7 0%, #fbbf24 25%, #f59e0b 50%, #ef4444 100%)" 
-                        borderRadius="full" 
-                        h="2" 
-                        transition="all 0.3s ease"
-                      />
-                    </Box>
-                  </VStack>
-                </VStack>
-              </Card.Root>
-              
-              {/* Stats Row Section - 75% width */}
-              <Box flex="1" w="75%">
+          {/* Main Content Grid - Full Screen Layout */}
+          <HStack 
+            h="full"
+            w="full"
+            gap={1}
+            align="stretch"
+            minH="0"
+          >
+            {/* Left Side - Health Metrics (Full Height) */}
+            <VStack h="full" w="320px" flexShrink={0} gap={0} align="stretch">
+              <HealthMetrics 
+                metrics={metrics ? [
+                  { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
+                  { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                  { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                  { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
+                ] : []}
+              />
+            </VStack>
+
+            {/* Right Side - Stats Row + Main Content */}
+            <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
+              {/* Stats Row - Top Right */}
+              <Box w="100%" flexShrink={0}>
                 <StatsRow 
                   activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
                   teamMembers={teamStats?.team_members_count}
@@ -266,31 +237,9 @@ export const Profile = ({
                   highRiskProjects={projectStats?.high_risk_projects}
                 />
               </Box>
-            </HStack>
 
-            {/* Main Content Grid - Full Screen Layout */}
-            <HStack 
-              flex="1"
-              w="full"
-              gap={2}
-              h="full"
-              align="stretch"
-              minH="0"
-            >
-              <VStack h="full" w="280px" flexShrink={0} gap={2} align="stretch">
-                {/* Health Metrics - Moved Up */}
-                <Box h="full" minH="0">
-                  <HealthMetrics 
-                    metrics={metrics ? [
-                      { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                      { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                      { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                    ] : []}
-                  />
-                </Box>
-              </VStack>
-
-              <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
+              {/* Main Content Area */}
+              <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
                 {/* Top - Criticality vs Attrition Risk */}
                 <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
                   <Box w="30%" h="full" minW="0">
@@ -318,8 +267,8 @@ export const Profile = ({
                   </Box>
                 </HStack>
               </VStack>
-            </HStack>
-          </VStack>
+            </VStack>
+          </HStack>
         </Box>
       </Box>
     </Box>

@@ -7,7 +7,8 @@ interface MetricData {
   label: string;
   value: number;
   color: string;
-  type?: 'mental_health' | 'attrition_risk' | 'project_health';
+  type?: 'mental_health' | 'attrition_risk' | 'project_health' | 'portfolio_health';
+  isLarge?: boolean;
 }
 
 interface HealthMetricsProps {
@@ -15,6 +16,7 @@ interface HealthMetricsProps {
 }
 
 const defaultMetrics: MetricData[] = [
+  { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health', isLarge: true },
   { label: 'Mental Health', value: 70, color: '#f97316', type: 'mental_health' },
   { label: 'Attrition Risk', value: 47, color: '#eab308', type: 'attrition_risk' },
   { label: 'Project Health', value: 67.5, color: '#84cc16', type: 'project_health' }
@@ -44,8 +46,8 @@ const getColorByValue = (value: number, type: MetricData['type']): { color: stri
   
   let color: [number, number, number];
   
-  if (type === 'project_health') {
-    // Project Health: Red (0) → Orange (25) → Yellow (50) → Lime (75) → Green (100)
+  if (type === 'project_health' || type === 'portfolio_health') {
+    // Project Health & Portfolio Health: Red (0) → Orange (25) → Yellow (50) → Lime (75) → Green (100)
     if (value <= 25) {
       const factor = value / 25;
       color = interpolateColor(red, orange, factor);
@@ -82,11 +84,12 @@ const getColorByValue = (value: number, type: MetricData['type']): { color: stri
   };
 };
 
-const CircularProgress: React.FC<{ value: number; color: string; label: string; type?: MetricData['type'] }> = ({ 
+const CircularProgress: React.FC<{ value: number; color: string; label: string; type?: MetricData['type']; isLarge?: boolean }> = ({ 
   value, 
   color, 
   label,
-  type
+  type,
+  isLarge = false
 }) => {
   const { color: dynamicColor, gradientId } = getColorByValue(value, type);
   
@@ -107,15 +110,22 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
   
   const darkerColor = createDarkerShade(dynamicColor);
   
+  // Determine sizes based on isLarge prop
+  const containerSize = isLarge ? "180px" : "160px";
+  const containerHeight = isLarge ? "160px" : "145px";
+  const radius = isLarge ? 40 : 32;
+  const strokeWidth = isLarge ? 6 : 5;
+  const circumference = 2 * Math.PI * radius;
+  
   return (
     <VStack gap={0} w="full" align="center">
       <Box 
         position="relative" 
-        w="190px" 
-        h="175px"
+        w={containerSize}
+        h={containerHeight}
         transition="all 0.2s ease"
       >
-        <svg width="100%" height="100%" viewBox="0 0 100 100">
+        <svg width="99%%" height="99%" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
               {/* <stop offset="40%" stopColor={dynamicColor} /> */}
@@ -129,9 +139,9 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           <circle
             cx="50"
             cy="50"
-            r="35"
+            r={radius}
             stroke="#e2e8f0"
-            strokeWidth="5"
+            strokeWidth={strokeWidth}
             fill="none"
             filter={`url(#shadow-${gradientId})`}
           />
@@ -139,11 +149,11 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           <circle
             cx="50"
             cy="50"
-            r="35"
+            r={radius}
             stroke={`url(#${gradientId})`}
-            strokeWidth="5"
+            strokeWidth={strokeWidth}
             fill="none"
-            strokeDasharray={`${(value / 100) * 219.9}, 219.9`}
+            strokeDasharray={`${(value / 100) * circumference}, ${circumference}`}
             transform="rotate(-90 50 50)"
             strokeLinecap="round"
             // filter={`url(#shadow-${gradientId})`}
@@ -156,18 +166,18 @@ const CircularProgress: React.FC<{ value: number; color: string; label: string; 
           transform="translate(-50%, -50%)"
           textAlign="center"
         >
-          <VStack gap={0}>
-            <Text fontSize="sm" fontWeight="normal" color="gray.800" letterSpacing={0.5}>
+          <VStack >
+            <Text fontSize={isLarge ? "lg" : "sm"} fontWeight="normal" color="gray.800" letterSpacing={0.5}>
               {value}%
             </Text>
-            <Text fontSize="xs" color="gray.600" fontWeight="medium" letterSpacing={0.5}>
-              {type === 'attrition_risk' ? 'Satisfactory' : 'Good'}
+            <Text fontSize={isLarge ? "sm" : "xs"} color="gray.600" fontWeight="medium" letterSpacing={0.5}>
+              {type === 'attrition_risk' ? 'Satisfactory' : type === 'portfolio_health' ? 'Average' : 'Good'}
             </Text>
           </VStack>
         </Box>
       </Box>
       <Text 
-        fontSize="sm" 
+        fontSize={isLarge ? "md" : "sm"}
         fontWeight="normal" 
         color="gray.900" 
         textAlign="center"
@@ -184,21 +194,20 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
 }) => {
   return (
     <Card.Root 
-      bg="#ffffff" 
-      shadow="sm" 
-      borderRadius="3xl"
-      border="1px solid" 
-      // borderColor="gray.550"
-      h="99%" 
-      w="99%"
-      maxW="280px"
+     bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
+      h="full" 
+      w="full"
       display="flex" 
-      flexDirection="column"
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
+      maxW="300px"
       // transition="all 0.2s ease"
-      py={4}
-      pb={4}
+      py={3}
     >
-      <Card.Header px={4} py={2}>
+      <Card.Header p={0} pb={0}  borderColor="gray.200">
         <VStack gap={1}>
         <Heading 
           size="md" 
@@ -209,14 +218,15 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
           Health Metrics
         </Heading>
         <Box 
-          w="100%" 
-          h="1.1px" 
+          w="80%" 
+          h="0.9px" 
           bg="linear-gradient(90deg, transparent 0%, #10b981 50%, transparent 100%)"
         />
         </VStack>
       </Card.Header>
-      <Card.Body px={2} py={0} display="flex" flexDirection="column">
+      <Card.Body px={0} py={0} display="flex" flexDirection="column">
         <VStack gap={1} w="full" h="full" justify="center" align="center">
+          {/* All Health Metrics in Vertical Order */}
           {metrics.map((metric, index) => (
             <CircularProgress
               key={index}
@@ -224,6 +234,7 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
               color={metric.color}
               label={metric.label}
               type={metric.type}
+              isLarge={metric.isLarge}
             />
           ))}
         </VStack>

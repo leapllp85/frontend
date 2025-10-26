@@ -312,14 +312,14 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
 
   return (
     <Card.Root 
-      bg="#ffffff" 
-      shadow="sm" 
+      bg="#ffffff"
+      shadow="xs" 
       borderRadius="3xl" 
-      h="full"
-      display="flex"
-      flexDirection="column"
+      h="full" 
+      display="flex" 
+      flexDirection="column" 
       border="1px solid" 
-      // borderColor="gray.200"
+      borderColor="gray.200"
       maxH="320px"
       minH="280px"
    

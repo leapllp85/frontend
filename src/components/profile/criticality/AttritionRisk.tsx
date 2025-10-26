@@ -10,29 +10,19 @@ import {
   Heading,
   Spinner,
   Grid,
-  GridItem,
   Flex
 } from '@chakra-ui/react';
 import { Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
   ArcElement,
-  Title,
   Tooltip,
   Legend,
 } from 'chart.js';
-import { criticalityApi, CriticalityVsRiskData, RiskDistribution } from '../../../services';
 
 // Register Chart.js components
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
   ArcElement,
-  Title,
   Tooltip,
   Legend
 );
@@ -41,17 +31,6 @@ interface CriticalityVsRiskProps {
   userId?: string;
 }
 
-// Legend item component - matching the exact image style
-const LegendItem: React.FC<{ color: string; label: string }> = ({ color, label }) => (
-  <HStack gap={2} align="center" minH="18px">
-    <Box w={4} h={3} bg={color} borderRadius="sm" />
-    {label && (
-      <Text fontSize="xs" color="gray.700" fontWeight="normal" minW="35px">
-        {label}
-      </Text>
-    )}
-  </HStack>
-);
 
 export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
   const [loading, setLoading] = useState(true);
@@ -88,113 +67,6 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
   };
 
 
-  // Criticality vs Risk Donut Chart Data
-  const criticalityRiskPieData = {
-    labels: [
-      'High-High', 'High-Med', 'High-Low',
-      'Med-High', 'Med-Med', 'Med-Low',
-      'Low-High', 'Low-Med', 'Low-Low'
-    ],
-    datasets: [{
-      label: 'Risk Distribution',
-      data: [15, 25, 35, 20, 45, 55, 12, 30, 68],
-      backgroundColor: [
-        '#dc2626', '#ea580c', '#f59e0b', // High Criticality
-        '#eab308', '#84cc16', '#22c55e', // Medium Criticality  
-        '#06b6d4', '#3b82f6', '#8b5cf6'  // Low Criticality
-      ],
-      borderWidth: 0,
-      hoverOffset: 6
-    }]
-  };
-
-  // Double Donut Chart Data - Inner (9 partitions) + Outer (3 partitions)
-  const doubleDonutData = {
-    datasets: [
-      // Inner Ring - 9 Criticality Subdivisions (3 for each High, Med, Low)
-      {
-        label: 'Criticality',
-        data: [
-          // 3 partitions for High Criticality
-          25, 25, 25,
-          // 3 partitions for Medium Criticality  
-          40, 40, 40,
-          // 3 partitions for Low Criticality
-          37, 37, 36
-        ],
-        backgroundColor: [
-          // High Criticality partitions (red variations)
-          '#dc2626', '#ef4444', '#f87171',
-          // Medium Criticality partitions (orange/yellow variations)
-          '#ea580c', '#f59e0b', '#fbbf24',
-          // Low Criticality partitions (green variations)
-          '#16a34a', '#22c55e', '#4ade80'
-        ],
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 4
-      },
-      // Outer Ring - 3 Risk Levels
-      {
-        label: 'Risk',
-        data: [75, 120, 110], // High, Medium, Low Risk
-        backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        hoverOffset: 6
-      }
-    ]
-  };
-
-  const doubleDonutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false
-      },
-      tooltip: {
-        enabled: true,
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
-        titleColor: '#FFFFFF',
-        bodyColor: '#FFFFFF',
-        borderColor: '#FFFFFF',
-        borderWidth: 1,
-        cornerRadius: 8,
-        displayColors: true,
-        callbacks: {
-          label: (context: any) => {
-            const datasetLabel = context.dataset.label;
-            const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1);
-            if (datasetLabel === 'Criticality') {
-              const riskLabels = [
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk',
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk',
-                'High Attrition Risk', 'Medium Attrition Risk', 'Low Attrition Risk'
-              ];
-              return `${riskLabels[context.dataIndex]}: ${value} (${percentage}%)`;
-            } else {
-              const labels = ['High Criticality', 'Medium Criticality', 'Low Criticality'];
-              return `${labels[context.dataIndex]}: ${value} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    },
-    cutout: '55%', // Inner cutout for double ring effect
-    radius: '100%', // Outer radius
-    animation: {
-      duration: 1500,
-      easing: 'easeOutQuart' as const
-    },
-    elements: {
-      arc: {
-        borderWidth: 2
-      }
-    }
-  };
 
   // Merged donut chart with nested data
   const mergedDonutData = {
@@ -325,14 +197,14 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
 
   return (
     <Card.Root
-      bg="#ffffff"
-      shadow="sm"
-      borderRadius="3xl"
-      border="2px solid"
-      borderColor="gray.50"
-      h="full"
-      display="flex"
-      flexDirection="column"
+       bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
+      h="full" 
+      display="flex" 
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
       w="full"
       transition="all 0.2s ease"
       suppressHydrationWarning
@@ -348,41 +220,46 @@ export const AttritionRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) => {
             Attrition Risk Analysis
           </Heading>
           <Box 
-                          w="80%" 
+                          w="full" 
                           h="0.9px" 
                           bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
                       />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="row" gap={3} w="full" p={4}>
-        <HStack gap={3} align="center" flex="1">
+      <Card.Body h="full" display="flex" flexDirection="column" gap={2} w="full" p={0}>
+        <VStack gap={6} align="center" flex="1" justify="center" minH="0">
+          {/* Chart */}
           <Box
-            w="190px"
-            h="190px"
+            w="230px"
+            h="230px"
             // filter="drop-shadow(0 4px 8px rgba(0, 0, 0, 0.0))"
             transition="all 0.2s ease"
           >
             <Doughnut data={mergedDonutData} options={donutOptions} />
           </Box>
 
-          {/* Legend positioned close to chart */}
-          <Box display="flex" flexDirection="flex-start" justifyContent="right" ml={7}>
-            {/* <Text fontSize="md" fontWeight="normal" color="gray.900" mb={0}>
-              Categories
-            </Text> */}
-            {/* <Box 
-            w="80%" 
-            h="1px" 
-            bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-          /> */}
-            <VStack gap={3} align="start">
-              <LegendItem color="#F56565" label="Mental Health" />
-              <LegendItem color="#4299E1" label="Motivation" />
-              <LegendItem color="#ECC94B" label="Career Opportunities" />
-              <LegendItem color="#48BB78" label="Personal" />
-            </VStack>
-          </Box>
-        </HStack>
+          {/* Legend positioned at bottom */}
+          <VStack align="center" gap={0} w="full" maxW="300px">
+            <Grid templateColumns="repeat(2, 1fr)" gap={0} w="full">
+              <Flex align="center" gap={2} minH="20px">
+                <Box w="8px" h="8px" borderRadius="full" bg="#F56565" flexShrink={0} />
+                <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Mental Health</Text>
+              </Flex>
+              <Flex align="center" gap={2} minH="20px">
+                <Box w="8px" h="8px" borderRadius="full" bg="#4299E1" flexShrink={0} />
+                <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Motivation</Text>
+              </Flex>
+              <Flex align="center" gap={2} minH="20px">
+                <Box w="8px" h="8px" borderRadius="full" bg="#ECC94B" flexShrink={0} />
+                <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Career Opportunities</Text>
+              </Flex>
+              <Flex align="center" gap={2} minH="20px">
+                <Box w="8px" h="8px" borderRadius="full" bg="#48BB78" flexShrink={0} />
+                <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Personal</Text>
+              </Flex>
+            </Grid>
+          </VStack>
+        </VStack>
       </Card.Body>
     </Card.Root >
   );

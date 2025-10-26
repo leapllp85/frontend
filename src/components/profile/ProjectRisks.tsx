@@ -109,7 +109,7 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
 
   return (
     <Card.Root 
-      bg="#ffffff"
+       bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
       h="full" 

@@ -230,14 +230,14 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
 export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
   return (
     <Box 
-      bg="#ffffff" 
-      shadow="sm" 
-      borderRadius="3xl"
-      border="1px solid" 
-      borderColor="gray.50"
+     bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
       h="full" 
       display="flex" 
-      flexDirection="column"
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
       transition="all 0.2s ease"
       w="full"
       suppressHydrationWarning
@@ -259,8 +259,8 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
                       />
         </VStack>
       </Box>
-      <Box h="full" display="flex" flexDirection="column" w="full" px={6} py={2} position="center">
-        <SimpleGrid columns={2} gap={6} w="full" h="98%">
+      <Box h="full" display="flex" flexDirection="column" w="full" px={10} py={2} position="center">
+        <SimpleGrid columns={2} gap={2} w="95%" h="98%">
           {CriticalTeamMembersData.slice(0, 10).map((member, index) => (
             <Box key={index} w="full">
               <CriticalTeamMember 

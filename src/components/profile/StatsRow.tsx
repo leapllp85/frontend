@@ -12,9 +12,11 @@ interface StatsRowProps {
   avgUtilization?: string;
   highRiskProjects?: number;
   attritionRiskMembers?: number;
+   averageAge?: number;
+  genderRatio?: string;
 }
 
-const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRiskMembers}: StatsRowProps) => [
+const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRiskMembers, averageAge, genderRatio}: StatsRowProps) => [
   {
     label: "Active Projects",
     value: activeProjects,
@@ -44,6 +46,18 @@ const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects
     value: attritionRiskMembers,
     color: "#ef4444",
     icon: AlertTriangle
+  },
+  {
+    label: "Average Age",
+    value: averageAge,
+    color: "#ef4444",
+    icon: AlertTriangle
+  },
+  {
+    label: "Gender Ratio",
+    value: genderRatio,
+    color: "#ef4444",
+    icon: AlertTriangle
   }
 ]
 
@@ -60,7 +74,7 @@ const StatsCard = ({
 }) => {
   return (
     <VStack gap={1} align="center" w="full" h="full" py={2}>
-      <VStack gap={0} align="center" w="full" px={1}>
+      <VStack gap={0} align="center" w="full" px={1} py={1}>
         <HStack gap={1} justify="center" align="center" w="full">
           <Box p={1} borderRadius="lg">
             <Icon as={icon} size="sm" color={color} />
@@ -84,35 +98,38 @@ export const StatsRow: React.FC<StatsRowProps> = ({
   teamMembers = 2597,
   avgUtilization = "87%",
   highRiskProjects = 3,
-  attritionRiskMembers = 259
+  attritionRiskMembers = 259,
+  averageAge = 30,
+  genderRatio = "50:50"
 }) => {
   return (
     <HStack w="full" align="stretch">
-      {/* Left space for additional data */}
-      <Box flex="0" minW="100px">
-        {/* This space is reserved for additional data */}
-      </Box>
+
       
       {/* Stats Cards Container - positioned towards right */}
       <Card.Root 
-        flex="15"
-        maxW="1600px"
-        bg="linear-gradient(135deg, #ffffff 0%, #ffffff 100%)" 
-        shadow="xs" 
-        borderRadius="3xl"
-        border="1px solid"
+        // flex="15"
+        // maxW="200px"
+        bg="#ffffff"
+      shadow="xs" 
+      borderRadius="3xl" 
+      h="full" 
+      display="flex" 
+      flexDirection="column" 
+      border="1px solid" 
+      borderColor="gray.200"
         // borderColor="gray.200"
-        p={0}
-        h="80px"
+        p={1}
+        // h="80px"
       >
         <SimpleGrid 
-          columns={{ base: 2, sm: 3, md: 5 }} 
+          columns={{ base: 2, sm: 2, md: 7 }} 
           gap={1} 
           w="99%" 
           h="99%"
           alignItems="center"
         >
-          {statData({ activeProjects, teamMembers, avgUtilization, highRiskProjects, attritionRiskMembers }).map((stat, index) => (
+          {statData({ teamMembers,attritionRiskMembers,activeProjects, avgUtilization, highRiskProjects, averageAge, genderRatio }).map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
         </SimpleGrid>
