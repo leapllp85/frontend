@@ -206,7 +206,7 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
           fontSize="xs" 
           color="gray.700" 
           fontWeight="medium"
-          noOfLines={1}
+          lineClamp={1}
           flex="1"
         >{name}</Text>
       </HStack>

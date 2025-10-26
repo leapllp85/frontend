@@ -254,7 +254,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
                     bg={item.color}
                     flexShrink={0}
                   />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" noOfLines={1}>
+                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>
                     {item.label}
                   </Text>
                 </HStack>

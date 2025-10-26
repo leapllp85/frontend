@@ -218,7 +218,9 @@ export default function LoginPage() {
                             fontWeight="300"
                             textShadow="0 2px 10px rgba(0,0,0,0.2)"
                         >
-                            Transform your workplace wellness journey with intelligent insights and compassionate care
+                            {/* Driven by insight. Defined by impact. */}
+                            Understand your teams.
+Predict performance, well-being, and risk.
                         </Text>
 
                         <Box display="flex" justifyContent="center" gap={3} mb={8}>
@@ -250,7 +252,7 @@ export default function LoginPage() {
                             color="rgba(255,255,255,0.8)"
                             fontWeight="400"
                         >
-                            Empowering minds • Building resilience • Creating impact
+                            {/* Empowering minds • Building resilience • Creating impact */}
                         </Text>
                     </Box>
                 </Box>
