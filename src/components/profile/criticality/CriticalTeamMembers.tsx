@@ -292,7 +292,7 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
             // borderRadius="md"
             // shadow="sm"
           >
-            +{totalMembersCount - CriticalTeamMembersData.length} more
+            View More..
           </Text>
         </Box>
       </Box>

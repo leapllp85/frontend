@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Box, Text, VStack, HStack, Button, Input } from "@chakra-ui/react";
-import { Home, BarChart3, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot } from "lucide-react";
+import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network } from "lucide-react";
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
@@ -39,7 +39,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navigationItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: BarChart3, label: "Dashboard", href: "/dashboard" },
+    { icon: Users, label: "Teams", href: "/teams" },
+    { icon: Network, label: "Organization", href: "/organization" },
     { icon: FolderOpen, label: "Projects", href: "/projects" },
     { icon: FileText, label: "Surveys", href: "/surveys" },
     { icon: CheckCircle, label: "Action Items", href: "/action-items" },
