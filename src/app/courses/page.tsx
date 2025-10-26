@@ -18,7 +18,8 @@ import {
     Select
 } from '@chakra-ui/react';
 import { BookOpen, Plus, Tag, Calendar, ExternalLink, Clock } from 'lucide-react';
-import { courseApi, Course, CourseCategory } from '@/services';
+import { courseApi } from '@/services';
+import type { Course, CourseCategory } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function CoursesPage() {
@@ -60,7 +61,7 @@ export default function CoursesPage() {
 
     // Get unique categories from all courses
     const allCategories = courses.reduce((acc: string[], course) => {
-        course.category_names?.forEach(category => {
+        course.category_names?.forEach((category: string) => {
             if (!acc.includes(category)) {
                 acc.push(category);
             }
@@ -248,7 +249,7 @@ export default function CoursesPage() {
                                         <VStack align="start" gap={4}>
                                             <HStack justify="space-between" w="full" wrap="wrap">
                                                 <HStack gap={2} wrap="wrap">
-                                                    {course.category_names?.map((categoryName, index) => (
+                                                    {course.category_names?.map((categoryName: string, index: number) => (
                                                         <Badge key={index} colorPalette={getCategoryColor(categoryName)} size="sm">
                                                             {categoryName}
                                                         </Badge>

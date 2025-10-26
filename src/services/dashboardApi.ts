@@ -1,5 +1,8 @@
 import { apiService, DashboardQuickData, AttritionGraphData, DistributionGraphData } from './api';
 
+// Re-export types for external use
+export type { DashboardQuickData, AttritionGraphData, DistributionGraphData };
+
 export class DashboardApiService {
   // Get dashboard quick data widgets
   async getDashboardQuickData(): Promise<DashboardQuickData> {
