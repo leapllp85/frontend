@@ -6,7 +6,9 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["@chakra-ui/react"],
   },
   env: {
-    BASE_URL: 'http://35.200.219.72:8000',
+    BASE_URL: 'http://34.93.168.19:8000',
+    // BASE_URL: 'http://localhost:8000'
+
   },
   // Disable React StrictMode to prevent double API calls in development
   reactStrictMode: false,
