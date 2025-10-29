@@ -18,8 +18,7 @@ import {
     Flex
 } from '@chakra-ui/react';
 import { ArrowLeft, Users, BarChart3, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { surveyApi, Survey } from '@/services';
-import { apiService } from '@/services/api';
+import { surveyApi, Survey, apiService } from '@/services';
 import { RequireTeamManagement } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
 

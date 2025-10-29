@@ -1,5 +1,7 @@
 import { apiService } from './api';
 
+// Note: Survey and SurveyQuestion are defined in this file, not imported from api.ts
+
 export interface Survey {
     id: number;
     title: string;

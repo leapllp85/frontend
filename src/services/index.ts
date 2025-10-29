@@ -13,6 +13,7 @@ export * from './metricsApi';
 export * from './notificationsApi';
 
 // Re-export all API service instances for easy import
+export { apiService } from './api';
 export { projectApi } from './projectApi';
 export { dashboardApi } from './dashboardApi';
 export { teamApi } from './teamApi';
