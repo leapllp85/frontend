@@ -18,7 +18,8 @@ import {
     Select
 } from '@chakra-ui/react';
 import { BookOpen, Plus, Tag, Calendar, ExternalLink, Clock } from 'lucide-react';
-import { courseApi, Course, CourseCategory } from '@/services';
+import { courseApi } from '@/services';
+import type { Course, CourseCategory } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 export default function CoursesPage() {
@@ -60,7 +61,7 @@ export default function CoursesPage() {
 
     // Get unique categories from all courses
     const allCategories = courses.reduce((acc: string[], course) => {
-        course.category_names?.forEach(category => {
+        course.category_names?.forEach((category: string) => {
             if (!acc.includes(category)) {
                 acc.push(category);
             }
@@ -127,10 +128,10 @@ export default function CoursesPage() {
 
                 {/* Analytics Cards */}
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="blue.100" borderRadius="lg">
+                                <Box p={2} bg="blue.100" borderRadius="2xl">
                                     <BookOpen size={20} color="#3182ce" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -143,10 +144,10 @@ export default function CoursesPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="green.100" borderRadius="lg">
+                                <Box p={2} bg="green.100" borderRadius="2xl">
                                     <Tag size={20} color="#16a34a" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -159,10 +160,10 @@ export default function CoursesPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="purple.100" borderRadius="lg">
+                                <Box p={2} bg="purple.100" borderRadius="2xl">
                                     <BookOpen size={20} color="#9333ea" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -180,10 +181,10 @@ export default function CoursesPage() {
                         </Card.Body>
                     </Card.Root>
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                         <Card.Body p={6}>
                             <HStack gap={3} mb={4}>
-                                <Box p={2} bg="orange.100" borderRadius="lg">
+                                <Box p={2} bg="orange.100" borderRadius="2xl">
                                     <Clock size={20} color="#ea580c" />
                                 </Box>
                                 <Text fontWeight="semibold" color="gray.700">
@@ -231,7 +232,7 @@ export default function CoursesPage() {
                         {selectedCategory === 'all' ? 'All Courses' : `${selectedCategory} Courses`}
                     </Heading>
                     {filteredCourses.length === 0 ? (
-                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                        <Card.Root bg="white" shadow="sm" borderRadius="2xl">
                             <Card.Body p={8}>
                                 <Box textAlign="center">
                                     <Text color="gray.500" fontSize="lg">
@@ -243,12 +244,12 @@ export default function CoursesPage() {
                     ) : (
                         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
                             {filteredCourses.map((course) => (
-                                <Card.Root key={course.id} bg="white" shadow="sm" borderRadius="xl" _hover={{ transform: 'translateY(-2px)', shadow: 'md' }} transition="all 0.2s">
+                                <Card.Root key={course.id} bg="white" shadow="sm" borderRadius="2xl" _hover={{ transform: 'translateY(-2px)', shadow: 'md' }} transition="all 0.2s">
                                     <Card.Body p={6}>
                                         <VStack align="start" gap={4}>
                                             <HStack justify="space-between" w="full" wrap="wrap">
                                                 <HStack gap={2} wrap="wrap">
-                                                    {course.category_names?.map((categoryName, index) => (
+                                                    {course.category_names?.map((categoryName: string, index: number) => (
                                                         <Badge key={index} colorPalette={getCategoryColor(categoryName)} size="sm">
                                                             {categoryName}
                                                         </Badge>

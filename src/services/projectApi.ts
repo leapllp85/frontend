@@ -1,5 +1,8 @@
 import { apiService, Project } from './api';
 
+// Re-export types for external use
+export type { Project };
+
 export interface ProjectStats {
   total_projects: number;
   active_projects: number;
