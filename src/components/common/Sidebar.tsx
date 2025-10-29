@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Box, Text, VStack, HStack, Button, Input } from "@chakra-ui/react";
 import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network } from "lucide-react";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
 import { useChatContext } from '@/contexts/ChatContext';
@@ -36,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   } = useChatContext();
 
   const pathname = usePathname();
+  const router = useRouter();
 
   const navigationItems = [
     { icon: Home, label: "Home", href: "/" },
@@ -91,6 +92,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onResetView();
     }
   }, [onResetView]);
+
+  const handleChatbotClick = useCallback(() => {
+    router.push('/chat');
+  }, [router]);
 
   useEffect(() => {
     setMounted(true);
@@ -288,6 +293,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         _hover={{ transform: "scale(1.1)" }}
         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         className="chatbot-float"
+        onClick={handleChatbotClick}
       >
         {/* Outer Glow Ring */}
         <Box
@@ -366,7 +372,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             borderTopColor: "rgba(0, 0, 0, 0.8)"
           }}
         >
-          {/* Chat with Clyra AI */}
+          Chat with Clyra AI
         </Box>
       </Box>
 
