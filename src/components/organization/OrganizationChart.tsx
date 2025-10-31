@@ -264,7 +264,7 @@ const EmployeeCard: React.FC<{
           </HStack>
           
           {/* Bottom section with contact info */}
-          <VStack align="start" gap={1} w="full" spacing={0}>
+          <VStack align="start" gap={1} w="full">
             <Text 
               fontSize={employee.level === 0 ? "xs" : "2xs"} 
               color="#1a7a8a" 
