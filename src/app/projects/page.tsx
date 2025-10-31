@@ -154,7 +154,7 @@ export default function ProjectsPage() {
         <AppLayout>
             <Box w="full" h="100vh" bg="gray.50" overflow="auto">
                 {/* Professional Header */}
-                <Box 
+                {/* <Box 
                     bg="linear-gradient(135deg, #1a7a8a 0%, #226773 100%)" 
                     px={8} 
                     py={8}
@@ -169,7 +169,7 @@ export default function ProjectsPage() {
                             Manage and track all your projects with comprehensive insights, team collaboration, and real-time progress monitoring.
                         </Text>
                     </VStack>
-                </Box>
+                </Box> */}
 
                 {/* Content */}
                 <Box px={8} py={6}>
@@ -194,9 +194,9 @@ export default function ProjectsPage() {
                                 <RequireProjectCreate>
                                     <Button 
                                         onClick={() => router.push('/projects/onboard')}
-                                        bg="#1a7a8a"
+                                        bg="blue.600"
                                         color="white"
-                                        _hover={{ bg: "#226773" }}
+                                        _hover={{ bg: "blue.700" }}
                                         size="lg"
                                         borderRadius="lg"
                                         fontWeight="semibold"
@@ -226,8 +226,8 @@ export default function ProjectsPage() {
                                             color="gray.800"
                                             _placeholder={{ color: "gray.500" }}
                                             _focus={{
-                                                borderColor: "#1a7a8a",
-                                                boxShadow: "0 0 0 1px #1a7a8a"
+                                                borderColor: "blue.500",
+                                                boxShadow: "0 0 0 1px #3182ce"
                                             }}
                                         />
                                         <Box
@@ -270,8 +270,8 @@ export default function ProjectsPage() {
                             
                             {/* Search Results Info */}
                             {searchQuery && (
-                                <Box p={3} bg="teal.50" borderRadius="md" border="1px solid" borderColor="teal.200">
-                                    <Text fontSize="sm" color="teal.700">
+                                <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                                    <Text fontSize="sm" color="blue.700">
                                         <strong>{filteredCount}</strong> projects found matching <strong>"{searchQuery}"</strong>
                                         {filteredCount !== totalCount && (
                                             <span> (filtered from {totalCount} total projects)</span>
@@ -282,56 +282,58 @@ export default function ProjectsPage() {
                         </VStack>
                     )}
 
-                    {/* Stats Section */}
+                    {/* Stats Section - Compact Design */}
                     {!loading && !error && (
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4} maxW="800px">
                         <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                            <Card.Body p={6}>
-                                <HStack gap={3} mb={4}>
-                                    <Box bg="teal.100" p={2} borderRadius="lg">
-                                        <Folder color="#1a7a8a" size={20} />
+                            <Card.Body p={4}>
+                                <HStack gap={3} align="center">
+                                    <Box bg="blue.100" p={2} borderRadius="lg">
+                                        <Folder color="#3182ce" size={20} />
                                     </Box>
-                                    <Text fontWeight="semibold" color="gray.700">
-                                        Total Projects
-                                    </Text>
+                                    <VStack align="start" gap={0} flex={1}>
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                            Total Projects
+                                        </Text>
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                            {projects.length}
+                                        </Text>
+                                    </VStack>
                                 </HStack>
-                                <Text fontSize="3xl" fontWeight="bold" color="gray.800">
-                                    {projects.length}
-                                </Text>
                             </Card.Body>
                         </Card.Root>
-                        <Card.Root bg="white" boxShadow="md" borderRadius="xl" border="1px solid" borderColor="gray.100">
-                            <Card.Body p={6}>
-                                <VStack align="start" gap={2}>
-                                    <HStack gap={3}>
-                                        <Box bg="teal.100" p={2} borderRadius="lg">
-                                            <Users color="#1a7a8a" size={20} />
-                                        </Box>
-                                        <Text fontWeight="semibold" color="gray.700">
+                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                            <Card.Body p={4}>
+                                <HStack gap={3} align="center">
+                                    <Box bg="green.100" p={2} borderRadius="lg">
+                                        <Users color="#38a169" size={20} />
+                                    </Box>
+                                    <VStack align="start" gap={0} flex={1}>
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
                                             Active Projects
                                         </Text>
-                                    </HStack>
-                                    <Text fontSize="3xl" fontWeight="bold" color="gray.800">
-                                        {projects.filter(p => p.status === 'Active').length}
-                                    </Text>
-                                </VStack>
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                            {projects.filter(p => p.status === 'Active').length}
+                                        </Text>
+                                    </VStack>
+                                </HStack>
                             </Card.Body>
                         </Card.Root>
-                        <Card.Root bg="white" boxShadow="md" borderRadius="xl" border="1px solid" borderColor="gray.100">
-                            <Card.Body p={6}>
-                                <VStack align="start" gap={2}>
-                                    <HStack gap={3}>
-                                        <Box bg="red.100" p={2} borderRadius="lg">
-                                            <AlertTriangle color="#dc2626" size={20} />
-                                        </Box>
-                                        <Text fontWeight="semibold" color="gray.700">
+                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                            <Card.Body p={4}>
+                                <HStack gap={3} align="center">
+                                    <Box bg="red.100" p={2} borderRadius="lg">
+                                        <AlertTriangle color="#e53e3e" size={20} />
+                                    </Box>
+                                    <VStack align="start" gap={0} flex={1}>
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
                                             High Priority
                                         </Text>
-                                    </HStack>
-                                    <Text fontSize="3xl" fontWeight="bold" color="gray.800">
-                                        {projects.filter(p => p.criticality === 'High').length}
-                                    </Text>
-                                </VStack>
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                            {projects.filter(p => p.criticality === 'High').length}
+                                        </Text>
+                                    </VStack>
+                                </HStack>
                             </Card.Body>
                         </Card.Root>
                     </SimpleGrid>
@@ -353,7 +355,7 @@ export default function ProjectsPage() {
                     {/* Loading State */}
                     {loading && (
                         <Box textAlign="center" py={12}>
-                            <Spinner size="xl" color="#1a7a8a" mb={4} />
+                            <Spinner size="xl" color="blue.500" mb={4} />
                             <Text fontSize="lg" color="gray.600">Loading projects...</Text>
                         </Box>
                     )}
@@ -362,7 +364,7 @@ export default function ProjectsPage() {
                     {error && (
                         <Box textAlign="center" py={12}>
                             <Text fontSize="lg" color="red.500" mb={4}>{error}</Text>
-                            <Button onClick={() => window.location.reload()} bg="#1a7a8a" color="white" _hover={{ bg: "#226773" }}>
+                            <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
                                 Retry
                             </Button>
                         </Box>
@@ -387,7 +389,7 @@ export default function ProjectsPage() {
                                     borderRadius="xl"
                                 >
                                     <VStack gap={2}>
-                                        <Spinner size="lg" color="#1a7a8a" />
+                                        <Spinner size="lg" color="blue.500" />
                                         <Text fontSize="sm" color="gray.600">Searching projects...</Text>
                                     </VStack>
                                 </Box>
@@ -399,10 +401,11 @@ export default function ProjectsPage() {
                                 lg: "repeat(3, 1fr)",
                                 xl: "repeat(4, 1fr)",
                             }}
-                            gap={{ base: 3, md: 4 }}
+                            gap={6}
+                            alignItems="stretch"
                         >
                             {projects.map((project) => (
-                                <GridItem key={project.id}>
+                                <GridItem key={project.id} h="full">
                                     <Card.Root
                                         bg="white"
                                         shadow="sm"
@@ -410,10 +413,13 @@ export default function ProjectsPage() {
                                         _hover={{ transform: "translateY(-2px)", shadow: "md" }}
                                         transition="all 0.3s ease"
                                         overflow="hidden"
+                                        h="full"
+                                        display="flex"
+                                        flexDirection="column"
                                     >
-                                        {/* Header with gradient */}
+                                        {/* Header with neutral gradient */}
                                         <Box 
-                                            bg="linear-gradient(135deg, #1a7a8a 0%, #226773 100%)"
+                                            bg="linear-gradient(135deg, #4a5568 0%, #2d3748 100%)"
                                             p={6}
                                             position="relative"
                                         >
@@ -433,7 +439,7 @@ export default function ProjectsPage() {
                                                     </Badge>
                                                 </HStack>
                                                 <Text 
-                                                    color="teal.100" 
+                                                    color="gray.200" 
                                                     fontSize="md" 
                                                     lineHeight="1.5" 
                                                     fontWeight="medium"
@@ -486,8 +492,8 @@ export default function ProjectsPage() {
                                                         <Box bg="gray.50" p={4} borderRadius="lg" w="full">
                                                             <VStack align="start" gap={2}>
                                                                 <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="teal.100" borderRadius="md">
-                                                                        <Calendar size={12} color="#1a7a8a" />
+                                                                    <Box p={1} bg="blue.100" borderRadius="md">
+                                                                        <Calendar size={12} color="#3182ce" />
                                                                     </Box>
                                                                     <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
                                                                         TIMELINE
@@ -505,8 +511,8 @@ export default function ProjectsPage() {
                                                         <Box bg="gray.50" p={4} borderRadius="lg" w="full">
                                                             <VStack align="start" gap={2}>
                                                                 <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="teal.100" borderRadius="md">
-                                                                        <Users size={12} color="#1a7a8a" />
+                                                                    <Box p={1} bg="blue.100" borderRadius="md">
+                                                                        <Users size={12} color="#3182ce" />
                                                                     </Box>
                                                                     <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
                                                                         CONTRIBUTORS ({project.contributors.length})
@@ -515,8 +521,8 @@ export default function ProjectsPage() {
                                                                 <HStack gap={2} align="center">
                                                                      <AvatarGroup size="sm">
                                                                          {project.contributors.slice(0, 4).map((contributor: any) => (
-                                                                             <Avatar.Root key={contributor.id} size="sm" bg="#1a7a8a" color="white">
-                                                                                 <Avatar.Fallback bg="#1a7a8a" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
+                                                                             <Avatar.Root key={contributor.id} size="sm" bg="blue.600" color="white">
+                                                                                 <Avatar.Fallback bg="blue.600" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
                                                                              </Avatar.Root>
                                                                          ))}
                                                                      </AvatarGroup>
@@ -535,9 +541,9 @@ export default function ProjectsPage() {
                                                 <HStack gap={2} mt="auto" pt={4} w="full">
                                                     <Button
                                                         size="sm"
-                                                        bg="#1a7a8a"
+                                                        bg="blue.600"
                                                         color="white"
-                                                        _hover={{ bg: "#226773" }}
+                                                        _hover={{ bg: "blue.700" }}
                                                         borderRadius="full"
                                                         px={4}
                                                         flex={1}
@@ -548,9 +554,9 @@ export default function ProjectsPage() {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        borderColor="#1a7a8a"
-                                                        color="#1a7a8a"
-                                                        _hover={{ bg: "teal.50" }}
+                                                        borderColor="blue.600"
+                                                        color="blue.600"
+                                                        _hover={{ bg: "blue.50" }}
                                                         borderRadius="full"
                                                         px={4}
                                                         flex={1}
