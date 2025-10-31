@@ -152,20 +152,27 @@ export default function ProjectsPage() {
 
     return (
         <AppLayout>
-                {/* Header */}
-                {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
-                    <VStack align="start" gap={2}>
-                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
-                            Projects
+            <Box w="full" h="100vh" bg="gray.50" overflow="auto">
+                {/* Professional Header */}
+                <Box 
+                    bg="linear-gradient(135deg, #1a7a8a 0%, #226773 100%)" 
+                    px={8} 
+                    py={8}
+                    borderBottom="1px solid"
+                    borderColor="gray.200"
+                >
+                    <VStack align="start" gap={3}>
+                        <Heading size="2xl" color="white" fontWeight="bold" letterSpacing="tight">
+                            📁 Projects Dashboard
                         </Heading>
-                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
-                            Manage and track all your projects
+                        <Text color="teal.100" fontSize="lg" maxW="600px" lineHeight="1.6">
+                            Manage and track all your projects with comprehensive insights, team collaboration, and real-time progress monitoring.
                         </Text>
                     </VStack>
                 </Box>
 
                 {/* Content */}
-                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                <Box px={8} py={6}>
                     <VStack gap={8} align="stretch" w="full">
                     {/* Header with Search and Pagination Info */}
                     {!loading && !error && (
@@ -187,8 +194,12 @@ export default function ProjectsPage() {
                                 <RequireProjectCreate>
                                     <Button 
                                         onClick={() => router.push('/projects/onboard')}
-                                        colorPalette="purple"
+                                        bg="#1a7a8a"
+                                        color="white"
+                                        _hover={{ bg: "#226773" }}
                                         size="lg"
+                                        borderRadius="lg"
+                                        fontWeight="semibold"
                                     >
                                         <Plus size={20} />
                                         Create New Project
@@ -215,8 +226,8 @@ export default function ProjectsPage() {
                                             color="gray.800"
                                             _placeholder={{ color: "gray.500" }}
                                             _focus={{
-                                                borderColor: "purple.500",
-                                                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
+                                                borderColor: "#1a7a8a",
+                                                boxShadow: "0 0 0 1px #1a7a8a"
                                             }}
                                         />
                                         <Box
@@ -259,8 +270,8 @@ export default function ProjectsPage() {
                             
                             {/* Search Results Info */}
                             {searchQuery && (
-                                <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
-                                    <Text fontSize="sm" color="blue.700">
+                                <Box p={3} bg="teal.50" borderRadius="md" border="1px solid" borderColor="teal.200">
+                                    <Text fontSize="sm" color="teal.700">
                                         <strong>{filteredCount}</strong> projects found matching <strong>"{searchQuery}"</strong>
                                         {filteredCount !== totalCount && (
                                             <span> (filtered from {totalCount} total projects)</span>
@@ -277,8 +288,8 @@ export default function ProjectsPage() {
                         <Card.Root bg="white" shadow="sm" borderRadius="xl">
                             <Card.Body p={6}>
                                 <HStack gap={3} mb={4}>
-                                    <Box bg="purple.100" p={2} borderRadius="lg">
-                                        <Folder color="#a5489f" size={20} />
+                                    <Box bg="teal.100" p={2} borderRadius="lg">
+                                        <Folder color="#1a7a8a" size={20} />
                                     </Box>
                                     <Text fontWeight="semibold" color="gray.700">
                                         Total Projects
@@ -293,8 +304,8 @@ export default function ProjectsPage() {
                             <Card.Body p={6}>
                                 <VStack align="start" gap={2}>
                                     <HStack gap={3}>
-                                        <Box bg="green.100" p={2} borderRadius="lg">
-                                            <Users color="#a5489f" size={20} />
+                                        <Box bg="teal.100" p={2} borderRadius="lg">
+                                            <Users color="#1a7a8a" size={20} />
                                         </Box>
                                         <Text fontWeight="semibold" color="gray.700">
                                             Active Projects
@@ -310,8 +321,8 @@ export default function ProjectsPage() {
                             <Card.Body p={6}>
                                 <VStack align="start" gap={2}>
                                     <HStack gap={3}>
-                                        <Box bg="orange.100" p={2} borderRadius="lg">
-                                            <AlertTriangle color="#a5489f" size={20} />
+                                        <Box bg="red.100" p={2} borderRadius="lg">
+                                            <AlertTriangle color="#dc2626" size={20} />
                                         </Box>
                                         <Text fontWeight="semibold" color="gray.700">
                                             High Priority
@@ -342,7 +353,7 @@ export default function ProjectsPage() {
                     {/* Loading State */}
                     {loading && (
                         <Box textAlign="center" py={12}>
-                            <Spinner size="xl" color="purple.500" mb={4} />
+                            <Spinner size="xl" color="#1a7a8a" mb={4} />
                             <Text fontSize="lg" color="gray.600">Loading projects...</Text>
                         </Box>
                     )}
@@ -351,7 +362,7 @@ export default function ProjectsPage() {
                     {error && (
                         <Box textAlign="center" py={12}>
                             <Text fontSize="lg" color="red.500" mb={4}>{error}</Text>
-                            <Button onClick={() => window.location.reload()} colorScheme="purple">
+                            <Button onClick={() => window.location.reload()} bg="#1a7a8a" color="white" _hover={{ bg: "#226773" }}>
                                 Retry
                             </Button>
                         </Box>
@@ -376,7 +387,7 @@ export default function ProjectsPage() {
                                     borderRadius="xl"
                                 >
                                     <VStack gap={2}>
-                                        <Spinner size="lg" color="purple.500" />
+                                        <Spinner size="lg" color="#1a7a8a" />
                                         <Text fontSize="sm" color="gray.600">Searching projects...</Text>
                                     </VStack>
                                 </Box>
@@ -402,7 +413,7 @@ export default function ProjectsPage() {
                                     >
                                         {/* Header with gradient */}
                                         <Box 
-                                            bg="linear-gradient(135deg, #a5489f 0%, #8a3d85 100%)"
+                                            bg="linear-gradient(135deg, #1a7a8a 0%, #226773 100%)"
                                             p={6}
                                             position="relative"
                                         >
@@ -422,7 +433,7 @@ export default function ProjectsPage() {
                                                     </Badge>
                                                 </HStack>
                                                 <Text 
-                                                    color="purple.100" 
+                                                    color="teal.100" 
                                                     fontSize="md" 
                                                     lineHeight="1.5" 
                                                     fontWeight="medium"
@@ -449,8 +460,8 @@ export default function ProjectsPage() {
                                                         <Box bg="gray.50" p={4} borderRadius="lg" w="full">
                                                             <VStack align="start" gap={2}>
                                                                 <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="purple.100" borderRadius="md">
-                                                                        <AlertTriangle size={12} color="#a5489f" />
+                                                                    <Box p={1} bg="red.100" borderRadius="md">
+                                                                        <AlertTriangle size={12} color="#dc2626" />
                                                                     </Box>
                                                                     <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
                                                                         CRITICALITY
@@ -475,8 +486,8 @@ export default function ProjectsPage() {
                                                         <Box bg="gray.50" p={4} borderRadius="lg" w="full">
                                                             <VStack align="start" gap={2}>
                                                                 <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="blue.100" borderRadius="md">
-                                                                        <Calendar size={12} color="#3182ce" />
+                                                                    <Box p={1} bg="teal.100" borderRadius="md">
+                                                                        <Calendar size={12} color="#1a7a8a" />
                                                                     </Box>
                                                                     <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
                                                                         TIMELINE
@@ -494,8 +505,8 @@ export default function ProjectsPage() {
                                                         <Box bg="gray.50" p={4} borderRadius="lg" w="full">
                                                             <VStack align="start" gap={2}>
                                                                 <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="green.100" borderRadius="md">
-                                                                        <Users size={12} color="#38a169" />
+                                                                    <Box p={1} bg="teal.100" borderRadius="md">
+                                                                        <Users size={12} color="#1a7a8a" />
                                                                     </Box>
                                                                     <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
                                                                         CONTRIBUTORS ({project.contributors.length})
@@ -504,8 +515,8 @@ export default function ProjectsPage() {
                                                                 <HStack gap={2} align="center">
                                                                      <AvatarGroup size="sm">
                                                                          {project.contributors.slice(0, 4).map((contributor: any) => (
-                                                                             <Avatar.Root key={contributor.id} size="sm" bg="purple.500" color="white">
-                                                                                 <Avatar.Fallback bg="purple.500" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
+                                                                             <Avatar.Root key={contributor.id} size="sm" bg="#1a7a8a" color="white">
+                                                                                 <Avatar.Fallback bg="#1a7a8a" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
                                                                              </Avatar.Root>
                                                                          ))}
                                                                      </AvatarGroup>
@@ -524,9 +535,9 @@ export default function ProjectsPage() {
                                                 <HStack gap={2} mt="auto" pt={4} w="full">
                                                     <Button
                                                         size="sm"
-                                                        bg="purple.500"
+                                                        bg="#1a7a8a"
                                                         color="white"
-                                                        _hover={{ bg: "purple.600" }}
+                                                        _hover={{ bg: "#226773" }}
                                                         borderRadius="full"
                                                         px={4}
                                                         flex={1}
@@ -537,9 +548,9 @@ export default function ProjectsPage() {
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        borderColor="purple.500"
-                                                        color="purple.500"
-                                                        _hover={{ bg: "purple.50" }}
+                                                        borderColor="#1a7a8a"
+                                                        color="#1a7a8a"
+                                                        _hover={{ bg: "teal.50" }}
                                                         borderRadius="full"
                                                         px={4}
                                                         flex={1}
@@ -578,6 +589,7 @@ export default function ProjectsPage() {
                     )}
                     </VStack>
                 </Box>
+            </Box>
         </AppLayout>
     );
 }

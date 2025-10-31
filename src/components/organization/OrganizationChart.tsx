@@ -6,108 +6,80 @@ import {
   VStack, 
   HStack, 
   Text, 
-  Grid,
-  GridItem,
   Button,
-  Heading
+  Heading,
+  SimpleGrid,
+  Grid,
+  GridItem
 } from '@chakra-ui/react';
 import { Card, Avatar } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Minus, 
+  AlertTriangle,
+  CheckCircle,
+  Activity
+} from 'lucide-react';
 
 interface Employee {
   id: string;
   name: string;
   title: string;
   email: string;
-  phone: string;
   location: string;
   avatar?: string;
   reportees?: Employee[];
+  portfolioHealth: 'excellent' | 'good' | 'average' | 'poor' | 'critical';
+  level: number;
 }
 
+// Clean organization data structure
 const organizationData: Employee = {
   id: 'ceo',
   name: 'Mike Stevia',
   title: 'Chief Executive Officer',
   email: 'mike.stevia@company.com',
-  phone: '+1 (555) 123-4567',
   location: 'New York',
-  avatar: '/avatars/mike.jpg',
+  portfolioHealth: 'excellent',
+  level: 0,
   reportees: [
     {
       id: 'cfo',
       name: 'Oliver Chelangat',
       title: 'Chief Financial Officer',
       email: 'oliver.chelangat@company.com',
-      phone: '+1 (555) 234-5678',
       location: 'New York',
-      avatar: '/avatars/oliver.jpg',
+      portfolioHealth: 'good',
+      level: 1,
       reportees: [
         {
           id: 'vp-marketing',
           name: 'Robert Clark',
-          title: 'VP President of Marketing',
+          title: 'VP Marketing',
           email: 'robert.clark@company.com',
-          phone: '+1 (555) 345-6789',
           location: 'California',
+          portfolioHealth: 'average',
+          level: 2,
           reportees: [
             {
               id: 'bd-rep',
               name: 'Rosa Bonnier',
-              title: 'Business Development Representative',
+              title: 'Business Development Rep',
               email: 'rosa.bonnier@company.com',
-              phone: '+1 (555) 456-7890',
-              location: 'California'
+              location: 'California',
+              portfolioHealth: 'good',
+              level: 3
             },
             {
-              id: 'sr-designer',
+              id: 'designer',
               name: 'Jim Richter',
-              title: 'Senior Product Designer',
+              title: 'Senior Designer',
               email: 'jim.richter@company.com',
-              phone: '+1 (555) 567-8901',
-              location: 'California'
-            },
-            {
-              id: 'cmo',
-              name: 'Janice Goodacre',
-              title: 'Chief Marketing Officer',
-              email: 'janice.goodacre@company.com',
-              phone: '+1 (555) 678-9012',
-              location: 'California'
-            }
-          ]
-        },
-        {
-          id: 'vp-president',
-          name: 'John Fosten',
-          title: 'VP President of Marketing',
-          email: 'john.fosten@company.com',
-          phone: '+1 (555) 789-0123',
-          location: 'New York',
-          reportees: [
-            {
-              id: 'sales-rep',
-              name: 'Dylan Becker',
-              title: 'Inside Sales Representative',
-              email: 'dylan.becker@company.com',
-              phone: '+1 (555) 890-1234',
-              location: 'New York'
-            },
-            {
-              id: 'sales-rep-2',
-              name: 'Katherine Jenkins',
-              title: 'Inside Sales Representative',
-              email: 'katherine.jenkins@company.com',
-              phone: '+1 (555) 901-2345',
-              location: 'New York'
-            },
-            {
-              id: 'sales-rep-3',
-              name: 'Hector Reed',
-              title: 'Inside Sales Representative',
-              email: 'hector.reed@company.com',
-              phone: '+1 (555) 012-3456',
-              location: 'New York'
+              location: 'California',
+              portfolioHealth: 'excellent',
+              level: 3
             }
           ]
         }
@@ -118,154 +90,67 @@ const organizationData: Employee = {
       name: 'Alejandro Gonzalez',
       title: 'Chief Technology Officer',
       email: 'alejandro.gonzalez@company.com',
-      phone: '+1 (555) 123-4567',
       location: 'San Francisco',
-      avatar: '/avatars/alejandro.jpg',
+      portfolioHealth: 'excellent',
+      level: 1,
       reportees: [
         {
-          id: 'vp-quality',
-          name: 'Michael Simonetti',
-          title: 'VP President of Quality Assurance',
-          email: 'michael.simonetti@company.com',
-          phone: '+1 (555) 234-5678',
-          location: 'San Francisco',
-          reportees: [
-            {
-              id: 'qa-engineer',
-              name: 'Mark Meyer',
-              title: 'Quality Assurance Engineer',
-              email: 'mark.meyer@company.com',
-              phone: '+1 (555) 345-6789',
-              location: 'San Francisco'
-            },
-            {
-              id: 'qa-engineer-2',
-              name: 'Mathew Arnold',
-              title: 'Quality Assurance Engineer',
-              email: 'mathew.arnold@company.com',
-              phone: '+1 (555) 456-7890',
-              location: 'San Francisco'
-            }
-          ]
-        },
-        {
-          id: 'dir-engineering',
+          id: 'eng-director',
           name: 'Jennifer Brent',
           title: 'Director of Engineering',
           email: 'jennifer.brent@company.com',
-          phone: '+1 (555) 567-8901',
           location: 'San Francisco',
+          portfolioHealth: 'excellent',
+          level: 2,
           reportees: [
             {
-              id: 'sw-engineer',
+              id: 'sw-engineer-1',
               name: 'Melika Cantu',
               title: 'Software Engineer',
               email: 'melika.cantu@company.com',
-              phone: '+1 (555) 678-9012',
-              location: 'San Francisco'
+              location: 'San Francisco',
+              portfolioHealth: 'good',
+              level: 3
             },
             {
               id: 'sw-engineer-2',
               name: 'Geetham Ravichandran',
               title: 'Software Engineer',
               email: 'geetham.ravichandran@company.com',
-              phone: '+1 (555) 789-0123',
-              location: 'San Francisco'
-            },
-            {
-              id: 'product-manager',
-              name: 'Sam Friedman',
-              title: 'Product Manager',
-              email: 'sam.friedman@company.com',
-              phone: '+1 (555) 890-1234',
-              location: 'San Francisco'
-            },
-            {
-              id: 'trader',
-              name: 'Clinton Goodin',
-              title: 'Trader - Analyst',
-              email: 'clinton.goodin@company.com',
-              phone: '+1 (555) 901-2345',
-              location: 'San Francisco'
+              location: 'San Francisco',
+              portfolioHealth: 'excellent',
+              level: 3
             }
           ]
         }
       ]
     },
     {
-      id: 'cfo-2',
+      id: 'coo',
       name: 'Emily Tucker',
-      title: 'Chief Financial Officer',
+      title: 'Chief Operations Officer',
       email: 'emily.tucker@company.com',
-      phone: '+1 (555) 012-3456',
       location: 'Chicago',
-      avatar: '/avatars/emily.jpg',
+      portfolioHealth: 'good',
+      level: 1,
       reportees: [
         {
-          id: 'dir-operations',
-          name: 'Timothy Bucket',
-          title: 'Director of Operations',
-          email: 'timothy.bucket@company.com',
-          phone: '+1 (555) 123-4567',
+          id: 'hr-director',
+          name: 'Jane Brown',
+          title: 'Director of Human Resources',
+          email: 'jane.brown@company.com',
           location: 'Chicago',
+          portfolioHealth: 'excellent',
+          level: 2,
           reportees: [
-            {
-              id: 'accountant',
-              name: 'Robert Griffin',
-              title: 'Accountant',
-              email: 'robert.griffin@company.com',
-              phone: '+1 (555) 234-5678',
-              location: 'Chicago'
-            },
-            {
-              id: 'accountant-2',
-              name: 'Calvin Jobbs',
-              title: 'Financial Analyst',
-              email: 'calvin.jobbs@company.com',
-              phone: '+1 (555) 345-6789',
-              location: 'Chicago'
-            }
-          ]
-        },
-        {
-          id: 'vp-operations',
-          name: 'Julie Adams',
-          title: 'VP President of Operations',
-          email: 'julie.adams@company.com',
-          phone: '+1 (555) 456-7890',
-          location: 'Chicago',
-          reportees: [
-            {
-              id: 'hr-admin',
-              name: 'Presley Sha',
-              title: 'Human Resource Administrator',
-              email: 'presley.sha@company.com',
-              phone: '+1 (555) 567-8901',
-              location: 'Chicago'
-            },
-            {
-              id: 'hr-admin-2',
-              name: 'Jane Brown',
-              title: 'Director of Human Resources',
-              email: 'jane.brown@company.com',
-              phone: '+1 (555) 678-9012',
-              location: 'Chicago'
-            },
             {
               id: 'hr-specialist',
               name: 'Grant Leise',
-              title: 'Human Resource Specialist',
+              title: 'HR Specialist',
               email: 'grant.leise@company.com',
-              phone: '+1 (555) 789-0123',
-              location: 'Chicago'
-            },
-            {
-              id: 'coordinator',
-              name: 'Taylor Jones',
-              title: 'Training Coordinator',
-              email: 'taylor.jones@company.com',
-              phone: '+1 (555) 890-1234',
-              location: 'Chicago'
+              location: 'Chicago',
+              portfolioHealth: 'average',
+              level: 3
             }
           ]
         }
@@ -274,114 +159,184 @@ const organizationData: Employee = {
   ]
 };
 
+// Portfolio health configuration
+const getPortfolioHealthIcon = (health: string) => {
+  switch (health) {
+    case 'excellent':
+      return { icon: CheckCircle, color: '#10b981', bgColor: '#d1fae5' };
+    case 'good':
+      return { icon: TrendingUp, color: '#059669', bgColor: '#a7f3d0' };
+    case 'average':
+      return { icon: Minus, color: '#f59e0b', bgColor: '#fef3c7' };
+    case 'poor':
+      return { icon: TrendingDown, color: '#ef4444', bgColor: '#fecaca' };
+    case 'critical':
+      return { icon: AlertTriangle, color: '#dc2626', bgColor: '#fee2e2' };
+    default:
+      return { icon: Activity, color: '#6b7280', bgColor: '#f3f4f6' };
+  }
+};
+
+// Fixed Employee Card Component with Proper Text Fitting
 const EmployeeCard: React.FC<{ 
   employee: Employee; 
-  level: number; 
   onEmployeeClick: (employee: Employee) => void;
-}> = ({ employee, level, onEmployeeClick }) => {
+}> = ({ employee, onEmployeeClick }) => {
   const router = useRouter();
-  
-  const handleClick = () => {
-    onEmployeeClick(employee);
-  };
+  const healthConfig = getPortfolioHealthIcon(employee.portfolioHealth);
+  const IconComponent = healthConfig.icon;
 
   const handleViewDashboard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Navigate to home page with employee context
     router.push(`/?employee=${employee.id}`);
   };
 
-  const getCardSize = (level: number) => {
-    switch (level) {
-      case 0: return { width: '280px', height: '120px' }; // CEO
-      case 1: return { width: '260px', height: '110px' }; // C-Level
-      case 2: return { width: '240px', height: '100px' }; // VP/Director
-      default: return { width: '220px', height: '90px' }; // Others
-    }
-  };
-
-  const cardSize = getCardSize(level);
+  // Improved card sizing with better height for larger text
+  const cardWidth = employee.level === 0 ? '340px' : employee.level === 1 ? '300px' : '280px';
+  const cardHeight = employee.level === 0 ? '180px' : employee.level === 1 ? '160px' : '150px';
 
   return (
     <Card.Root
-      w={cardSize.width}
-      h={cardSize.height}
+      w={cardWidth}
+      h={cardHeight}
       bg="white"
-      shadow="md"
+      shadow="lg"
       borderRadius="xl"
       border="2px solid"
-      borderColor={level === 0 ? "blue.400" : level === 1 ? "green.400" : level === 2 ? "orange.400" : "gray.300"}
+      borderColor="#1a7a8a"
       cursor="pointer"
-      transition="all 0.2s"
+      transition="all 0.3s ease"
       _hover={{ 
-        shadow: "lg", 
+        shadow: "xl", 
         transform: "translateY(-2px)",
-        borderColor: level === 0 ? "blue.500" : level === 1 ? "green.500" : level === 2 ? "orange.500" : "gray.400"
+        borderColor: "#226773"
       }}
-      onClick={handleClick}
+      onClick={() => onEmployeeClick(employee)}
     >
-      <Card.Body p={3}>
-        <HStack gap={3} align="start">
-          <Avatar.Root
-            size="md"
-            bg={level === 0 ? "blue.500" : level === 1 ? "green.500" : level === 2 ? "orange.500" : "gray.500"}
-          >
-            <Avatar.Image src={employee.avatar} />
-            <Avatar.Fallback>{employee.name.charAt(0).toUpperCase()}</Avatar.Fallback>
-          </Avatar.Root>
-          <VStack align="start" gap={0} flex="1" minW="0">
-            <Text fontSize="sm" fontWeight="bold" color="gray.900" lineClamp={1}>
-              {employee.name}
-            </Text>
-            <Text fontSize="xs" color="gray.600" lineClamp={2}>
-              {employee.title}
-            </Text>
-            <Text fontSize="xs" color="blue.600">
+      <Card.Body p={3} h="full">
+        <VStack gap={2} align="start" h="full" justify="space-between">
+          {/* Top section with avatar and name */}
+          <HStack gap={3} align="start" w="full">
+            <Avatar.Root
+              size={employee.level === 0 ? "md" : "sm"}
+              bg="#1a7a8a"
+              flexShrink={0}
+            >
+              <Avatar.Image src={employee.avatar} />
+              <Avatar.Fallback color="white" fontWeight="bold" fontSize={employee.level === 0 ? "md" : "sm"}>
+                {employee.name.charAt(0)}
+              </Avatar.Fallback>
+            </Avatar.Root>
+            
+            <VStack align="start" gap={1} flex="1" minW="0">
+              <HStack gap={2} align="center" w="full">
+                <Text 
+                  fontSize={employee.level === 0 ? "lg" : employee.level === 1 ? "md" : "sm"} 
+                  fontWeight="bold" 
+                  color="gray.900" 
+                  flex="1"
+                  lineClamp={1}
+                  lineHeight="1.2"
+                >
+                  {employee.name}
+                </Text>
+                <Box
+                  p={1}
+                  borderRadius="full"
+                  bg={healthConfig.bgColor}
+                  title={`Portfolio Health: ${employee.portfolioHealth}`}
+                  flexShrink={0}
+                >
+                  <IconComponent size={employee.level === 0 ? 14 : 12} color={healthConfig.color} />
+                </Box>
+              </HStack>
+              
+              <Text 
+                fontSize={employee.level === 0 ? "sm" : employee.level === 1 ? "xs" : "2xs"} 
+                color="gray.600" 
+                lineClamp={2}
+                lineHeight="1.3"
+                w="full"
+              >
+                {employee.title}
+              </Text>
+            </VStack>
+          </HStack>
+          
+          {/* Bottom section with contact info */}
+          <VStack align="start" gap={1} w="full" spacing={0}>
+            <Text 
+              fontSize={employee.level === 0 ? "xs" : "2xs"} 
+              color="#1a7a8a" 
+              fontWeight="medium"
+              lineClamp={1}
+              w="full"
+            >
               {employee.email}
             </Text>
-            <Text fontSize="xs" color="gray.500">
+            
+            <Text fontSize={employee.level === 0 ? "xs" : "2xs"} color="gray.500" lineClamp={1}>
               📍 {employee.location}
             </Text>
+            
             {employee.reportees && employee.reportees.length > 0 && (
               <Button
-                size="xs"
-                colorScheme="blue"
-                variant="outline"
+                size="sm"
+                bg="#1a7a8a"
+                color="white"
+                _hover={{ bg: "#226773" }}
                 onClick={handleViewDashboard}
-                mt={1}
+                mt={2}
+                borderRadius="md"
+                fontSize={employee.level === 0 ? "sm" : "xs"}
+                h="28px"
+                px={3}
               >
-                View Dashboard
+                📊 Dashboard
               </Button>
             )}
           </VStack>
-        </HStack>
+        </VStack>
       </Card.Body>
     </Card.Root>
   );
 };
 
+// Fixed Organization Level Component with Proper Connecting Lines
 const OrganizationLevel: React.FC<{ 
   employees: Employee[]; 
-  level: number; 
   onEmployeeClick: (employee: Employee) => void;
-}> = ({ employees, level, onEmployeeClick }) => {
+}> = ({ employees, onEmployeeClick }) => {
+  if (!employees || employees.length === 0) return null;
+
   return (
-    <VStack gap={4} w="full">
-      <HStack gap={6} justify="center" flexWrap="wrap">
+    <VStack gap={4} w="full" align="center">
+      {/* Simple horizontal line for multiple employees */}
+      {employees.length > 1 && (
+        <Box w="60%" h="2px" bg="#1a7a8a" borderRadius="full" shadow="sm" mb={2} />
+      )}
+      
+      {/* Employee cards with proper spacing */}
+      <HStack gap={6} justify="center" flexWrap="wrap" w="full">
         {employees.map((employee) => (
           <VStack key={employee.id} gap={2} align="center">
             <EmployeeCard 
               employee={employee} 
-              level={level} 
               onEmployeeClick={onEmployeeClick}
             />
+            
+            {/* Vertical line to children with proper connection */}
             {employee.reportees && employee.reportees.length > 0 && (
               <>
-                {/* Connection Line */}
-                <Box w="2px" h="20px" bg="gray.300" />
+                <Box 
+                  w="3px" 
+                  h="24px" 
+                  bg="#1a7a8a" 
+                  borderRadius="full"
+                  shadow="sm"
+                />
                 <OrganizationLevel 
                   employees={employee.reportees} 
-                  level={level + 1} 
                   onEmployeeClick={onEmployeeClick}
                 />
               </>
@@ -393,6 +348,7 @@ const OrganizationLevel: React.FC<{
   );
 };
 
+// Fixed Main Organization Chart Component with Proper Scrolling
 export const OrganizationChart: React.FC = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
@@ -401,74 +357,122 @@ export const OrganizationChart: React.FC = () => {
   };
 
   return (
-    <Box w="full" h="100vh" bg="gray.50" overflow="auto" p={6}>
-      <VStack gap={6} w="full">
-        {/* Header */}
-        <VStack gap={2}>
-          <Heading size="lg" color="gray.800">
-            Organization Structure
-          </Heading>
-          <Text color="gray.600">
-            Click on any employee to view details, or click "View Dashboard" to see their team metrics
-          </Text>
-        </VStack>
+    <Box 
+      w="full" 
+      h="100vh" 
+      bg="gray.50" 
+      overflowX="auto"
+      overflowY="auto"
+      position="relative"
+    >
+      <Box 
+        minW="1200px" 
+        minH="full" 
+        p={6}
+        pb={20} // Extra padding at bottom to ensure scrolling works
+      >
+        <VStack gap={6} w="full" align="center">
+          {/* Header */}
+          <VStack gap={3} textAlign="center">
+            <Heading size="xl" color="#1a7a8a" fontWeight="bold">
+              🏢 Organization Structure
+            </Heading>
+            <Text color="gray.600" fontSize="md" maxW="600px" lineHeight="1.5">
+              Click on any employee card to view details, or use "📊 Dashboard" to see team metrics.
+            </Text>
+          </VStack>
 
-        {/* CEO Level */}
-        <VStack gap={4} w="full" align="center">
-          <EmployeeCard 
-            employee={organizationData} 
-            level={0} 
-            onEmployeeClick={handleEmployeeClick}
-          />
-          
-          {/* Connection Line */}
-          <Box w="2px" h="30px" bg="gray.400" />
-          
-          {/* Rest of Organization */}
-          {organizationData.reportees && (
-            <OrganizationLevel 
-              employees={organizationData.reportees} 
-              level={1} 
+          {/* CEO Level with Proper Connection */}
+          <VStack gap={3} w="full" align="center">
+            <EmployeeCard 
+              employee={organizationData} 
               onEmployeeClick={handleEmployeeClick}
             />
+            
+            {/* Simple connection line from CEO */}
+            {organizationData.reportees && organizationData.reportees.length > 0 && (
+              <Box w="3px" h="24px" bg="#1a7a8a" borderRadius="full" shadow="sm" />
+            )}
+            
+            {/* C-Level Executives */}
+            {organizationData.reportees && (
+              <OrganizationLevel 
+                employees={organizationData.reportees} 
+                onEmployeeClick={handleEmployeeClick}
+              />
+            )}
+          </VStack>
+
+          {/* Selected Employee Details */}
+          {selectedEmployee && (
+            <Card.Root 
+              w="full" 
+              maxW="500px" 
+              bg="white" 
+              shadow="xl" 
+              borderRadius="xl"
+              border="2px solid"
+              borderColor="#1a7a8a"
+              mt={8}
+            >
+              <Card.Header bg="#1a7a8a" p={4}>
+                <Heading size="md" color="white">
+                  👤 Employee Details
+                </Heading>
+              </Card.Header>
+              <Card.Body p={4}>
+                <VStack align="start" gap={4}>
+                  <HStack gap={4}>
+                    <Avatar.Root size="lg" bg="#1a7a8a">
+                      <Avatar.Image src={selectedEmployee.avatar} />
+                      <Avatar.Fallback color="white" fontWeight="bold">
+                        {selectedEmployee.name.charAt(0)}
+                      </Avatar.Fallback>
+                    </Avatar.Root>
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="lg" fontWeight="bold">
+                        {selectedEmployee.name}
+                      </Text>
+                      <Text color="#1a7a8a" fontWeight="medium">
+                        {selectedEmployee.title}
+                      </Text>
+                    </VStack>
+                  </HStack>
+                  
+                  <SimpleGrid columns={2} gap={4} w="full">
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.700">📧 Email</Text>
+                      <Text fontSize="sm" color="#1a7a8a">{selectedEmployee.email}</Text>
+                    </VStack>
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.700">📍 Location</Text>
+                      <Text fontSize="sm" color="gray.600">{selectedEmployee.location}</Text>
+                    </VStack>
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.700">💼 Level</Text>
+                      <Text fontSize="sm" color="gray.600">Level {selectedEmployee.level}</Text>
+                    </VStack>
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.700">📊 Health</Text>
+                      <Text fontSize="sm" color="gray.600" textTransform="capitalize">
+                        {selectedEmployee.portfolioHealth}
+                      </Text>
+                    </VStack>
+                    {selectedEmployee.reportees && (
+                      <VStack align="start" gap={1}>
+                        <Text fontSize="sm" fontWeight="bold" color="gray.700">👥 Reports</Text>
+                        <Text fontSize="sm" color="#1a7a8a" fontWeight="medium">
+                          {selectedEmployee.reportees.length} team members
+                        </Text>
+                      </VStack>
+                    )}
+                  </SimpleGrid>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
           )}
         </VStack>
-
-        {/* Selected Employee Details */}
-        {selectedEmployee && (
-          <Card.Root w="full" maxW="500px" bg="white" shadow="lg" borderRadius="xl">
-            <Card.Header>
-              <Heading size="md">Employee Details</Heading>
-            </Card.Header>
-            <Card.Body>
-              <VStack align="start" gap={3}>
-                <HStack gap={4}>
-                  <Avatar.Root size="lg">
-                    <Avatar.Image src={selectedEmployee.avatar} />
-                    <Avatar.Fallback>{selectedEmployee.name.charAt(0).toUpperCase()}</Avatar.Fallback>
-                  </Avatar.Root>
-                  <VStack align="start" gap={1}>
-                    <Text fontSize="lg" fontWeight="bold">
-                      {selectedEmployee.name}
-                    </Text>
-                    <Text color="gray.600">
-                      {selectedEmployee.title}
-                    </Text>
-                  </VStack>
-                </HStack>
-                <VStack align="start" gap={2} w="full">
-                  <Text><strong>Email:</strong> {selectedEmployee.email}</Text>
-                  <Text><strong>Phone:</strong> {selectedEmployee.phone}</Text>
-                  <Text><strong>Location:</strong> {selectedEmployee.location}</Text>
-                  {selectedEmployee.reportees && (
-                    <Text><strong>Direct Reports:</strong> {selectedEmployee.reportees.length}</Text>
-                  )}
-                </VStack>
-              </VStack>
-            </Card.Body>
-          </Card.Root>
-        )}
-      </VStack>
+      </Box>
     </Box>
   );
 };
