@@ -152,288 +152,460 @@ export default function ActionItemsPage() {
 
     return (
         <AppLayout>
-                {/* Header */}
-                {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
-                    <VStack align="start" gap={2}>
-                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
-                            Action Items
-                        </Heading>
-                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
-                            Track and manage your action items
-                        </Text>
-                    </VStack>
-                </Box> */}
-
+            <Box w="full" h="100vh" bg="gray.50" overflow="auto">
                 {/* Content */}
-                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+                <Box px={8} py={6}>
                     <VStack gap={8} align="stretch" w="full">
-                        {/* Header with Pagination Info and Filters */}
-                        <HStack justify="space-between" flexWrap="wrap">
-                            <VStack align="start" gap={1}>
-                                <Heading size="xl" color="gray.800">
-                                    Action Items
-                                </Heading>
-                                <Text fontSize="sm" color="gray.600">
-                                    Showing {actionItems.length} of {totalCount} action items
-                                </Text>
-                            </VStack>
-                            
-                            {/* Filters and Pagination Controls */}
-                            {/* <HStack gap={4} flexWrap="wrap">
-                                <HStack gap={2}>
-                                    <Text fontSize="sm" color="gray.600">Status:</Text>
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                                            setStatusFilter(e.target.value);
-                                            setCurrentPage(1);
-                                        }}
-                                        style={{
-                                            padding: '4px 8px',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '6px',
-                                            fontSize: '14px',
-                                            backgroundColor: 'white',
-                                            color: '#4a5568',
-                                            width: '120px'
-                                        }}
+                        {/* Header with Search and Pagination Info */}
+                        {!loading && !error && (
+                            <VStack align="stretch" gap={4}>
+                                <HStack justify="space-between" flexWrap="wrap">
+                                    <VStack align="start" gap={1}>
+                                        <Heading size="xl" color="gray.800">
+                                            Action Items
+                                        </Heading>
+                                        <Text fontSize="sm" color="gray.600">
+                                            Showing {actionItems.length} of {totalCount} action items
+                                        </Text>
+                                    </VStack>
+
+                                    {/* Plan of Action Button */}
+                                    <Button 
+                                        onClick={() => setShowCreateForm(!showCreateForm)}
+                                        bg="blue.600"
+                                        color="white"
+                                        _hover={{ bg: "blue.700" }}
+                                        size="lg"
+                                        borderRadius="lg"
+                                        fontWeight="semibold"
                                     >
-                                        <option value="">All</option>
-                                        <option value="Pending">Pending</option>
-                                        <option value="Completed">Completed</option>
-                                    </select>
-                                </HStack>
-                                
-                                <HStack gap={2}>
-                                    <Text fontSize="sm" color="gray.600">Page size:</Text>
-                                    <select
-                                        value={pageSize}
-                                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                                            setPageSize(Number(e.target.value));
-                                            setCurrentPage(1);
-                                        }}
-                                        style={{
-                                            padding: '4px 8px',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '6px',
-                                            fontSize: '14px',
-                                            backgroundColor: 'white',
-                                            color: '#4a5568',
-                                            width: '100px'
-                                        }}
-                                    >
-                                        <option value={5}>5 per page</option>
-                                        <option value={10}>10 per page</option>
-                                        <option value={20}>20 per page</option>
-                                        <option value={50}>50 per page</option>
-                                    </select>
-                                </HStack>
-                                
-                                <HStack gap={2}>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                        disabled={!hasPrevious || loading}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <Text fontSize="sm" color="gray.600" px={2}>
-                                        Page {currentPage}
-                                    </Text>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                        disabled={!hasNext || loading}
-                                    >
-                                        Next
+                                        <Plus size={20} />
+                                        Create Plan of Action
                                     </Button>
                                 </HStack>
-                            </HStack> */}
-                        </HStack>
-
-                        {/* Analytics Cards */}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="blue.100" borderRadius="2xl">
-                                    <Clock size={20} color="#3182ce" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Total Items
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="blue.600">
-                                {actionItems.length}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
-
-                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="orange.100" borderRadius="2xl">
-                                    <Clock size={20} color="#ea580c" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Pending
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="orange.600">
-                                {pendingItems}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
-
-                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="green.100" borderRadius="2xl">
-                                    <CheckCircle size={20} color="#16a34a" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Completed
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="green.600">
-                                {completedItems}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
-
-                    <Card.Root bg="white" shadow="sm" borderRadius="2xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="purple.100" borderRadius="2xl">
-                                    <CheckCircle size={20} color="#9333ea" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Completion Rate
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="purple.600">
-                                {completionRate}%
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
-                </SimpleGrid>
-
-                {/* Action Items List */}
-                <Card.Root bg="white" shadow="sm" borderRadius="2xl">
-                    <Card.Header p={6}>
-                        <HStack justify="space-between">
-                            <VStack align="start" gap={1}>
-                                <Heading size="lg" color="gray.800">
-                                    Action Items
-                                </Heading>
-                                <Text color="gray.600" fontSize="sm">
-                                    {statusFilter ? `Filtered by: ${statusFilter}` : 'All action items'}
-                                </Text>
+                                
+                                {/* Filters */}
+                                <HStack gap={4} flexWrap="wrap">
+                                    <HStack gap={2}>
+                                        <Text fontSize="sm" color="gray.600">Status:</Text>
+                                        <select
+                                            value={statusFilter}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                setStatusFilter(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            style={{
+                                                padding: '6px 12px',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'white',
+                                                color: '#4a5568',
+                                                outline: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <option value="">All Status</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
+                                    </HStack>
+                                </HStack>
                             </VStack>
-                            {loading && (
-                                <Spinner size="md" color="purple.500" />
-                            )}
-                        </HStack>
-                    </Card.Header>
-                    <Card.Body p={6}>
-                        <VStack gap={4} align="stretch">
-                            {actionItems.length === 0 && !loading ? (
-                                <Box textAlign="center" py={8}>
-                                    <Text color="gray.500" fontSize="lg">
-                                        {statusFilter ? `No ${statusFilter.toLowerCase()} action items found.` : 'No action items found.'}
-                                    </Text>
-                                </Box>
-                            ) : loading ? (
-                                <Box textAlign="center" py={8}>
-                                    <Spinner size="lg" color="purple.500" mb={4} />
-                                    <Text color="gray.600" fontSize="md">
-                                        Loading action items...
-                                    </Text>
-                                </Box>
-                            ) : (
-                                actionItems.map((item) => (
-                                    <Card.Root key={item.id} bg="gray.50" borderRadius="2xl">
-                                        <Card.Body p={4}>
-                                            <HStack justify="space-between" align="start">
-                                                <VStack align="start" gap={2} flex="1">
-                                                    <HStack gap={2}>
-                                                        <Heading size="md" color="gray.800">
-                                                            {item.title}
-                                                        </Heading>
-                                                        <Badge colorPalette={getStatusColor(item.status)} size="sm">
-                                                            {item.status}
-                                                        </Badge>
-                                                    </HStack>
-                                                    <HStack gap={4} fontSize="xs" color="gray.500">
-                                                        <HStack gap={1}>
-                                                            <User size={14} />
-                                                            <Text>{(item.assigned_to?.first_name && item.assigned_to?.last_name) ? `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : item.assigned_to?.username || 'Unknown User'}</Text>
-                                                        </HStack>
-                                                        <HStack gap={1}>
-                                                            <Calendar size={14} />
-                                                            <Text>Created: {formatDate(item.created_at)}</Text>
-                                                        </HStack>
-                                                    </HStack>
-                                                </VStack>
-                                                <Link
-                                                    href={item.action}
-                                                    borderColor="purple.500"
-                                                    bg="purple.500"
-                                                    color="white"
-                                                    borderWidth="1px"
-                                                    borderRadius="2xl"
-                                                    px={2}
-                                                    py={1}
-                                                    fontSize="md"
-                                                    fontWeight="bold"
+                        )}
+
+                        {/* Loading State */}
+                        {loading && (
+                            <Box textAlign="center" py={12}>
+                                <Spinner size="xl" color="blue.500" mb={4} />
+                                <Text fontSize="lg" color="gray.600">Loading action items...</Text>
+                            </Box>
+                        )}
+
+                        {/* Error State */}
+                        {error && (
+                            <Box textAlign="center" py={12}>
+                                <Text fontSize="lg" color="red.500" mb={4}>{error}</Text>
+                                <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
+                                    Retry
+                                </Button>
+                            </Box>
+                        )}
+
+                        {/* Stats Section - Compact Design */}
+                        {!loading && !error && (
+                        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={4} maxW="1000px">
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="blue.100" p={2} borderRadius="lg">
+                                            <Clock color="#3182ce" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                                Total Items
+                                            </Text>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                                {actionItems.length}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="orange.100" p={2} borderRadius="lg">
+                                            <Clock color="#ea580c" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                                Pending
+                                            </Text>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                                {pendingItems}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="green.100" p={2} borderRadius="lg">
+                                            <CheckCircle color="#16a34a" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                                Completed
+                                            </Text>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                                {completedItems}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="purple.100" p={2} borderRadius="lg">
+                                            <CheckCircle color="#9333ea" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                                Completion Rate
+                                            </Text>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                                {completionRate}%
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                        </SimpleGrid>
+                        )}
+
+                        {/* Create Form */}
+                        {showCreateForm && (
+                            <Card.Root 
+                                bg="white" 
+                                shadow="xl" 
+                                borderRadius="xl"
+                                border="1px solid"
+                                borderColor="gray.200"
+                                _hover={{ shadow: "2xl" }}
+                                transition="all 0.3s ease"
+                            >
+                                <Card.Header bg="gradient-to-r from-blue.50 to-purple.50" borderTopRadius="xl" px={6}>
+                                    <HStack justify="space-between" align="center">
+                                        <VStack align="start" gap={1}>
+                                            <Heading size="lg" color="gray.800" fontWeight="bold">
+                                                Create Plan of Action
+                                            </Heading>
+                                            <Text color="gray.600" fontSize="sm">
+                                                Define actionable steps and assign responsibilities
+                                            </Text>
+                                        </VStack>
+                                        <Box p={3} bg="blue.100" borderRadius="full">
+                                            <Plus size={24} color="#3182ce" />
+                                        </Box>
+                                    </HStack>
+                                </Card.Header>
+                                <Card.Body p={8}>
+                                    <VStack gap={6} align="stretch">
+                                        <Box>
+                                            <Text fontWeight="semibold" mb={3} color="gray.700" fontSize="sm">
+                                                Action Title *
+                                            </Text>
+                                            <Input
+                                                value={newActionItem.title}
+                                                onChange={(e) => setNewActionItem(prev => ({ ...prev, title: e.target.value }))}
+                                                placeholder="e.g., Improve Team Communication Process"
+                                                size="lg"
+                                                bg="white"
+                                                color="gray.800"
+                                                border="2px solid"
+                                                borderColor="gray.200"
+                                                _focus={{
+                                                    borderColor: "blue.400",
+                                                    boxShadow: "0 0 0 1px #3182ce"
+                                                }}
+                                                _hover={{ borderColor: "gray.300" }}
+                                                _placeholder={{ color: "gray.400" }}
+                                                borderRadius="lg"
+                                            />
+                                        </Box>
+                                        <Box>
+                                            <Text fontWeight="semibold" mb={3} color="gray.700" fontSize="sm">
+                                                Action Details *
+                                            </Text>
+                                            <Textarea
+                                                value={newActionItem.action}
+                                                onChange={(e) => setNewActionItem(prev => ({ ...prev, action: e.target.value }))}
+                                                placeholder="Describe the specific steps, timeline, and expected outcomes..."
+                                                rows={4}
+                                                bg="white"
+                                                color="gray.800"
+                                                border="2px solid"
+                                                borderColor="gray.200"
+                                                _focus={{
+                                                    borderColor: "blue.400",
+                                                    boxShadow: "0 0 0 1px #3182ce"
+                                                }}
+                                                _hover={{ borderColor: "gray.300" }}
+                                                _placeholder={{ color: "gray.400" }}
+                                                borderRadius="lg"
+                                                resize="vertical"
+                                            />
+                                        </Box>
+                                        <Box>
+                                            <Text fontWeight="semibold" mb={3} color="gray.700" fontSize="sm">
+                                                Initial Status
+                                            </Text>
+                                            <select
+                                                value={newActionItem.status}
+                                                onChange={(e) => setNewActionItem(prev => ({ ...prev, status: e.target.value as any }))}
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '12px 16px',
+                                                    borderRadius: '8px',
+                                                    border: '2px solid #e2e8f0',
+                                                    backgroundColor: 'white',
+                                                    fontSize: '16px',
+                                                    color: '#374151',
+                                                    outline: 'none',
+                                                    appearance: 'none',
+                                                    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+                                                    backgroundPosition: 'right 12px center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundSize: '16px'
+                                                }}
+                                            >
+                                                <option value="Pending">🕒 Pending - Ready to start</option>
+                                                <option value="Completed">✅ Completed - Already done</option>
+                                            </select>
+                                        </Box>
+                                        <Box pt={4} borderTop="1px solid" borderColor="gray.100">
+                                            <HStack gap={4} justify="end">
+                                                <Button 
+                                                    onClick={() => setShowCreateForm(false)}
+                                                    variant="outline"
+                                                    size="lg"
+                                                    borderColor="gray.300"
+                                                    color="gray.600"
+                                                    _hover={{ bg: "gray.50", borderColor: "gray.400" }}
+                                                    px={6}
                                                 >
-                                                    View
-                                                </Link>
+                                                    Cancel
+                                                </Button>
+                                                <Button 
+                                                    onClick={handleCreateActionItem}
+                                                    bg="blue.600"
+                                                    color="white"
+                                                    size="lg"
+                                                    disabled={!newActionItem.title.trim() || !newActionItem.action.trim()}
+                                                    _hover={{ 
+                                                        bg: "blue.700",
+                                                        transform: "translateY(-2px)", 
+                                                        shadow: "lg" 
+                                                    }}
+                                                    transition="all 0.2s ease"
+                                                    px={8}
+                                                >
+                                                    <Plus size={20} />
+                                                    Create Action Plan
+                                                </Button>
                                             </HStack>
-                                        </Card.Body>
-                                    </Card.Root>
-                                ))
-                            )}
-                        </VStack>
-                    </Card.Body>
-                    
-                    {/* Pagination Footer */}
-                    {!loading && actionItems.length > 0 && (
-                        <Card.Footer p={6} borderTop="1px solid" borderColor="gray.200">
-                            <HStack justify="space-between" w="full">
-                                <Text fontSize="sm" color="gray.600">
-                                    Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} items
-                                </Text>
-                                <HStack gap={2}>
-                                    <Button
-                                        size="sm"
-                                        // variant="outline"
-                                        colorPalette="purple"
-                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                        disabled={!hasPrevious}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <Text fontSize="sm" color="gray.600" px={2}>
-                                        Page {currentPage} of {Math.ceil(totalCount / pageSize)}
-                                    </Text>
-                                    <Button
-                                        size="sm"
-                                        colorPalette="purple"
-                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                        disabled={!hasNext}
-                                    >
-                                        Next
-                                    </Button>
+                                        </Box>
+                                    </VStack>
+                                </Card.Body>
+                            </Card.Root>
+                        )}
+
+                        {/* Action Items List */}
+                        {!loading && !error && (
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Header p={6}>
+                                    <HStack justify="space-between">
+                                        <VStack align="start" gap={1}>
+                                            <Heading size="lg" color="gray.800">
+                                                Action Items Management
+                                            </Heading>
+                                            <Text color="gray.600" fontSize="sm">
+                                                {statusFilter ? `Filtered by: ${statusFilter}` : 'Track and manage all action items'}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Header>
+                                <Card.Body p={6}>
+                                    <VStack gap={4} align="stretch">
+                                        {actionItems.length === 0 ? (
+                                            <Box textAlign="center" py={8}>
+                                                <Text color="gray.500" fontSize="lg">
+                                                    {statusFilter ? `No ${statusFilter.toLowerCase()} action items found.` : 'No action items found. Create your first plan of action to get started.'}
+                                                </Text>
+                                            </Box>
+                                        ) : (
+                                            actionItems.map((item) => (
+                                                <Card.Root key={item.id} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" shadow="sm"
+                                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
+                                                    transition="all 0.3s ease"
+                                                >
+                                                    <Card.Body p={6}>
+                                                        <HStack justify="space-between" align="start">
+                                                            <VStack align="start" gap={3} flex="1">
+                                                                <HStack gap={3} align="center">
+                                                                    <Heading size="md" color="gray.800">
+                                                                        {item.title}
+                                                                    </Heading>
+                                                                    <Badge
+                                                                        colorPalette={getStatusColor(item.status)}
+                                                                        variant="solid"
+                                                                        px={3}
+                                                                        py={1}
+                                                                        borderRadius="full"
+                                                                        fontSize="xs"
+                                                                    >
+                                                                        {item.status}
+                                                                    </Badge>
+                                                                </HStack>
+                                                                <Text color="gray.600" fontSize="sm" lineHeight="1.5">
+                                                                    {item.action}
+                                                                </Text>
+                                                                <HStack gap={6} fontSize="sm" color="gray.500" wrap="wrap">
+                                                                    <HStack gap={2}>
+                                                                        <User size={16} />
+                                                                        <Text>Assigned: {(item.assigned_to?.first_name && item.assigned_to?.last_name) ? `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : item.assigned_to?.username || 'Unassigned'}</Text>
+                                                                    </HStack>
+                                                                    <HStack gap={2}>
+                                                                        <Calendar size={16} />
+                                                                        <Text>Created: {formatDate(item.created_at)}</Text>
+                                                                    </HStack>
+                                                                </HStack>
+                                                            </VStack>
+                                                            <HStack gap={2}>
+                                                                <select
+                                                                    value={item.status}
+                                                                    onChange={(e) => handleStatusChange(item.id, e.target.value as 'Pending' | 'Completed')}
+                                                                    style={{
+                                                                        padding: '6px 12px',
+                                                                        border: '1px solid #d1d5db',
+                                                                        borderRadius: '6px',
+                                                                        fontSize: '14px',
+                                                                        backgroundColor: 'white',
+                                                                        color: '#4a5568',
+                                                                        outline: 'none',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                >
+                                                                    <option value="Pending">Pending</option>
+                                                                    <option value="Completed">Completed</option>
+                                                                </select>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="outline"
+                                                                    borderColor="red.600"
+                                                                    color="red.600"
+                                                                    _hover={{ bg: "red.50" }}
+                                                                    onClick={() => handleDeleteActionItem(item.id)}
+                                                                >
+                                                                    Delete
+                                                                </Button>
+                                                            </HStack>
+                                                        </HStack>
+                                                    </Card.Body>
+                                                </Card.Root>
+                                            ))
+                                        )}
+                                    </VStack>
+                                </Card.Body>
+                            </Card.Root>
+                        )}
+
+                        {/* Pagination Footer */}
+                        {!loading && !error && actionItems.length > 0 && (
+                            <Box mt={8}>
+                                <HStack justify="center" gap={4} flexWrap="wrap" w="full">
+                                    <HStack gap={2}>
+                                        <Text fontSize="sm" color="gray.600">Page size:</Text>
+                                        <select
+                                            value={pageSize}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                setPageSize(Number(e.target.value));
+                                                setCurrentPage(1);
+                                            }}
+                                            style={{
+                                                padding: '6px 12px',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'white',
+                                                color: '#4a5568',
+                                                outline: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <option value={5}>5 per page</option>
+                                            <option value={10}>10 per page</option>
+                                            <option value={20}>20 per page</option>
+                                            <option value={50}>50 per page</option>
+                                        </select>
+                                    </HStack>
+                                    
+                                    <HStack gap={2}>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                            disabled={!hasPrevious || loading}
+                                            borderColor="blue.600"
+                                            color="blue.600"
+                                            _hover={{ bg: "blue.50" }}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Text fontSize="sm" color="gray.600" px={2}>
+                                            Page {currentPage} of {Math.ceil(totalCount / pageSize)}
+                                        </Text>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            disabled={!hasNext || loading}
+                                            borderColor="blue.600"
+                                            color="blue.600"
+                                            _hover={{ bg: "blue.50" }}
+                                        >
+                                            Next
+                                        </Button>
+                                    </HStack>
                                 </HStack>
-                            </HStack>
-                        </Card.Footer>
-                    )}
-                </Card.Root>
+                            </Box>
+                        )}
                     </VStack>
                 </Box>
+            </Box>
         </AppLayout>
     );
 }
