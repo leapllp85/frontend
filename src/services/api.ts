@@ -66,6 +66,7 @@ export interface ActionItem {
   assigned_to: User;
   title: string;
   status: 'Pending' | 'Completed';
+  priority?: 'Low' | 'Medium' | 'High';
   action: string;
   created_at: string;
   updated_at: string;

@@ -165,7 +165,7 @@ export default function ProjectsPage() {
                         <Heading size="2xl" color="white" fontWeight="bold" letterSpacing="tight">
                             📁 Projects Dashboard
                         </Heading>
-                        <Text color="teal.100" fontSize="lg" maxW="600px" lineHeight="1.6">
+                        <Text color="blue.100" fontSize="lg" maxW="600px" lineHeight="1.6">
                             Manage and track all your projects with comprehensive insights, team collaboration, and real-time progress monitoring.
                         </Text>
                     </VStack>
@@ -182,7 +182,7 @@ export default function ProjectsPage() {
                                     <Heading size="xl" color="gray.800">
                                         Projects
                                     </Heading>
-                                    <Text fontSize="sm" color="gray.600">
+                                    <Text fontSize="sm" color="gray.700">
                                         {searchQuery ? (
                                             `Showing ${filteredCount} of ${totalCount} projects matching "${searchQuery}"`
                                         ) : (
@@ -292,10 +292,10 @@ export default function ProjectsPage() {
                                         <Folder color="#3182ce" size={20} />
                                     </Box>
                                     <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
                                             Total Projects
                                         </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
                                             {projects.length}
                                         </Text>
                                     </VStack>
@@ -309,10 +309,10 @@ export default function ProjectsPage() {
                                         <Users color="#38a169" size={20} />
                                     </Box>
                                     <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
                                             Active Projects
                                         </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
                                             {projects.filter(p => p.status === 'Active').length}
                                         </Text>
                                     </VStack>
@@ -326,10 +326,10 @@ export default function ProjectsPage() {
                                         <AlertTriangle color="#e53e3e" size={20} />
                                     </Box>
                                     <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
                                             High Priority
                                         </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
                                             {projects.filter(p => p.criticality === 'High').length}
                                         </Text>
                                     </VStack>
@@ -356,14 +356,14 @@ export default function ProjectsPage() {
                     {loading && (
                         <Box textAlign="center" py={12}>
                             <Spinner size="xl" color="blue.500" mb={4} />
-                            <Text fontSize="lg" color="gray.600">Loading projects...</Text>
+                            <Text fontSize="lg" color="gray.700">Loading projects...</Text>
                         </Box>
                     )}
 
                     {/* Error State */}
                     {error && (
                         <Box textAlign="center" py={12}>
-                            <Text fontSize="lg" color="red.500" mb={4}>{error}</Text>
+                            <Text fontSize="lg" color="red.600" mb={4}>{error}</Text>
                             <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
                                 Retry
                             </Button>
@@ -390,7 +390,7 @@ export default function ProjectsPage() {
                                 >
                                     <VStack gap={2}>
                                         <Spinner size="lg" color="blue.500" />
-                                        <Text fontSize="sm" color="gray.600">Searching projects...</Text>
+                                        <Text fontSize="sm" color="gray.700">Searching projects...</Text>
                                     </VStack>
                                 </Box>
                             )}
