@@ -121,6 +121,14 @@ export default function ActionItemsPage() {
         }
     };
 
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'Completed': return 'green';
+            case 'Pending': return 'orange';
+            default: return 'gray';
+        }
+    };
+
     const sortActionItems = (items: ActionItem[]) => {
         return [...items].sort((a, b) => {
             let aValue: any, bValue: any;
@@ -207,16 +215,14 @@ export default function ActionItemsPage() {
     };
 
     const handleDeleteActionItem = async (id: number) => {
-        try {
-            await actionItemApi.deleteActionItem(id);
-            setActionItems(prev => prev.filter(item => item.id !== id));
-        } catch (err) {
-            console.error('Error deleting action item:', err);
+        if (window.confirm('Are you sure you want to delete this action item? This action cannot be undone.')) {
+            try {
+                await actionItemApi.deleteActionItem(id);
+                setActionItems(prev => prev.filter(item => item.id !== id));
+            } catch (err) {
+                console.error('Error deleting action item:', err);
+            }
         }
-    };
-
-    const getStatusColor = (status: string) => {
-        return status === 'Completed' ? 'green' : 'orange';
     };
 
     // Analytics
@@ -1024,83 +1030,262 @@ export default function ActionItemsPage() {
                                 </Card.Header>
                                 <Card.Body p={6}>
                                     <VStack gap={4} align="stretch">
-                                        {actionItems.length === 0 ? (
-                                            <Box textAlign="center" py={8}>
-                                                <Text color="gray.500" fontSize="lg">
-                                                    {statusFilter ? `No ${statusFilter.toLowerCase()} action items found.` : 'No action items found. Create your first plan of action to get started.'}
-                                                </Text>
+                                        {filteredAndSortedItems.length === 0 ? (
+                                            <Box textAlign="center" py={12}>
+                                                <VStack gap={4}>
+                                                    <Box p={4} bg="gray.100" borderRadius="full">
+                                                        <Target size={48} color="#6b7280" />
+                                                    </Box>
+                                                    <VStack gap={2}>
+                                                        <Heading size="lg" color="gray.700">
+                                                            {searchQuery ? 'No action items found' : 'No action items yet'}
+                                                        </Heading>
+                                                        <Text color="gray.500" textAlign="center" maxW="400px">
+                                                            {searchQuery ? 
+                                                                `No action items match your search for "${searchQuery}". Try adjusting your filters or search terms.` : 
+                                                                'Create your first action plan to start tracking and managing team responsibilities.'}
+                                                        </Text>
+                                                    </VStack>
+                                                    {!searchQuery && (
+                                                        <Button
+                                                            onClick={() => setShowCreateForm(true)}
+                                                            bg="teal.600"
+                                                            color="white"
+                                                            _hover={{ bg: "teal.700" }}
+                                                            size="lg"
+                                                            mt={4}
+                                                        >
+                                                            <Plus size={20} />
+                                                            Create Your First Action Plan
+                                                        </Button>
+                                                    )}
+                                                </VStack>
                                             </Box>
+                                        ) : viewMode === 'grid' ? (
+                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                                                {filteredAndSortedItems.map((item) => {
+                                                    const priority = item.priority || 'Medium';
+                                                    const priorityColor = getPriorityColor(priority);
+                                                    
+                                                    return (
+                                                        <Card.Root 
+                                                            key={item.id} 
+                                                            bg="white" 
+                                                            borderRadius="xl" 
+                                                            border="1px solid" 
+                                                            borderColor="gray.200" 
+                                                            shadow="md"
+                                                            _hover={{ 
+                                                                transform: "translateY(-4px)", 
+                                                                shadow: "xl",
+                                                                borderColor: "teal.300"
+                                                            }}
+                                                            transition="all 0.3s ease"
+                                                            position="relative"
+                                                            overflow="hidden"
+                                                        >
+                                                            {/* Priority Indicator */}
+                                                            <Box
+                                                                position="absolute"
+                                                                top={0}
+                                                                right={0}
+                                                                w={3}
+                                                                h={12}
+                                                                bg={`${priorityColor}.500`}
+                                                            />
+                                                            
+                                                            <Card.Body p={6}>
+                                                                <VStack align="start" gap={4} h="full">
+                                                                    {/* Header */}
+                                                                    <VStack align="start" gap={2} w="full">
+                                                                        <HStack justify="space-between" w="full">
+                                                                            <Text fontSize="2xl">
+                                                                                {getPriorityIcon(priority)}
+                                                                            </Text>
+                                                                            <Badge
+                                                                                colorPalette={getStatusColor(item.status)}
+                                                                                variant="solid"
+                                                                                px={3}
+                                                                                py={1}
+                                                                                borderRadius="full"
+                                                                                fontSize="xs"
+                                                                                fontWeight="bold"
+                                                                            >
+                                                                                {item.status}
+                                                                            </Badge>
+                                                                        </HStack>
+                                                                        <Heading size="md" color="gray.800" lineHeight="1.3">
+                                                                            {item.title}
+                                                                        </Heading>
+                                                                        <Text color="gray.600" fontSize="sm" lineHeight="1.5" 
+                                                                              style={{ 
+                                                                                  display: '-webkit-box',
+                                                                                  WebkitLineClamp: 3,
+                                                                                  WebkitBoxOrient: 'vertical',
+                                                                                  overflow: 'hidden'
+                                                                              }}>
+                                                                            {item.action}
+                                                                        </Text>
+                                                                    </VStack>
+
+                                                                    {/* Assignment Info */}
+                                                                    <Box w="full">
+                                                                        <HStack justify="space-between" mb={2}>
+                                                                            <Text fontSize="xs" color="gray.500">
+                                                                                Assigned To
+                                                                            </Text>
+                                                                            <Text fontSize="xs" color="gray.700" fontWeight="semibold">
+                                                                                {(item.assigned_to?.first_name && item.assigned_to?.last_name) ? 
+                                                                                    `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : 
+                                                                                    item.assigned_to?.username || 'Unassigned'}
+                                                                            </Text>
+                                                                        </HStack>
+                                                                    </Box>
+
+                                                                    {/* Footer with Actions */}
+                                                                    <VStack gap={3} w="full" mt="auto">
+                                                                        <HStack justify="space-between" w="full" fontSize="xs" color="gray.500">
+                                                                            <HStack gap={1}>
+                                                                                <Calendar size={12} />
+                                                                                <Text>Created {formatDate(item.created_at)}</Text>
+                                                                            </HStack>
+                                                                            <HStack gap={1}>
+                                                                                <Flag size={12} />
+                                                                                <Text>{priority} Priority</Text>
+                                                                            </HStack>
+                                                                        </HStack>
+                                                                        
+                                                                        <HStack gap={2} w="full">
+                                                                            <select
+                                                                                value={item.status}
+                                                                                onChange={(e) => handleStatusChange(item.id, e.target.value as 'Pending' | 'Completed')}
+                                                                                style={{
+                                                                                    flex: 1,
+                                                                                    padding: '6px 10px',
+                                                                                    border: '1px solid #d1d5db',
+                                                                                    borderRadius: '6px',
+                                                                                    fontSize: '12px',
+                                                                                    backgroundColor: 'white',
+                                                                                    color: '#4a5568',
+                                                                                    outline: 'none',
+                                                                                    cursor: 'pointer'
+                                                                                }}
+                                                                            >
+                                                                                <option value="Pending">🕒 Pending</option>
+                                                                                <option value="Completed">✅ Completed</option>
+                                                                            </select>
+                                                                            <Button
+                                                                                size="xs"
+                                                                                variant="outline"
+                                                                                borderColor="red.400"
+                                                                                color="red.600"
+                                                                                _hover={{ bg: "red.50" }}
+                                                                                onClick={() => handleDeleteActionItem(item.id)}
+                                                                                p={2}
+                                                                                minW="auto"
+                                                                            >
+                                                                                <Trash2 size={14} />
+                                                                            </Button>
+                                                                        </HStack>
+                                                                    </VStack>
+                                                                </VStack>
+                                                            </Card.Body>
+                                                        </Card.Root>
+                                                    );
+                                                })}
+                                            </SimpleGrid>
                                         ) : (
-                                            actionItems.map((item) => (
-                                                <Card.Root key={item.id} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" shadow="sm"
-                                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                                    transition="all 0.3s ease"
-                                                >
-                                                    <Card.Body p={6}>
-                                                        <HStack justify="space-between" align="start">
-                                                            <VStack align="start" gap={3} flex="1">
-                                                                <HStack gap={3} align="center">
-                                                                    <Heading size="md" color="gray.800">
-                                                                        {item.title}
-                                                                    </Heading>
-                                                                    <Badge
-                                                                        colorPalette={getStatusColor(item.status)}
-                                                                        variant="solid"
-                                                                        px={3}
-                                                                        py={1}
-                                                                        borderRadius="full"
-                                                                        fontSize="xs"
-                                                                    >
-                                                                        {item.status}
-                                                                    </Badge>
-                                                                </HStack>
-                                                                <Text color="gray.600" fontSize="sm" lineHeight="1.5">
-                                                                    {item.action}
-                                                                </Text>
-                                                                <HStack gap={6} fontSize="sm" color="gray.500" wrap="wrap">
+                                            <VStack gap={4} align="stretch">
+                                                {filteredAndSortedItems.map((item) => {
+                                                    const priority = item.priority || 'Medium';
+                                                    const priorityColor = getPriorityColor(priority);
+                                                    
+                                                    return (
+                                                        <Card.Root key={item.id} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" shadow="sm"
+                                                            _hover={{ transform: "translateY(-2px)", shadow: "md" }}
+                                                            transition="all 0.3s ease"
+                                                        >
+                                                            <Card.Body p={6}>
+                                                                <HStack justify="space-between" align="start">
+                                                                    <VStack align="start" gap={3} flex="1">
+                                                                        <HStack gap={3} align="center">
+                                                                            <Box p={2} bg={`${priorityColor}.100`} borderRadius="md">
+                                                                                {getPriorityIcon(priority)}
+                                                                            </Box>
+                                                                            <Heading size="md" color="gray.800">
+                                                                                {item.title}
+                                                                            </Heading>
+                                                                            <Badge
+                                                                                colorPalette={getStatusColor(item.status)}
+                                                                                variant="solid"
+                                                                                px={3}
+                                                                                py={1}
+                                                                                borderRadius="full"
+                                                                                fontSize="xs"
+                                                                            >
+                                                                                {item.status}
+                                                                            </Badge>
+                                                                            <Badge
+                                                                                colorPalette={priorityColor}
+                                                                                variant="outline"
+                                                                                px={2}
+                                                                                py={1}
+                                                                                borderRadius="full"
+                                                                                fontSize="xs"
+                                                                            >
+                                                                                {priority} Priority
+                                                                            </Badge>
+                                                                        </HStack>
+                                                                        <Text color="gray.600" fontSize="sm" lineHeight="1.5">
+                                                                            {item.action}
+                                                                        </Text>
+                                                                        <HStack gap={6} fontSize="sm" color="gray.500" wrap="wrap">
+                                                                            <HStack gap={2}>
+                                                                                <User size={16} />
+                                                                                <Text>Assigned: {(item.assigned_to?.first_name && item.assigned_to?.last_name) ? `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : item.assigned_to?.username || 'Unassigned'}</Text>
+                                                                            </HStack>
+                                                                            <HStack gap={2}>
+                                                                                <Calendar size={16} />
+                                                                                <Text>Created: {formatDate(item.created_at)}</Text>
+                                                                            </HStack>
+                                                                        </HStack>
+                                                                    </VStack>
                                                                     <HStack gap={2}>
-                                                                        <User size={16} />
-                                                                        <Text>Assigned: {(item.assigned_to?.first_name && item.assigned_to?.last_name) ? `${item.assigned_to.first_name} ${item.assigned_to.last_name}` : item.assigned_to?.username || 'Unassigned'}</Text>
-                                                                    </HStack>
-                                                                    <HStack gap={2}>
-                                                                        <Calendar size={16} />
-                                                                        <Text>Created: {formatDate(item.created_at)}</Text>
+                                                                        <select
+                                                                            value={item.status}
+                                                                            onChange={(e) => handleStatusChange(item.id, e.target.value as 'Pending' | 'Completed')}
+                                                                            style={{
+                                                                                padding: '6px 12px',
+                                                                                border: '1px solid #d1d5db',
+                                                                                borderRadius: '6px',
+                                                                                fontSize: '14px',
+                                                                                backgroundColor: 'white',
+                                                                                color: '#4a5568',
+                                                                                outline: 'none',
+                                                                                cursor: 'pointer'
+                                                                            }}
+                                                                        >
+                                                                            <option value="Pending">🕒 Pending</option>
+                                                                            <option value="Completed">✅ Completed</option>
+                                                                        </select>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            borderColor="red.600"
+                                                                            color="red.600"
+                                                                            _hover={{ bg: "red.50" }}
+                                                                            onClick={() => handleDeleteActionItem(item.id)}
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                            Delete
+                                                                        </Button>
                                                                     </HStack>
                                                                 </HStack>
-                                                            </VStack>
-                                                            <HStack gap={2}>
-                                                                <select
-                                                                    value={item.status}
-                                                                    onChange={(e) => handleStatusChange(item.id, e.target.value as 'Pending' | 'Completed')}
-                                                                    style={{
-                                                                        padding: '6px 12px',
-                                                                        border: '1px solid #d1d5db',
-                                                                        borderRadius: '6px',
-                                                                        fontSize: '14px',
-                                                                        backgroundColor: 'white',
-                                                                        color: '#4a5568',
-                                                                        outline: 'none',
-                                                                        cursor: 'pointer'
-                                                                    }}
-                                                                >
-                                                                    <option value="Pending">Pending</option>
-                                                                    <option value="Completed">Completed</option>
-                                                                </select>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    borderColor="red.600"
-                                                                    color="red.600"
-                                                                    _hover={{ bg: "red.50" }}
-                                                                    onClick={() => handleDeleteActionItem(item.id)}
-                                                                >
-                                                                    Delete
-                                                                </Button>
-                                                            </HStack>
-                                                        </HStack>
-                                                    </Card.Body>
-                                                </Card.Root>
-                                            ))
+                                                            </Card.Body>
+                                                        </Card.Root>
+                                                    );
+                                                })}
+                                            </VStack>
                                         )}
                                     </VStack>
                                 </Card.Body>
