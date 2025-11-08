@@ -108,7 +108,7 @@ interface CalendarEvent {
 
 const StatCard: React.FC<StatCardProps> = ({ icon, value, label, color }) => (
     <Box 
-        p={3} 
+        p={2} 
         h="full" 
         bg="white" 
         border="1px solid" 
@@ -486,16 +486,17 @@ export default function ContentPage() {
 
             {/* Main Content */}
             <Box flex={1} overflow="hidden" display="flex" flexDirection="column">
-                <Box p={{ base: 3, md: 4 }} maxW="1400px" mx="auto" w="full" h="full" overflow="auto">
+                <Box p={{ base: 2, md: 3 }} maxW="1400px" mx="auto" w="full" h="full" overflow="hidden" display="flex" flexDirection="column">
                 {/* Carousel Section */}
                 <Box
                     bg="white"
                     borderRadius="lg"
                     boxShadow="sm"
-                    mb={4}
+                    mb={2}
                     overflow="hidden"
+                    flexShrink={0}
                 >
-                    <Box position="relative" h={{ base: "220px", md: "240px" }}>
+                    <Box position="relative" h={{ base: "160px", md: "180px" }}>
                         {/* Background Image with Overlay */}
                         <Box
                             position="absolute"
@@ -661,7 +662,7 @@ export default function ContentPage() {
                     </Box>
 
                 {/* Quick Stats Section */}
-                <SimpleGrid columns={{ base: 2, md: 4 }} gap={3} mb={4}>
+                <SimpleGrid columns={{ base: 2, md: 4 }} gap={2} mb={2} flexShrink={0}>
                     <StatCard 
                         icon={<UsersIcon size={20} />}
                         value="500+"
@@ -689,16 +690,17 @@ export default function ContentPage() {
                 </SimpleGrid>
 
                 {/* Resource Cards Grid */}
-                    <VStack align="start" mb={3} mt={2}>
-                        <Heading size={{ base: "md", md: "lg" }} color="gray.800" fontWeight="600">
+                    <VStack align="start" mb={2} mt={1} flexShrink={0}>
+                        <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="600">
                             Explore Resources
                         </Heading>
-                        <Text color="gray.600" fontSize={{ base: "sm", md: "md" }}>
+                        <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
                             Access support services and resources tailored to your needs
                         </Text>
                     </VStack>
 
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={3} mb={4}>
+                <Box flex={1} overflow="hidden">
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={2} h="full">
                     {resourceCards.map((card) => (
                         <Box
                             key={card.id}
@@ -715,7 +717,7 @@ export default function ContentPage() {
                             cursor={card.id === '3' ? 'pointer' : 'default'}
                             onClick={() => card.id === '3' && handleCardClick(card.id)}
                         >
-                            <Box p={4}>
+                            <Box p={3}>
                                 <HStack gap={4} align="start">
                                     <Box
                                         p={2}
@@ -756,7 +758,8 @@ export default function ContentPage() {
                             </Box>
                         </Box>
                     ))}
-                </SimpleGrid>
+                    </SimpleGrid>
+                </Box>
 
                 </Box>
             </Box>

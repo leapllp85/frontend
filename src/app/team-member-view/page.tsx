@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { AppLayout } from '@/components/layouts/AppLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { getUserRole } from '@/utils/rbac';
 
 // Add keyframes for animations
 if (typeof document !== 'undefined') {
@@ -98,7 +101,9 @@ import {
     Sparkles as SparklesIcon,
     Gift,
     ClipboardList,
-    ArrowRight
+    ArrowRight,
+    LogOut,
+    MessageCircle
 } from 'lucide-react';
 import { Line, Pie } from 'react-chartjs-2';
 import {
@@ -186,6 +191,8 @@ interface CalendarEvent {
 
 export default function TeamMemberView() {
     const router = useRouter();
+    const { user, logout } = useAuth();
+    const userRole = user ? getUserRole(user) : 'Associate';
     const [loading, setLoading] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -203,6 +210,31 @@ export default function TeamMemberView() {
         name: 'John Doe',
         designation: 'Senior Software Engineer',
         avatar: 'https://i.pravatar.cc/150?img=12' // Sample avatar image
+    };
+
+    // Logout function
+    const handleLogout = () => {
+        try {
+            // Call the logout method from AuthContext
+            logout();
+            
+            // Clear any additional stored authentication data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            
+            // Clear session storage as well
+            sessionStorage.clear();
+            
+            // Force page reload to ensure clean state
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Force redirect even if logout fails
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = '/login';
+        }
     };
 
     // Mock data - Replace with actual API calls
@@ -249,7 +281,7 @@ export default function TeamMemberView() {
                         message: 'EWS Frontend Development deadline is in 2 weeks',
                         type: 'warning',
                         timestamp: '2 hours ago',
-                        read: false
+                        read: true
                     },
                     {
                         id: '2',
@@ -257,7 +289,7 @@ export default function TeamMemberView() {
                         message: 'Your code review has been approved',
                         type: 'success',
                         timestamp: '5 hours ago',
-                        read: false
+                        read: true
                     },
                     {
                         id: '3',
@@ -679,15 +711,31 @@ export default function TeamMemberView() {
         }
     };
 
+    // Create a wrapper component that conditionally uses AppLayout
+    const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+        if (userRole === 'Associate') {
+            // Associates get full screen without sidebar
+            return (
+                <Box w="100vw" h="100vh" bg="#fafbfc">
+                    {children}
+                </Box>
+            );
+        } else {
+            // Managers get sidebar layout
+            return <AppLayout>{children}</AppLayout>;
+        }
+    };
+
     if (loading) {
         return (
-            <Box 
-                w="100vw" 
-                h="100vh" 
-                bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                position="relative"
-                overflow="hidden"
-            >
+            <LayoutWrapper>
+                <Box 
+                    w="full" 
+                    h="full" 
+                    bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                    position="relative"
+                    overflow="hidden"
+                >
                 {/* Animated background circles */}
                 <Box
                     position="absolute"
@@ -784,34 +832,46 @@ export default function TeamMemberView() {
                         </HStack>
                     </VStack>
                 </Flex>
-            </Box>
+                </Box>
+            </LayoutWrapper>
         );
     }
 
     return (
-        <Box 
-            w="100vw" 
-            h="100vh" 
-            bg="gray.50" 
-            overflow="hidden"
-            style={{ animation: 'fadeIn 0.5s ease-out' }}
-        >
+        <LayoutWrapper>
+            <Box 
+                w="full" 
+                h={userRole === 'Associate' ? "100vh" : "full"}
+                bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)" 
+                overflow="hidden"
+                display="flex"
+                flexDirection="column"
+                style={{ animation: 'fadeIn 0.5s ease-out' }}
+            >
             {/* Header with Profile */}
             <Box 
                 bg="white" 
                 borderBottom="1px solid" 
                 borderColor="gray.200" 
                 px={{ base: 4, md: 6 }} 
-                py={3}
+                py={2}
                 shadow="sm"
-                style={{ animation: 'fadeInUp 0.6s ease-out' }}
+                flexShrink={0}
+                style={{ 
+                    animation: 'fadeInUp 0.6s ease-out',
+                    backdropFilter: 'blur(10px)',
+                    background: 'rgba(255, 255, 255, 0.95)'
+                }}
             >
                 <Flex justify="space-between" align="center">
                     {/* Left: Title */}
-                    <VStack align="start" gap={0}>
-                        <Heading size={{ base: "md", md: "lg" }} color="gray.800" fontWeight="600">
-                            Your personalized workspace overview
+                    <VStack align="start" gap={1}>
+                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="700">
+                            Welcome back, {userProfile.name.split(' ')[0]}! 👋
                         </Heading>
+                        <Text color="gray.600" fontSize={{ base: "sm", md: "md" }} fontWeight="500">
+                            Your personalized workspace overview
+                        </Text>
                     </VStack>
                     
                     {/* Right: Profile */}
@@ -825,12 +885,19 @@ export default function TeamMemberView() {
                             </Text>
                         </VStack>
                         <Box
-                            w={{ base: "40px", md: "48px" }}
-                            h={{ base: "40px", md: "48px" }}
+                            w={{ base: "44px", md: "52px" }}
+                            h={{ base: "44px", md: "52px" }}
                             borderRadius="full"
                             overflow="hidden"
-                            border="2px solid"
-                            borderColor="purple.500"
+                            border="3px solid"
+                            borderColor="teal.400"
+                            shadow="sm"
+                            position="relative"
+                            _hover={{ 
+                                transform: "scale(1.05)",
+                                borderColor: "teal.500"
+                            }}
+                            transition="all 0.2s ease"
                         >
                             <img 
                                 src={userProfile.avatar} 
@@ -838,43 +905,77 @@ export default function TeamMemberView() {
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
                         </Box>
+                        
+                        {/* Logout Button */}
+                        <IconButton
+                            aria-label="Logout"
+                            size={{ base: "sm", md: "md" }}
+                            variant="solid"
+                            bg="gray.800"
+                            color="white"
+                            borderRadius="full"
+                            _hover={{
+                                bg: "gray.900",
+                                transform: "scale(1.05)",
+                                shadow: "lg"
+                            }}
+                            _active={{
+                                bg: "gray.700",
+                                transform: "scale(0.95)"
+                            }}
+                            transition="all 0.2s ease"
+                            onClick={handleLogout}
+                            title="Logout"
+                        >
+                            <LogOut size={18} />
+                        </IconButton>
                     </HStack>
                 </Flex>
             </Box>
 
-            {/* Main Content - Six Quadrants in 2 rows x 3 columns */}
+            {/* Main Content - Reorganized Layout */}
             <Box 
-                h="calc(100vh - 80px)" 
+                flex="1"
                 overflow="hidden" 
-                p={{ base: 2, md: 3 }}
+                p={{ base: 2, md: 4 }}
                 style={{ animation: 'fadeInUp 0.7s ease-out' }}
             >
                 <SimpleGrid 
                     columns={{ base: 1, md: 2, lg: 3 }} 
                     gap={{ base: 2, md: 3 }}
                     h="full"
-                    gridTemplateRows={{ lg: "450px 1fr" }}
+                    gridTemplateRows={{ lg: "1fr 1fr" }}
                 >
-                    {/* Quadrant 1: My Projects */}
+                    {/* Row 1 - Quadrant 1: My Projects */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
                         borderColor="gray.200"
-                        borderRadius="lg"
+                        borderRadius="xl"
                         shadow="sm"
                         h="full"
                         display="flex"
                         flexDirection="column"
+                        overflow="hidden"
                     >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="purple.100" borderRadius="md">
-                                    <FolderKanban size={16} color="#805AD5" />
+                        <Card.Header 
+                            p={{ base: 2, md: 3 }} 
+                            pb={2} 
+                            borderBottom="1px solid" 
+                            borderColor="gray.100"
+                            bg="gradient-to-r from-purple.50 to-purple.100"
+                        >
+                            <HStack gap={3}>
+                                <Box p={2} bg="purple.500" borderRadius="lg">
+                                    <FolderKanban size={18} color="white" />
                                 </Box>
                                 <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
+                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
                                         My Projects
                                     </Heading>
+                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                        Active assignments
+                                    </Text>
                                     <Text fontSize="2xs" color="gray.600">
                                         {projects.length} active
                                     </Text>
@@ -882,22 +983,9 @@ export default function TeamMemberView() {
                             </HStack>
                         </Card.Header>
                         <Card.Body p={{ base: 2, md: 3 }} flex={1} display="flex" flexDirection="column" overflow="hidden">
-                            <VStack gap={2} align="stretch" flex={1}>
-                                {/* 3D Pie Chart */}
-                                <Box flex={1} w="full" minH="0" display="flex" alignItems="center" justifyContent="center">
-                                    <Box 
-                                        w="full" 
-                                        h="full" 
-                                        maxH="250px"
-                                        position="relative"
-                                        borderRadius="50%"
-                                    >
-                                        <Pie data={pieChartData} options={pieChartOptions} />
-                                    </Box>
-                                </Box>
-                                
-                                {/* Custom Legends */}
-                                <VStack gap={1} align="stretch">
+                            <VStack gap={4} align="stretch" flex={1}>
+                                {/* Project Allocation Bars */}
+                                <VStack gap={3} align="stretch" flex={1}>
                                     {projects.map((project, index) => {
                                         const colors = [
                                             'purple.500',
@@ -907,23 +995,40 @@ export default function TeamMemberView() {
                                             'red.500'
                                         ];
                                         return (
-                                            <HStack key={project.id} gap={2} justify="space-between">
-                                                <HStack gap={2} flex={1}>
-                                                    <Box
-                                                        w={3}
-                                                        h={3}
-                                                        bg={colors[index]}
-                                                        borderRadius="sm"
-                                                        flexShrink={0}
-                                                    />
-                                                    <Text fontSize={{ base: "2xs", md: "xs" }} color="gray.700" lineClamp={1}>
-                                                        {project.name}
+                                            <Box key={project.id}>
+                                                <HStack justify="space-between" mb={2}>
+                                                    <HStack gap={2}>
+                                                        <Box
+                                                            w={3}
+                                                            h={3}
+                                                            bg={colors[index]}
+                                                            borderRadius="sm"
+                                                            flexShrink={0}
+                                                        />
+                                                        <Text fontSize="sm" color="gray.700" fontWeight="500">
+                                                            {project.name}
+                                                        </Text>
+                                                    </HStack>
+                                                    <Text fontSize="sm" fontWeight="600" color="gray.800">
+                                                        {project.allocation}%
                                                     </Text>
                                                 </HStack>
-                                                <Text fontSize={{ base: "2xs", md: "xs" }} fontWeight="bold" color="gray.800" flexShrink={0}>
-                                                    {project.allocation}%
-                                                </Text>
-                                            </HStack>
+                                                <Box
+                                                    w="full"
+                                                    h="8px"
+                                                    bg="gray.100"
+                                                    borderRadius="full"
+                                                    overflow="hidden"
+                                                >
+                                                    <Box
+                                                        w={`${project.allocation}%`}
+                                                        h="full"
+                                                        bg={colors[index]}
+                                                        borderRadius="full"
+                                                        transition="width 0.5s ease"
+                                                    />
+                                                </Box>
+                                            </Box>
                                         );
                                     })}
                                 </VStack>
@@ -931,7 +1036,252 @@ export default function TeamMemberView() {
                             </Card.Body>
                         </Card.Root>
 
-                    {/* Quadrant 2: Testimonies */}
+                    {/* Row 1 - Quadrant 2: My Space (Single Width) */}
+                    <Card.Root
+                        bg="white"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="xl"
+                        shadow="sm"
+                        h="full"
+                        display="flex"
+                        flexDirection="column"
+                    >
+                        <Card.Header 
+                            p={{ base: 2, md: 3 }} 
+                            pb={2} 
+                            borderBottom="1px solid" 
+                            borderColor="gray.100"
+                            bg="gradient-to-r from-green.50 to-green.100"
+                        >
+                            <HStack gap={3}>
+                                <Box p={2} bg="green.500" borderRadius="lg">
+                                    <BarChart3 size={18} color="white" />
+                                </Box>
+                                <VStack align="start" gap={0}>
+                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
+                                        My Space
+                                    </Heading>
+                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                        Quick access
+                                    </Text>
+                                </VStack>
+                            </HStack>
+                        </Card.Header>
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1}>
+                            <SimpleGrid columns={{ base: 2, md: 2, lg: 2 }} gap={1} h="full">
+                                {/* View Survey */}
+                                <Button
+                                    variant="outline"
+                                    h="full"
+                                    minH={{ base: "50px", md: "60px" }}
+                                    borderRadius="xl"
+                                    border="3px solid"
+                                    borderColor="purple.200"
+                                    bg="purple.50"
+                                    _hover={{ bg: "purple.100", borderColor: "purple.300", transform: "translateY(-2px)" }}
+                                    display="flex"
+                                    flexDirection="column"
+                                    gap={2}
+                                    p={3}
+                                    onClick={() => router.push('/survey-responses')}
+                                    transition="all 0.3s ease"
+                                >
+                                    <Box p={2} bg="purple.100" borderRadius="lg">
+                                        <FileText size={20} color="#805AD5" />
+                                    </Box>
+                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
+                                        View Survey
+                                    </Text>
+                                </Button>
+
+                                {/* Access Offering */}
+                                <Button
+                                    variant="outline"
+                                    h="full"
+                                    minH={{ base: "50px", md: "60px" }}
+                                    borderRadius="xl"
+                                    border="3px solid"
+                                    borderColor="blue.200"
+                                    bg="blue.50"
+                                    _hover={{ bg: "blue.100", borderColor: "blue.300", transform: "translateY(-2px)" }}
+                                    display="flex"
+                                    flexDirection="column"
+                                    gap={2}
+                                    p={3}
+                                    onClick={() => router.push('/content')}
+                                    transition="all 0.3s ease"
+                                >
+                                    <Box p={2} bg="blue.100" borderRadius="lg">
+                                        <Package size={20} color="#3182CE" />
+                                    </Box>
+                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
+                                        Access Offering
+                                    </Text>
+                                </Button>
+
+                                {/* Event Calendar */}
+                                <Button
+                                    variant="outline"
+                                    h="full"
+                                    minH={{ base: "50px", md: "60px" }}
+                                    borderRadius="xl"
+                                    border="3px solid"
+                                    borderColor="green.200"
+                                    bg="green.50"
+                                    _hover={{ bg: "green.100", borderColor: "green.300", transform: "translateY(-2px)" }}
+                                    display="flex"
+                                    flexDirection="column"
+                                    gap={2}
+                                    p={3}
+                                    onClick={() => setIsCalendarOpen(true)}
+                                    transition="all 0.3s ease"
+                                >
+                                    <Box p={2} bg="green.100" borderRadius="lg">
+                                        <Calendar size={20} color="#38A169" />
+                                    </Box>
+                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
+                                        Event Calendar
+                                    </Text>
+                                </Button>
+
+                                {/* Get Help */}
+                                <Button
+                                    variant="outline"
+                                    h="full"
+                                    minH={{ base: "50px", md: "60px" }}
+                                    borderRadius="xl"
+                                    border="3px solid"
+                                    borderColor="orange.200"
+                                    bg="orange.50"
+                                    _hover={{ bg: "orange.100", borderColor: "orange.300", transform: "translateY(-2px)" }}
+                                    display="flex"
+                                    flexDirection="column"
+                                    gap={2}
+                                    p={3}
+                                    onClick={() => setIsHelpModalOpen(true)}
+                                    transition="all 0.3s ease"
+                                >
+                                    <Box p={2} bg="orange.100" borderRadius="lg">
+                                        <HelpCircle size={20} color="#DD6B20" />
+                                    </Box>
+                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
+                                        Get Help
+                                    </Text>
+                                </Button>
+                            </SimpleGrid>
+                        </Card.Body>
+                    </Card.Root>
+
+                    {/* Row 2 - Quadrant 1: Notifications */}
+                    <Card.Root
+                        bg="white"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="xl"
+                        shadow="sm"
+                        h="full"
+                        display="flex"
+                        flexDirection="column"
+                        overflow="hidden"
+                    >
+                        <Card.Header 
+                            p={{ base: 2, md: 3 }} 
+                            pb={2} 
+                            borderBottom="1px solid" 
+                            borderColor="gray.100"
+                            bg="gradient-to-r from-blue.50 to-blue.100"
+                        >
+                            <HStack gap={3}>
+                                <Box p={2} bg="blue.500" borderRadius="lg">
+                                    <Bell size={18} color="white" />
+                                </Box>
+                                <VStack align="start" gap={0}>
+                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
+                                        Notifications
+                                    </Heading>
+                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                        Stay updated
+                                    </Text>
+                                    <Text fontSize="2xs" color="gray.600">
+                                        {notifications.filter(n => !n.read).length} unread
+                                    </Text>
+                                </VStack>
+                            </HStack>
+                        </Card.Header>
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
+                            <VStack gap={1} align="stretch">
+                                {notifications.map((notification) => {
+                                    const Icon = getNotificationIcon(notification.type);
+                                    return (
+                                        <Box
+                                            key={notification.id}
+                                            p={{ base: 2, md: 3 }}
+                                            bg={notification.read ? "white" : "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)"}
+                                            borderRadius="xl"
+                                            border="1px solid"
+                                            borderColor={notification.read ? "gray.200" : "blue.300"}
+                                            cursor="pointer"
+                                            onClick={() => markAsRead(notification.id)}
+                                            shadow="none"
+                                            position="relative"
+                                            overflow="hidden"
+                                            _before={!notification.read ? {
+                                                content: '""',
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                w: "4px",
+                                                h: "full",
+                                                bg: "blue.500",
+                                                borderRadius: "0 4px 4px 0"
+                                            } : {}}
+                                        >
+                                            <HStack align="start" gap={3}>
+                                                <Box
+                                                    p={2}
+                                                    bg={`${getNotificationColor(notification.type)}.500`}
+                                                    borderRadius="lg"
+                                                    flexShrink={0}
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                >
+                                                    <Icon size={14} color="white" />
+                                                </Box>
+                                                <VStack align="start" gap={0.5} flex={1}>
+                                                    <HStack justify="space-between" w="full">
+                                                        <Text
+                                                            fontWeight="semibold"
+                                                            color="gray.800"
+                                                            fontSize={{ base: "2xs", md: "xs" }}
+                                                            lineClamp={1}
+                                                        >
+                                                            {notification.title}
+                                                        </Text>
+                                                        {!notification.read && (
+                                                            <Box
+                                                                w={1.5}
+                                                                h={1.5}
+                                                                bg="blue.500"
+                                                                borderRadius="full"
+                                                                flexShrink={0}
+                                                            />
+                                                        )}
+                                                    </HStack>
+                                                    <Text fontSize="2xs" color="gray.600" lineClamp={2}>
+                                                        {notification.message}
+                                                    </Text>
+                                                </VStack>
+                                            </HStack>
+                                        </Box>
+                                    );
+                                })}
+                            </VStack>
+                        </Card.Body>
+                    </Card.Root>
+
+                    {/* Row 2 - Quadrant 2: Testimonies */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -957,7 +1307,7 @@ export default function TeamMemberView() {
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflowY="auto">
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
                             <VStack gap={1.5} align="stretch">
                                 {testimonies.map((testimony) => (
                                     <Box
@@ -992,7 +1342,7 @@ export default function TeamMemberView() {
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Quadrant 3: Technical Skills */}
+                    {/* Row 2 - Quadrant 3: Technical Skills */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -1018,7 +1368,7 @@ export default function TeamMemberView() {
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflowY="auto">
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
                             <SimpleGrid columns={2} gap={2}>
                                 {skills.map((skill) => (
                                     <Box 
@@ -1071,331 +1421,112 @@ export default function TeamMemberView() {
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Row 2 - Quadrant 5: Notifications */}
+                    {/* Row 1 - Quadrant 3: Team Chat (Right side of My Space) */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
                         borderColor="gray.200"
-                        borderRadius="lg"
+                        borderRadius="xl"
                         shadow="sm"
                         h="full"
                         display="flex"
                         flexDirection="column"
+                        overflow="hidden"
                     >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="blue.100" borderRadius="md">
-                                    <Bell size={16} color="#3182CE" />
+                        <Card.Header 
+                            p={{ base: 2, md: 3 }} 
+                            pb={2} 
+                            borderBottom="1px solid" 
+                            borderColor="gray.100"
+                            bg="gradient-to-r from-teal.50 to-teal.100"
+                        >
+                            <HStack gap={3}>
+                                <Box p={2} bg="teal.500" borderRadius="lg">
+                                    <MessageCircle size={18} color="white" />
                                 </Box>
                                 <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        Notifications
-                                    </Heading>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {notifications.filter(n => !n.read).length} unread
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflowY="auto">
-                            <VStack gap={2} align="stretch">
-                                {notifications.map((notification) => {
-                                    const Icon = getNotificationIcon(notification.type);
-                                    return (
-                                        <Box
-                                            key={notification.id}
-                                            p={{ base: 2, md: 3 }}
-                                            bg={notification.read ? "gray.50" : "blue.50"}
-                                            borderRadius="md"
-                                            border="1px solid"
-                                            borderColor={notification.read ? "gray.200" : "blue.200"}
-                                            cursor="pointer"
-                                            onClick={() => markAsRead(notification.id)}
-                                        >
-                                            <HStack align="start" gap={2}>
-                                                <Box
-                                                    p={1}
-                                                    bg={`${getNotificationColor(notification.type)}.100`}
-                                                    borderRadius="md"
-                                                    flexShrink={0}
-                                                >
-                                                    <Icon size={12} />
-                                                </Box>
-                                                <VStack align="start" gap={0.5} flex={1}>
-                                                    <HStack justify="space-between" w="full">
-                                                        <Text
-                                                            fontWeight="semibold"
-                                                            color="gray.800"
-                                                            fontSize={{ base: "2xs", md: "xs" }}
-                                                            lineClamp={1}
-                                                        >
-                                                            {notification.title}
-                                                        </Text>
-                                                        {!notification.read && (
-                                                            <Box
-                                                                w={1.5}
-                                                                h={1.5}
-                                                                bg="blue.500"
-                                                                borderRadius="full"
-                                                                flexShrink={0}
-                                                            />
-                                                        )}
-                                                    </HStack>
-                                                    <Text fontSize="2xs" color="gray.600" lineClamp={2}>
-                                                        {notification.message}
-                                                    </Text>
-                                                </VStack>
-                                            </HStack>
-                                        </Box>
-                                    );
-                                })}
-                            </VStack>
-                            </Card.Body>
-                        </Card.Root>
-
-                    {/* Row 2 - Quadrant 4: My Space */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                    >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="green.100" borderRadius="md">
-                                    <BarChart3 size={16} color="#38A169" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        My Space
-                                    </Heading>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        Quick access
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1}>
-                            <SimpleGrid columns={{ base: 1, md: 2 }} gap={2} h="full">
-                                {/* View Survey */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "60px", md: "70px" }}
-                                    borderRadius="lg"
-                                    border="2px solid"
-                                    borderColor="purple.200"
-                                    bg="purple.50"
-                                    _hover={{ bg: "purple.100", borderColor: "purple.300" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={4}
-                                    onClick={() => router.push('/survey-responses')}
-                                >
-                                    <Box p={2} bg="purple.100" borderRadius="lg">
-                                        <FileText size={24} color="#805AD5" />
-                                    </Box>
-                                    <Text fontWeight="semibold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                        View Survey
-                                    </Text>
-                                </Button>
-
-                                {/* Access Offering */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "60px", md: "70px" }}
-                                    borderRadius="lg"
-                                    border="2px solid"
-                                    borderColor="blue.200"
-                                    bg="blue.50"
-                                    _hover={{ bg: "blue.100", borderColor: "blue.300" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={1}
-                                    p={3}
-                                    onClick={() => router.push('/content')}
-                                >
-                                    <Box p={1.5} bg="blue.100" borderRadius="lg">
-                                        <Package size={20} color="#3182CE" />
-                                    </Box>
-                                    <Text fontWeight="semibold" color="gray.800" fontSize={{ base: "2xs", md: "xs" }}>
-                                        Access Offering
-                                    </Text>
-                                </Button>
-
-                                {/* Event Calendar */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "60px", md: "70px" }}
-                                    borderRadius="lg"
-                                    border="2px solid"
-                                    borderColor="green.200"
-                                    bg="green.50"
-                                    _hover={{ bg: "green.100", borderColor: "green.300" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={1}
-                                    p={3}
-                                    onClick={() => setIsCalendarOpen(true)}
-                                >
-                                    <Box p={1.5} bg="green.100" borderRadius="lg">
-                                        <Calendar size={20} color="#38A169" />
-                                    </Box>
-                                    <Text fontWeight="semibold" color="gray.800" fontSize={{ base: "2xs", md: "xs" }}>
-                                        Event Calendar
-                                    </Text>
-                                </Button>
-
-                                {/* Get Help */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "60px", md: "70px" }}
-                                    borderRadius="lg"
-                                    border="2px solid"
-                                    borderColor="orange.200"
-                                    bg="orange.50"
-                                    _hover={{ bg: "orange.100", borderColor: "orange.300" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={4}
-                                    onClick={() => setIsHelpModalOpen(true)}
-                                >
-                                    <Box p={2} bg="orange.100" borderRadius="lg">
-                                        <HelpCircle size={24} color="#DD6B20" />
-                                    </Box>
-                                    <Text fontWeight="semibold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                        Get Help
-                                    </Text>
-                                </Button>
-                            </SimpleGrid>
-                            </Card.Body>
-                        </Card.Root>
-
-                    {/* Row 2 - Quadrant 6: Chat Window */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                    >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="orange.100" borderRadius="md">
-                                    <MessageSquare size={16} color="#DD6B20" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
+                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
                                         Team Chat
                                     </Heading>
+                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                        Connect with colleagues
+                                    </Text>
                                     <Text fontSize="2xs" color="gray.600">
-                                        Quick chat
+                                        {chatMessages.length} messages
                                     </Text>
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={0} display="flex" flexDirection="column" flex={1} overflow="hidden">
-                            {/* Chat Messages */}
-                            <Box flex={1} overflowY="auto" p={{ base: 2, md: 3 }}>
-                                <VStack gap={2} align="stretch">
-                                    {chatMessages.map((msg) => (
-                                        <HStack
-                                            key={msg.id}
-                                            alignSelf={msg.sender === 'user' ? 'flex-end' : 'flex-start'}
-                                            maxW="85%"
-                                            gap={2}
-                                            flexDirection={msg.sender === 'user' ? 'row-reverse' : 'row'}
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} display="flex" flexDirection="column" overflow="hidden">
+                            <VStack gap={2} align="stretch" flex={1}>
+                                {/* Chat Messages */}
+                                <VStack 
+                                    gap={1} 
+                                    align="stretch" 
+                                    flex={1} 
+                                    overflow="hidden"
+                                    maxH="150px"
+                                >
+                                    {chatMessages.map((message) => (
+                                        <Box
+                                            key={message.id}
+                                            p={2}
+                                            bg={message.sender === 'user' ? 'teal.50' : 'gray.50'}
+                                            borderRadius="lg"
+                                            border="1px solid"
+                                            borderColor={message.sender === 'user' ? 'teal.200' : 'gray.200'}
                                         >
-                                            {/* Avatar */}
-                                            <Box
-                                                w="24px"
-                                                h="24px"
-                                                borderRadius="full"
-                                                bg={msg.sender === 'user' ? 'purple.500' : 'gray.400'}
-                                                color="white"
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                flexShrink={0}
-                                                overflow="hidden"
-                                            >
-                                                {msg.sender === 'user' ? (
-                                                    <img 
-                                                        src={userProfile.avatar} 
-                                                        alt="User"
-                                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                                    />
-                                                ) : (
-                                                    <User size={14} />
-                                                )}
-                                            </Box>
-                                            
-                                            {/* Message */}
-                                            <Box>
-                                                <Box
-                                                    p={2}
-                                                    bg={msg.sender === 'user' ? 'purple.500' : 'gray.100'}
-                                                    color={msg.sender === 'user' ? 'white' : 'gray.800'}
-                                                    borderRadius="md"
-                                                    borderBottomRightRadius={msg.sender === 'user' ? '0' : 'md'}
-                                                    borderBottomLeftRadius={msg.sender === 'system' ? '0' : 'md'}
-                                                >
-                                                    <Text fontSize={{ base: "2xs", md: "xs" }}>{msg.message}</Text>
-                                                </Box>
-                                                <Text
-                                                    fontSize="2xs"
-                                                    color="gray.500"
-                                                    mt={0.5}
-                                                    textAlign={msg.sender === 'user' ? 'right' : 'left'}
-                                                >
-                                                    {new Date(msg.timestamp).toLocaleTimeString()}
+                                            <VStack align="start" gap={1}>
+                                                <HStack justify="space-between" w="full">
+                                                    <Text fontSize="xs" fontWeight="bold" color="gray.700">
+                                                        {message.sender === 'user' ? 'You' : 'Team'}
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.500">
+                                                        {new Date(message.timestamp).toLocaleTimeString([], { 
+                                                            hour: '2-digit', 
+                                                            minute: '2-digit' 
+                                                        })}
+                                                    </Text>
+                                                </HStack>
+                                                <Text fontSize="sm" color="gray.800">
+                                                    {message.message}
                                                 </Text>
-                                            </Box>
-                                        </HStack>
+                                            </VStack>
+                                        </Box>
                                     ))}
                                 </VStack>
-                            </Box>
 
-                            {/* Chat Input */}
-                            <Box p={{ base: 2, md: 3 }} borderTop="1px solid" borderColor="gray.200">
+                                {/* Message Input */}
                                 <HStack gap={2}>
                                     <Input
-                                        placeholder="Type message..."
+                                        placeholder="Type a message..."
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handleSendMessage();
-                                            }
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                        size="sm"
+                                        borderRadius="lg"
+                                        bg="gray.50"
+                                        border="1px solid"
+                                        borderColor="gray.200"
+                                        _focus={{
+                                            borderColor: "teal.300",
+                                            bg: "white"
                                         }}
-                                        size="sm"
-                                        borderRadius="md"
-                                        fontSize={{ base: "xs", md: "sm" }}
                                     />
-                                    <Button
-                                        onClick={handleSendMessage}
-                                        colorPalette="purple"
+                                    <IconButton
+                                        aria-label="Send message"
                                         size="sm"
-                                        px={3}
+                                        colorScheme="teal"
+                                        borderRadius="lg"
+                                        onClick={handleSendMessage}
+                                        isDisabled={!newMessage.trim()}
                                     >
-                                        <Send size={14} />
-                                    </Button>
+                                        <Send size={16} />
+                                    </IconButton>
                                 </HStack>
-                            </Box>
-                            </Card.Body>
-                        </Card.Root>
+                            </VStack>
+                        </Card.Body>
+                    </Card.Root>
                 </SimpleGrid>
             </Box>
 
@@ -1567,21 +1698,44 @@ export default function TeamMemberView() {
                                     return (
                                     <Box
                                         key={event.id}
-                                        borderRadius="xl"
+                                        borderRadius="2xl"
                                         overflow="hidden"
-                                        bg={`${categoryColor}.50`}
-                                        transition="all 0.3s"
-                                        _hover={{ transform: 'translateY(-2px)', shadow: 'md', bg: 'white' }}
-                                        border="1.5px solid"
-                                        borderColor={event.recommended ? 'orange.200' : 'gray.200'}
+                                        bg="white"
+                                        border="1px solid"
+                                        borderColor={event.recommended ? 'orange.300' : 'gray.200'}
                                         position="relative"
+                                        shadow="sm"
+                                        _before={event.recommended ? {
+                                            content: '"✨ Recommended"',
+                                            position: 'absolute',
+                                            top: 3,
+                                            right: 3,
+                                            bg: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                                            color: 'white',
+                                            fontSize: 'xs',
+                                            fontWeight: 'bold',
+                                            px: 2,
+                                            py: 1,
+                                            borderRadius: 'full',
+                                            zIndex: 10
+                                        } : {}}
                                     >
-                                        {/* Event Image */}
+                                        {/* Enhanced Event Image */}
                                         <Box
-                                            h="200px"
+                                            h="220px"
                                             w="full"
                                             overflow="hidden"
                                             position="relative"
+                                            _after={{
+                                                content: '""',
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                bg: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.3) 100%)',
+                                                zIndex: 1
+                                            }}
                                         >
                                             <img
                                                 src={event.image}
@@ -1590,10 +1744,9 @@ export default function TeamMemberView() {
                                                     width: '100%',
                                                     height: '100%',
                                                     objectFit: 'cover',
-                                                    transition: 'transform 0.3s'
+                                                    transition: 'transform 0.4s ease',
+                                                    filter: 'brightness(1.1) contrast(1.1)'
                                                 }}
-                                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                                             />
                                             <Box
                                                 position="absolute"
@@ -1986,6 +2139,7 @@ export default function TeamMemberView() {
                     </Box>
                 </Box>
             )}
-        </Box>
+            </Box>
+        </LayoutWrapper>
     );
 }

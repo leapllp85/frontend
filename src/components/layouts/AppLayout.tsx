@@ -72,7 +72,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <Flex w="full" h="100vh" bg="gray.50">
+    <Flex w="full" h="99vh" bg="gray.50">
       <Sidebar 
         onSendMessage={(message) => handleSendMessage(message)}
         onResetView={resetView}
@@ -83,9 +83,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       
       {/* Main Content Area */}
       <Box 
-        h="100vh" 
+        h="99vh" 
         w="calc(100vw - 80px)"
-        overflow="hidden"
+        overflow="auto"
         position="relative"
       >
         {!hasQueried ? 

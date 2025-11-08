@@ -10,6 +10,7 @@ import { logout } from "@/lib/apis/auth";
 import { useChatContext } from '@/contexts/ChatContext';
 import { userApi } from "@/services";
 import { UserProfile } from "../../services/userApi";
+import { getUserRole } from '@/utils/rbac';
 
 type ProfileData = UserProfile;
 
@@ -36,16 +37,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   } = useChatContext();
 
   const pathname = usePathname();
+  const { user } = useAuth();
 
-  const navigationItems = [
-    { icon: Home, label: "Home", href: "/" },
-    { icon: Users, label: "Teams", href: "/teams" },
-    { icon: Network, label: "Organization", href: "/organization" },
-    { icon: FolderOpen, label: "Projects", href: "/projects" },
-    { icon: FileText, label: "Surveys", href: "/surveys" },
-    { icon: ClipboardList, label: "Survey Responses", href: "/survey-responses" },
-    { icon: CheckCircle, label: "Action Items", href: "/action-items" },
+  const allNavigationItems = [
+    { icon: Home, label: "Home", href: "/", roles: ['Manager', 'Associate'] },
+    { icon: Users, label: "Teams", href: "/teams", roles: ['Manager'] },
+    { icon: Network, label: "Organization", href: "/organization", roles: ['Manager'] },
+    { icon: FolderOpen, label: "Projects", href: "/projects", roles: ['Manager', 'Associate'] },
+    { icon: FileText, label: "Surveys", href: "/surveys", roles: ['Manager', 'Associate'] },
+    { icon: ClipboardList, label: "Survey Responses", href: "/survey-responses", roles: ['Manager', 'Associate'] },
+    { icon: CheckCircle, label: "Action Items", href: "/action-items", roles: ['Manager', 'Associate'] },
   ];
+
+  // Filter navigation items based on user role
+  const navigationItems = allNavigationItems.filter(item => {
+    if (!user) return true; // Show all items if no user (fallback)
+    const userRole = getUserRole(user);
+    return item.roles.includes(userRole);
+  });
 
   const handleSendMessage = useCallback(async () => {
     const message = chatMessage.trim();
@@ -386,14 +395,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </Text> */}
           
           {/* Chat Input */}
-          {/* <HStack gap={3}>
+          <HStack gap={3}>
             <Input
               value={chatMessage}
               onChange={(e) => setChatMessage(e.target.value)}
               placeholder="Ask me anything..."
               bg="whiteAlpha.200"
               border="none"
-              color="gray"
+              color="black"
               _placeholder={{ color: "whiteAlpha.600" }}
               _focus={{ 
                 bg: "whiteAlpha.300",
@@ -418,7 +427,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Send size={14} />
             </Button>
-          </HStack> */}
+          </HStack>
         </VStack>
       </Box>
     </VStack>
