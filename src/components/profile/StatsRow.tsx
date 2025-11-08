@@ -40,24 +40,6 @@ const statData = ({activeProjects, teamMembers, avgUtilization, highRiskProjects
     value: highRiskProjects,
     color: "#ef4444",
     icon: AlertTriangle
-  },
-  {
-    label: "Avg Utilization",
-    value: avgUtilization,
-    color: "#f59e0b",
-    icon: BarChart3
-  },
-  {
-    label: "Average Age",
-    value: averageAge,
-    color: "#ef4444",
-    icon: AlertTriangle
-  },
-  {
-    label: "Gender Ratio",
-    value: genderRatio,
-    color: "#ef4444",
-    icon: AlertTriangle
   }
 ]
 
@@ -96,11 +78,8 @@ const StatsCard = ({
 export const StatsRow: React.FC<StatsRowProps> = ({
   activeProjects,
   teamMembers = 2597,
-  avgUtilization = "87%",
   highRiskProjects = 3,
   attritionRisk = 259,
-  averageAge = 30,
-  genderRatio = "50:50"
 }) => {
   return (
     <HStack w="full" align="stretch">
@@ -123,13 +102,13 @@ export const StatsRow: React.FC<StatsRowProps> = ({
         // h="80px"
       >
         <SimpleGrid 
-          columns={{ base: 2, sm: 2, md: 7 }} 
-          gap={1} 
+          columns={{ base: 2, sm: 2, md:4 }} 
+          gap={5} 
           w="99%" 
           h="99%"
           alignItems="center"
         >
-          {statData({ teamMembers,attritionRisk,activeProjects, avgUtilization, highRiskProjects, averageAge, genderRatio }).map((stat, index) => (
+          {statData({ teamMembers,attritionRisk,activeProjects, highRiskProjects}).map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
         </SimpleGrid>

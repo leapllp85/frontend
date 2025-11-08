@@ -4,7 +4,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Box, Text, VStack, HStack, Button, Input } from "@chakra-ui/react";
 import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network, ClipboardList } from "lucide-react";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
 import { useChatContext } from '@/contexts/ChatContext';
@@ -37,10 +37,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   } = useChatContext();
 
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
 
+  // Get role-specific home route
+  const getHomeRoute = () => {
+    if (!user) return "/";
+    const userRole = getUserRole(user);
+    return userRole === 'Associate' ? "/team-member-view" : "/";
+  };
+
   const allNavigationItems = [
-    { icon: Home, label: "Home", href: "/", roles: ['Manager', 'Associate'] },
+    { icon: Home, label: "Home", href: getHomeRoute(), roles: ['Manager', 'Associate'] },
     { icon: Users, label: "Teams", href: "/teams", roles: ['Manager'] },
     { icon: Network, label: "Organization", href: "/organization", roles: ['Manager'] },
     { icon: FolderOpen, label: "Projects", href: "/projects", roles: ['Manager', 'Associate'] },
@@ -101,6 +109,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       onResetView();
     }
   }, [onResetView]);
+
+  const handleChatbotClick = useCallback(() => {
+    router.push('/chat');
+  }, [router]);
 
   useEffect(() => {
     setMounted(true);
@@ -164,7 +176,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <VStack gap={2} align="stretch" mt={5}>
           {navigationItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href;
+            // Handle home route active state for both Manager and Associate
+            const isActive = item.label === "Home" 
+              ? (pathname === "/" || pathname === "/team-member-view")
+              : pathname === item.href;
             
             return (
               <Link key={item.href} href={item.href} onClick={handleNavClick}>
@@ -298,6 +313,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         _hover={{ transform: "scale(1.1)" }}
         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         className="chatbot-float"
+        onClick={handleChatbotClick}
       >
         {/* Outer Glow Ring */}
         <Box
@@ -376,7 +392,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             borderTopColor: "rgba(0, 0, 0, 0.8)"
           }}
         >
-          {/* Chat with Clyra AI */}
+          Chat with Clyra AI
         </Box>
       </Box>
 

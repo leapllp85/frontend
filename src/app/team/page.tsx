@@ -23,7 +23,11 @@ import {
     Star, 
     AlertTriangle,
     Target,
-    Brain
+    Brain,
+    UserCheck,
+    BarChart3,
+    Calendar,
+    Heart
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
@@ -44,7 +48,7 @@ export default function Teams() {
     // Pagination and search state
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(20);
     const [totalCount, setTotalCount] = useState(0);
     const [filteredCount, setFilteredCount] = useState(0);
 
@@ -274,18 +278,18 @@ export default function Teams() {
     return (
         <AppLayout>
             {/* Content */}
-            <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+            <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 4 }}>
                 <VStack gap={6} align="stretch" w="full">
                     {/* Header */}
-                    <Box textAlign="center" py={4}>
+                    {/* <Box textAlign="center" py={4}>
                         <Heading size="xl" color="gray.800" mb={2} fontWeight="600">
                             👥 Team Members Management
                         </Heading>
                         <Text color="gray.600" fontSize="lg">
                             Manage and monitor your team members' performance and status
                         </Text>
-                        <Box w="100px" h="1px" bg="blue.400" mx="auto" mt={3} />
-                    </Box>
+                        <Box w="100px" h="1px" bg="blue.400" mx="auto" mt={0} />
+                    </Box> */}
 
                     {/* Loading State */}
                     {quickDataLoading && (
@@ -306,7 +310,7 @@ export default function Teams() {
                     )}
 
                     {/* Quick Data Widgets */}
-                    {!quickDataLoading && !error && (
+                    {/* {!quickDataLoading && !error && (
                     <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}>
                         {insights({
                             teamAttritionRisk,
@@ -356,10 +360,10 @@ export default function Teams() {
                             </Card.Root>
                         ))}
                     </SimpleGrid>
-                    )}
+                    )} */}
 
                     {/* Top Talent Details */}
-                    <Card.Root 
+                    {/* <Card.Root 
                         bg="linear-gradient(135deg, #a5489f 0%, #8a3d85 100%)"
                         border="1px solid" 
                         borderColor="whiteAlpha.300"
@@ -467,7 +471,7 @@ export default function Teams() {
                                 ))}
                             </SimpleGrid>
                         </Card.Body>
-                    </Card.Root>
+                    </Card.Root> */}
 
                     {/* Team Overview */}
                     {/* <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}
@@ -487,38 +491,30 @@ export default function Teams() {
                             </HStack>
                         </Card.Header> */}
                         {/* <Card.Body p={6} pt={2}> */}
-                            <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} gap={{ base: 4, md: 6 }}>
+                            <SimpleGrid columns={{ base: 1, sm: 2, md: 4, lg: 7 }} gap={{ base: 6, md: 6 }}>
                                 {/* Total Team Members */}
                                 <Card.Root 
-                                    bg="linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
-                                    border="none"
-                                    borderRadius="xl"
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
                                     shadow="sm"
-                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                    transition="all 0.3s ease"
-                                    position="relative"
-                                    overflow="hidden"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
                                 >
-                                    <Box 
-                                        position="absolute" 
-                                        top="0" 
-                                        right="0" 
-                                        w="16" 
-                                        h="16" 
-                                        bg="whiteAlpha.200" 
-                                        borderRadius="full" 
-                                        transform="translate(6px, -6px)"
-                                    />
-                                    <Card.Body p={{ base: 3, md: 5 }}>
-                                        <VStack gap={3} align="center">
-                                            <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
-                                                <Users size={20} color="white" />
-                                            </Box>
-                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={0} bg="teal.100" borderRadius="3xl">
+                                                    <Users size={20} color="#0d9488" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Team Members
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
                                                 {teamMembers.length}
-                                            </Text>
-                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
-                                                Total Team Members
                                             </Text>
                                         </VStack>
                                     </Card.Body>
@@ -526,35 +522,27 @@ export default function Teams() {
 
                                 {/* Low Risk Members */}
                                 <Card.Root 
-                                    bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
-                                    border="none"
-                                    borderRadius="xl"
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
                                     shadow="sm"
-                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                    transition="all 0.3s ease"
-                                    position="relative"
-                                    overflow="hidden"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
                                 >
-                                    <Box 
-                                        position="absolute" 
-                                        top="0" 
-                                        right="0" 
-                                        w="16" 
-                                        h="16" 
-                                        bg="whiteAlpha.200" 
-                                        borderRadius="full" 
-                                        transform="translate(6px, -6px)"
-                                    />
-                                    <Card.Body p={5}>
-                                        <VStack gap={3} align="center">
-                                            <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
-                                                <Target size={20} color="white" />
-                                            </Box>
-                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={2} bg="green.100" borderRadius="3xl">
+                                                    <Target size={20} color="#059669" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Low Risk Members
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
                                                 {teamMembers.filter(m => m.attritionRisk === 'Low').length}
-                                            </Text>
-                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
-                                                Low Risk Members
                                             </Text>
                                         </VStack>
                                     </Card.Body>
@@ -562,35 +550,27 @@ export default function Teams() {
 
                                 {/* Medium Risk Members */}
                                 <Card.Root 
-                                    bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
-                                    border="none"
-                                    borderRadius="xl"
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
                                     shadow="sm"
-                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                    transition="all 0.3s ease"
-                                    position="relative"
-                                    overflow="hidden"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
                                 >
-                                    <Box 
-                                        position="absolute" 
-                                        top="0" 
-                                        right="0" 
-                                        w="16" 
-                                        h="16" 
-                                        bg="whiteAlpha.200" 
-                                        borderRadius="full" 
-                                        transform="translate(6px, -6px)"
-                                    />
-                                    <Card.Body p={5}>
-                                        <VStack gap={3} align="center">
-                                            <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
-                                                <TrendingUp size={20} color="white" />
-                                            </Box>
-                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={2} bg="orange.100" borderRadius="3xl">
+                                                    <TrendingUp size={20} color="#d97706" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Medium Risk Members
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
                                                 {teamMembers.filter(m => m.attritionRisk === 'Medium').length}
-                                            </Text>
-                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
-                                                Medium Risk Members
                                             </Text>
                                         </VStack>
                                     </Card.Body>
@@ -598,35 +578,117 @@ export default function Teams() {
 
                                 {/* High Risk Members */}
                                 <Card.Root 
-                                    bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
-                                    border="none"
-                                    borderRadius="xl"
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
                                     shadow="sm"
-                                    _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                    transition="all 0.3s ease"
-                                    position="relative"
-                                    overflow="hidden"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
                                 >
-                                    <Box 
-                                        position="absolute" 
-                                        top="0" 
-                                        right="0" 
-                                        w="16" 
-                                        h="16" 
-                                        bg="whiteAlpha.200" 
-                                        borderRadius="full" 
-                                        transform="translate(6px, -6px)"
-                                    />
-                                    <Card.Body p={5}>
-                                        <VStack gap={3} align="center">
-                                            <Box p={2} bg="whiteAlpha.200" borderRadius="lg" backdropFilter="blur(10px)">
-                                                <AlertTriangle size={20} color="white" />
-                                            </Box>
-                                            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={2} bg="red.100" borderRadius="3xl">
+                                                    <AlertTriangle size={20} color="#dc2626" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    High Risk Members
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
                                                 {teamMembers.filter(m => m.attritionRisk === 'High').length}
                                             </Text>
-                                            <Text fontSize={{ base: "xs", md: "sm" }} color="white" textAlign="center" fontWeight="semibold" letterSpacing="wide">
-                                                High Risk Members
+                                        </VStack>
+                                    </Card.Body>
+                                </Card.Root>
+
+                                {/* Gender Ratio */}
+                                <Card.Root 
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
+                                    shadow="sm"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
+                                >
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={0} bg="purple.100" borderRadius="3xl">
+                                                    <UserCheck size={20} color="#7c3aed" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Gender Ratio
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
+                                                {teamMembers.length > 0 ? 
+                                                    `${Math.round((teamMembers.filter(m => (m as any).gender === 'Female').length / teamMembers.length) * 100)}% F` 
+                                                    : 'N/A'
+                                                }
+                                            </Text>
+                                        </VStack>
+                                    </Card.Body>
+                                </Card.Root>
+
+                                {/* Average Utilization */}
+                                <Card.Root 
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
+                                    shadow="sm"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
+                                >
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={0} bg="blue.100" borderRadius="3xl">
+                                                    <BarChart3 size={20} color="#2563eb" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Avg Utilization
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
+                                                {teamMembers.length > 0 ? 
+                                                    `${Math.round(teamMembers.reduce((sum, m) => sum + (m.utilization || 0), 0) / teamMembers.length)}%`
+                                                    : '0%'
+                                                }
+                                            </Text>
+                                        </VStack>
+                                    </Card.Body>
+                                </Card.Root>
+
+                                {/* High Mental Health Risks */}
+                                <Card.Root 
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="3xl"
+                                    shadow="sm"
+                                    _hover={{ shadow: "sm" }}
+                                    transition="all 0.2s ease"
+                                    p={4}
+                                >
+                                    <Card.Body p={0}>
+                                        <VStack gap={3} align="flex-start">
+                                            <HStack gap={3} align="center">
+                                                <Box p={0} bg="pink.100" borderRadius="3xl">
+                                                    <Heart size={20} color="#ec4899" />
+                                                </Box>
+                                                <Text fontSize="md" fontWeight="medium" color="gray.700">
+                                                    Mental Health Risks
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900" lineHeight="1">
+                                                {teamMembers.filter(m => m.mentalHealth === 'High').length}
                                             </Text>
                                         </VStack>
                                     </Card.Body>
@@ -635,42 +697,22 @@ export default function Teams() {
 
                         {/* Team Members Management Section */}
                         {!quickDataLoading && !error && (
-                        <Card.Root bg="white" shadow="md" borderRadius="xl">
-                            <Card.Header p={6}>
-                                <HStack justify="space-between">
-                                    <VStack align="start" gap={1}>
-                                        {teamDataLoading && (
-                                            <HStack gap={2}>
-                                                <Spinner size="sm" color="purple.500" />
-                                                <Text fontSize="sm" color="gray.500">Loading team data...</Text>
-                                            </HStack>
-                                        )}
-                                    </VStack>
-                                    <HStack gap={4}>
-                                        <Card.Root bg="purple.50" border="1px solid" borderColor="purple.200" borderRadius="lg" p={3}>
-                                            <HStack gap={2}>
-                                                <Brain size={16} color="#805ad5" />
-                                                <Text fontSize="xs" color="gray.600" fontWeight="medium">Mental Health Issues</Text>
-                                                <Text fontSize="lg" fontWeight="bold" color="purple.600">{mentalHealthIssues}</Text>
-                                            </HStack>
-                                        </Card.Root>
-                                        <Button
-                                            colorPalette="purple"
-                                            size="md"
-                                            onClick={handleSaveChanges}
-                                            disabled={changedMembers.size === 0 || saving}
-                                            loading={saving}
-                                            loadingText="Saving..."
-                                        >
-                                            Save Changes ({changedMembers.size})
-                                        </Button>
+                            <Card.Root bg="white" shadow="sm" borderRadius="3xl">
+                                <Card.Header p={4}>
+                                    <HStack justify="space-between">
+                                        <VStack align="start" gap={1}>
+                                            {teamDataLoading && (
+                                                <HStack gap={2}>
+                                                    <Spinner size="sm" color="blue.500" />
+                                                    <Text fontSize="sm" color="gray.500">Loading team data...</Text>
+                                                </HStack>
+                                            )}
+                                        </VStack>
                                     </HStack>
-                                </HStack>
-                                
-                                {/* Search and Filters */}
-                                <VStack align="stretch" gap={4} mt={4}>
-                                    <HStack gap={4} flexWrap="wrap">
-                                        <Box flex={1} minW="200px">
+                                    
+                                    {/* Search, Filters and Actions in one row */}
+                                    <HStack gap={4} mt={4} flexWrap="wrap" align="center">
+                                        <Box flex={1} minW="250px">
                                             <Input
                                                 placeholder="Search by name, email, or username..."
                                                 value={searchQuery}
@@ -679,6 +721,8 @@ export default function Teams() {
                                                     setCurrentPage(1); // Reset to first page on search
                                                 }}
                                                 size="sm"
+                                                color="black"
+                                                _placeholder={{ color: 'gray.500' }}
                                             />
                                         </Box>
                                         <Box>
@@ -706,11 +750,21 @@ export default function Teams() {
                                                 <option value={50}>50 per page</option>
                                             </select>
                                         </Box>
-                                    </HStack>
+                                        <Button
+                                            colorPalette="blue"
+                                            size="sm"
+                                            onClick={handleSaveChanges}
+                                            disabled={changedMembers.size === 0 || saving}
+                                            loading={saving}
+                                            loadingText="Saving..."
+                                        >
+                                            Save Changes ({changedMembers.size})
+                                        </Button>
+                                </HStack>
                                     
                                     {/* Search Results Info */}
                                     {searchQuery && (
-                                        <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                                        <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.100" mt={3}>
                                             <Text fontSize="sm" color="blue.700">
                                                 <strong>{filteredCount}</strong> members found matching <strong>"{searchQuery}"</strong>
                                                 {filteredCount !== totalCount && (
@@ -719,145 +773,122 @@ export default function Teams() {
                                             </Text>
                                         </Box>
                                     )}
-                                </VStack>
-                                
-                                {/* Success/Error Messages */}
-                                {saveSuccess && (
-                                    <Box mt={4} p={3} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md">
-                                        <Text color="green.700" fontSize="sm" fontWeight="medium">
-                                            ✅ {saveSuccess}
-                                        </Text>
-                                    </Box>
-                                )}
-                                
-                                {error && (
-                                    <Box mt={4} p={3} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
-                                        <Text color="red.700" fontSize="sm" fontWeight="medium">
-                                            ❌ {error}
-                                        </Text>
-                                    </Box>
-                                )}
-                            </Card.Header>
-                            <Card.Body p={0}>
-                                <Box 
-                                    overflowX="auto" 
-                                    maxH="70vh" 
-                                    overflowY="auto"
-                                    border="2px solid"
-                                    borderColor="purple.200"
-                                    borderRadius="xl"
-                                    bg="white"
-                                    shadow="inner"
-                                >
-                                    <table style={{ 
-                                        width: '100%', 
-                                        borderCollapse: 'separate',
-                                        borderSpacing: '0',
-                                        minWidth: '1200px',
-                                        background: 'white'
-                                    }}>
-                                        <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+
+                                    {/* Success/Error Messages */}
+                                    {saveSuccess && (
+                                        <Box mt={4} p={3} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md">
+                                            <Text color="green.700" fontSize="sm" fontWeight="medium">
+                                                ✅ {saveSuccess}
+                                            </Text>
+                                        </Box>
+                                    )}
+                                    
+                                    {error && (
+                                        <Box mt={4} p={3} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md">
+                                            <Text color="red.700" fontSize="sm" fontWeight="medium">
+                                                ❌ {error}
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </Card.Header>
+                                <Card.Body p={0}>
+                                    <Box 
+                                        overflowX="auto" 
+                                        maxH="50vh" 
+                                        overflowY="auto"
+                                        border="1px solid"
+                                        borderColor="gray.200"
+                                        borderRadius="lg"
+                                        bg="white"
+                                        shadow="sm"
+                                    >
+                                        <table style={{ 
+                                            width: '100%', 
+                                            borderCollapse: 'separate',
+                                            borderSpacing: '0',
+                                            minWidth: '1200px',
+                                            background: 'white'
+                                        }}>
+                                            <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                                             <tr style={{ 
-                                                background: 'linear-gradient(135deg, #805ad5 0%, #6b46c1 50%, #553c9a 100%)',
-                                                borderBottom: '4px solid #4c1d95',
-                                                boxShadow: '0 4px 20px rgba(128, 90, 213, 0.3)'
+                                                background: '#f8fafc',
+                                                borderBottom: '2px solid #e2e8f0'
                                             }}>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'left', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    👤 Team Member
+                                                    Team Member
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    🧠 Mental Health
+                                                    Mental Health
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    🚀 Motivation
+                                                    Motivation
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    📈 Career
+                                                    Career
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    🏠 Personal
+                                                    Personal
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    borderRight: '2px solid rgba(255,255,255,0.2)',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em',
+                                                    borderRight: '1px solid #e5e7eb'
                                                 }}>
-                                                    🎯 AI Risk
+                                                    AI Risk
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '24px 20px', 
+                                                    padding: '16px 20px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '800', 
-                                                    color: 'white', 
-                                                    fontSize: '16px',
-                                                    letterSpacing: '0.8px',
-                                                    textTransform: 'uppercase',
-                                                    textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                                                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1), transparent)'
+                                                    fontWeight: '600', 
+                                                    color: '#374151', 
+                                                    fontSize: '14px',
+                                                    letterSpacing: '0.025em'
                                                 }}>
-                                                    ⚖️ Manager Assessment
+                                                    Manager Assessment
                                                 </th>
                                             </tr>
                                         </thead>
@@ -866,42 +897,38 @@ export default function Teams() {
                                                 <tr 
                                                     key={member.id}
                                                     style={{ 
-                                                        borderBottom: '3px solid #e2e8f0',
-                                                        backgroundColor: '#ffffff',
-                                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                        cursor: 'pointer',
-                                                        position: 'relative'
+                                                        borderBottom: '1px solid #f3f4f6',
+                                                        backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                                        transition: 'background-color 0.2s ease'
                                                     }}
                                                     className={`table-row ${index % 2 === 1 ? 'table-row-alt' : ''}`}
                                                 >
                                                     <td style={{ 
-                                                        padding: '24px 20px',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        minWidth: '250px'
+                                                        padding: '12px 16px',
+                                                        borderRight: '1px solid #f3f4f6',
+                                                        minWidth: '200px'
                                                     }}>
                                                         <VStack align="start" gap={3}>
                                                             <HStack gap={3} align="center">
                                                                 <Box
-                                                                    w="40px"
-                                                                    h="40px"
+                                                                    w="32px"
+                                                                    h="32px"
                                                                     borderRadius="full"
-                                                                    bg="linear-gradient(135deg, #805ad5, #6b46c1)"
+                                                                    bg="#6b7280"
                                                                     display="flex"
                                                                     alignItems="center"
                                                                     justifyContent="center"
                                                                     color="white"
-                                                                    fontSize="lg"
-                                                                    fontWeight="bold"
-                                                                    shadow="md"
-                                                                    border="3px solid white"
+                                                                    fontSize="sm"
+                                                                    fontWeight="medium"
                                                                 >
                                                                     {member.name.charAt(0).toUpperCase()}
                                                                 </Box>
                                                                 <VStack align="start" gap={1}>
-                                                                    <Text fontWeight="bold" color="gray.800" fontSize="lg" letterSpacing="0.3px">
+                                                                    <Text fontWeight="semibold" color="gray.800" fontSize="sm">
                                                                         {member.name}
                                                                     </Text>
-                                                                    <Text color="purple.600" fontSize="sm" fontWeight="semibold">
+                                                                    <Text color="gray.500" fontSize="xs">
                                                                         {member.email}
                                                                     </Text>
                                                                 </VStack>
@@ -909,131 +936,124 @@ export default function Teams() {
                                                         </VStack>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        background: 'linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.01), transparent)'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Badge 
-                                                            colorPalette={getRiskColor(member.mentalHealth)} 
-                                                            size="lg" 
-                                                            borderRadius="full"
-                                                            fontWeight="bold"
-                                                            px={4}
-                                                            py={2}
-                                                            shadow="sm"
-                                                            border="2px solid white"
-                                                            fontSize="sm"
+                                                        <Text 
+                                                            fontSize="xs"
+                                                            fontWeight="medium"
+                                                            color={member.mentalHealth === 'High' ? '#dc2626' : member.mentalHealth === 'Medium' ? '#d97706' : '#059669'}
+                                                            bg={member.mentalHealth === 'High' ? '#fef2f2' : member.mentalHealth === 'Medium' ? '#fef3c7' : '#f0fdf4'}
+                                                            px={2}
+                                                            py={1}
+                                                            borderRadius="md"
+                                                            border="1px solid"
+                                                            borderColor={member.mentalHealth === 'High' ? '#fecaca' : member.mentalHealth === 'Medium' ? '#fed7aa' : '#bbf7d0'}
                                                         >
                                                             {member.mentalHealth}
-                                                        </Badge>
+                                                        </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        background: 'linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.01), transparent)'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Badge 
-                                                            colorPalette={getRiskColor(member.motivationFactor)} 
-                                                            size="lg" 
-                                                            borderRadius="full"
-                                                            fontWeight="bold"
-                                                            px={4}
-                                                            py={2}
-                                                            shadow="sm"
-                                                            border="2px solid white"
-                                                            fontSize="sm"
+                                                        <Text 
+                                                            fontSize="xs"
+                                                            fontWeight="medium"
+                                                            color={member.motivationFactor === 'High' ? '#dc2626' : member.motivationFactor === 'Medium' ? '#d97706' : '#059669'}
+                                                            bg={member.motivationFactor === 'High' ? '#fef2f2' : member.motivationFactor === 'Medium' ? '#fef3c7' : '#f0fdf4'}
+                                                            px={2}
+                                                            py={1}
+                                                            borderRadius="md"
+                                                            border="1px solid"
+                                                            borderColor={member.motivationFactor === 'High' ? '#fecaca' : member.motivationFactor === 'Medium' ? '#fed7aa' : '#bbf7d0'}
                                                         >
                                                             {member.motivationFactor}
-                                                        </Badge>
+                                                        </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        background: 'linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.01), transparent)'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Badge 
-                                                            colorPalette={getRiskColor(member.careerOpportunities)} 
-                                                            size="lg" 
-                                                            borderRadius="full"
-                                                            fontWeight="bold"
-                                                            px={4}
-                                                            py={2}
-                                                            shadow="sm"
-                                                            border="2px solid white"
-                                                            fontSize="sm"
+                                                        <Text 
+                                                            fontSize="xs"
+                                                            fontWeight="medium"
+                                                            color={member.careerOpportunities === 'High' ? '#dc2626' : member.careerOpportunities === 'Medium' ? '#d97706' : '#059669'}
+                                                            bg={member.careerOpportunities === 'High' ? '#fef2f2' : member.careerOpportunities === 'Medium' ? '#fef3c7' : '#f0fdf4'}
+                                                            px={2}
+                                                            py={1}
+                                                            borderRadius="md"
+                                                            border="1px solid"
+                                                            borderColor={member.careerOpportunities === 'High' ? '#fecaca' : member.careerOpportunities === 'Medium' ? '#fed7aa' : '#bbf7d0'}
                                                         >
                                                             {member.careerOpportunities}
-                                                        </Badge>
+                                                        </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        background: 'linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.01), transparent)'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Badge 
-                                                            colorPalette={getRiskColor(member.personalReason)} 
-                                                            size="lg" 
-                                                            borderRadius="full"
-                                                            fontWeight="bold"
-                                                            px={4}
-                                                            py={2}
-                                                            shadow="sm"
-                                                            border="2px solid white"
-                                                            fontSize="sm"
+                                                        <Text 
+                                                            fontSize="xs"
+                                                            fontWeight="medium"
+                                                            color={member.personalReason === 'High' ? '#dc2626' : member.personalReason === 'Medium' ? '#d97706' : '#059669'}
+                                                            bg={member.personalReason === 'High' ? '#fef2f2' : member.personalReason === 'Medium' ? '#fef3c7' : '#f0fdf4'}
+                                                            px={2}
+                                                            py={1}
+                                                            borderRadius="md"
+                                                            border="1px solid"
+                                                            borderColor={member.personalReason === 'High' ? '#fecaca' : member.personalReason === 'Medium' ? '#fed7aa' : '#bbf7d0'}
                                                         >
                                                             {member.personalReason}
-                                                        </Badge>
+                                                        </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '2px solid rgba(128, 90, 213, 0.1)',
-                                                        background: 'linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.01), transparent)'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Badge 
-                                                            colorPalette={getRiskColor(calculateSuggestedRisk(member))} 
-                                                            size="lg" 
-                                                            borderRadius="full"
-                                                            fontWeight="bold"
-                                                            px={4}
-                                                            py={2}
-                                                            shadow="sm"
-                                                            border="2px solid white"
-                                                            fontSize="sm"
+                                                        <Text 
+                                                            fontSize="xs"
+                                                            fontWeight="medium"
+                                                            color={calculateSuggestedRisk(member) === 'High' ? '#dc2626' : calculateSuggestedRisk(member) === 'Medium' ? '#d97706' : '#059669'}
+                                                            bg={calculateSuggestedRisk(member) === 'High' ? '#fef2f2' : calculateSuggestedRisk(member) === 'Medium' ? '#fef3c7' : '#f0fdf4'}
+                                                            px={2}
+                                                            py={1}
+                                                            borderRadius="md"
+                                                            border="1px solid"
+                                                            borderColor={calculateSuggestedRisk(member) === 'High' ? '#fecaca' : calculateSuggestedRisk(member) === 'Medium' ? '#fed7aa' : '#bbf7d0'}
                                                         >
                                                             {calculateSuggestedRisk(member)}
-                                                        </Badge>
+                                                        </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '24px 20px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center'
                                                     }}>
                                                         <select
                                                             value={member.attritionRisk || 'Medium'}
                                                             onChange={(e) => handleRiskChange(member.id, e.target.value as any)}
                                                             style={{
-                                                                color: '#553c9a',
-                                                                padding: '12px 20px',
-                                                                border: '3px solid #805ad5',
-                                                                borderRadius: '16px',
-                                                                fontSize: '15px',
+                                                                color: '#374151',
+                                                                padding: '6px 12px',
+                                                                border: '1px solid #d1d5db',
+                                                                borderRadius: '6px',
+                                                                fontSize: '12px',
                                                                 backgroundColor: 'white',
-                                                                fontWeight: '700',
+                                                                fontWeight: '500',
                                                                 outline: 'none',
                                                                 cursor: 'pointer',
-                                                                minWidth: '160px',
-                                                                boxShadow: '0 4px 15px rgba(128, 90, 213, 0.15), 0 2px 8px rgba(128, 90, 213, 0.1)',
-                                                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                                                                minWidth: '120px'
                                                             }}
                                                             className="risk-select"
                                                         >
-                                                            <option value="High">🔴 High Risk</option>
-                                                            <option value="Medium">🟡 Medium Risk</option>
-                                                            <option value="Low">🟢 Low Risk</option>
+                                                            <option value="High">High Risk</option>
+                                                            <option value="Medium">Medium Risk</option>
+                                                            <option value="Low">Low Risk</option>
                                                         </select>
                                                     </td>
                                                 </tr>
@@ -1085,6 +1105,6 @@ export default function Teams() {
                         )}
                     </VStack>
                 </Box>
-        </AppLayout>
+            </AppLayout>
     );
 }

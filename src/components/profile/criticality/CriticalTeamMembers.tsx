@@ -250,7 +250,7 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
             textAlign="center"
             fontWeight="normal"
           >
-            Top 5% Critical Members
+            Top Critical Members
           </Heading>
           <Box 
                           w="80%" 
