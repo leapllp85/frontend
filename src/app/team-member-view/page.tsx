@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppLayout } from '@/components/layouts/AppLayout';
-import { useAuth } from '@/contexts/AuthContext';
-import { getUserRole } from '@/utils/rbac';
 
 // Add keyframes for animations
 if (typeof document !== 'undefined') {
@@ -191,11 +188,11 @@ interface CalendarEvent {
 
 export default function TeamMemberView() {
     const router = useRouter();
-    const { user, logout } = useAuth();
-    const userRole = user ? getUserRole(user) : 'Associate';
     const [loading, setLoading] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+    const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
+    const [concernText, setConcernText] = useState('');
     const [projects, setProjects] = useState<Project[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -212,30 +209,6 @@ export default function TeamMemberView() {
         avatar: 'https://i.pravatar.cc/150?img=12' // Sample avatar image
     };
 
-    // Logout function
-    const handleLogout = () => {
-        try {
-            // Call the logout method from AuthContext
-            logout();
-            
-            // Clear any additional stored authentication data
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-            
-            // Clear session storage as well
-            sessionStorage.clear();
-            
-            // Force page reload to ensure clean state
-            window.location.href = '/login';
-        } catch (error) {
-            console.error('Logout error:', error);
-            // Force redirect even if logout fails
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = '/login';
-        }
-    };
 
     // Mock data - Replace with actual API calls
     useEffect(() => {
@@ -711,31 +684,15 @@ export default function TeamMemberView() {
         }
     };
 
-    // Create a wrapper component that conditionally uses AppLayout
-    const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-        if (userRole === 'Associate') {
-            // Associates get full screen without sidebar
-            return (
-                <Box w="100vw" h="100vh" bg="#fafbfc">
-                    {children}
-                </Box>
-            );
-        } else {
-            // Managers get sidebar layout
-            return <AppLayout>{children}</AppLayout>;
-        }
-    };
-
     if (loading) {
         return (
-            <LayoutWrapper>
-                <Box 
-                    w="full" 
-                    h="full" 
-                    bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                    position="relative"
-                    overflow="hidden"
-                >
+            <Box
+                w="full"
+                h="full"
+                bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                position="relative"
+                overflow="hidden"
+            >
                 {/* Animated background circles */}
                 <Box
                     position="absolute"
@@ -832,121 +789,357 @@ export default function TeamMemberView() {
                         </HStack>
                     </VStack>
                 </Flex>
-                </Box>
-            </LayoutWrapper>
+            </Box>
         );
     }
 
     return (
-        <LayoutWrapper>
-            <Box 
-                w="full" 
-                h={userRole === 'Associate' ? "100vh" : "full"}
-                bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)" 
-                overflow="hidden"
-                display="flex"
-                flexDirection="column"
-                style={{ animation: 'fadeIn 0.5s ease-out' }}
-            >
-            {/* Header with Profile */}
-            <Box 
-                bg="white" 
-                borderBottom="1px solid" 
-                borderColor="gray.200" 
-                px={{ base: 4, md: 6 }} 
-                py={2}
-                shadow="sm"
-                flexShrink={0}
-                style={{ 
-                    animation: 'fadeInUp 0.6s ease-out',
-                    backdropFilter: 'blur(10px)',
-                    background: 'rgba(255, 255, 255, 0.95)'
-                }}
-            >
-                <Flex justify="space-between" align="center">
-                    {/* Left: Title */}
-                    <VStack align="start" gap={1}>
-                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="700">
-                            Welcome back, {userProfile.name.split(' ')[0]}! 👋
-                        </Heading>
-                        <Text color="gray.600" fontSize={{ base: "sm", md: "md" }} fontWeight="500">
-                            Your personalized workspace overview
-                        </Text>
-                    </VStack>
-                    
-                    {/* Right: Profile */}
-                    <HStack gap={3}>
-                        <VStack align="end" gap={0} display={{ base: "none", md: "flex" }}>
-                            <Text fontWeight="semibold" color="gray.800" fontSize="sm">
-                                {userProfile.name}
-                            </Text>
-                            <Text color="gray.600" fontSize="xs">
-                                {userProfile.designation}
-                            </Text>
-                        </VStack>
-                        <Box
-                            w={{ base: "44px", md: "52px" }}
-                            h={{ base: "44px", md: "52px" }}
-                            borderRadius="full"
-                            overflow="hidden"
-                            border="3px solid"
-                            borderColor="teal.400"
-                            shadow="sm"
-                            position="relative"
-                            _hover={{ 
-                                transform: "scale(1.05)",
-                                borderColor: "teal.500"
-                            }}
-                            transition="all 0.2s ease"
-                        >
-                            <img 
-                                src={userProfile.avatar} 
-                                alt={userProfile.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                        </Box>
-                        
-                        {/* Logout Button */}
-                        <IconButton
-                            aria-label="Logout"
-                            size={{ base: "sm", md: "md" }}
-                            variant="solid"
-                            bg="gray.800"
-                            color="white"
-                            borderRadius="full"
-                            _hover={{
-                                bg: "gray.900",
-                                transform: "scale(1.05)",
-                                shadow: "lg"
-                            }}
-                            _active={{
-                                bg: "gray.700",
-                                transform: "scale(0.95)"
-                            }}
-                            transition="all 0.2s ease"
-                            onClick={handleLogout}
-                            title="Logout"
-                        >
-                            <LogOut size={18} />
-                        </IconButton>
-                    </HStack>
-                </Flex>
-            </Box>
-
-            {/* Main Content - Reorganized Layout */}
+        <Box
+            w="full"
+            h="100vh"
+            bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+            overflow="hidden"
+            display="flex"
+            flexDirection="column"
+            style={{ animation: 'fadeIn 0.5s ease-out' }}
+        >
+            {/* Main Content with Employee Info Card */}
             <Box 
                 flex="1"
-                overflow="hidden" 
-                p={{ base: 2, md: 4 }}
+                overflow="auto" 
+                p={{ base: 3, md: 4 }}
                 style={{ animation: 'fadeInUp 0.7s ease-out' }}
             >
                 <SimpleGrid 
                     columns={{ base: 1, md: 2, lg: 3 }} 
-                    gap={{ base: 2, md: 3 }}
+                    gap={{ base: 3, md: 4 }}
                     h="full"
                     gridTemplateRows={{ lg: "1fr 1fr" }}
                 >
-                    {/* Row 1 - Quadrant 1: My Projects */}
+                    {/* Quadrant 1: Employee Details + My Space (Larger - spans 2 columns on large screens) */}
+                    <Card.Root
+                        gridColumn={{ base: "1", lg: "1 / 3" }}
+                        bg="white"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        borderRadius="xl"
+                        shadow="md"
+                        overflow="hidden"
+                        h="full"
+                        display="flex"
+                        flexDirection="column"
+                    >
+                        <Card.Header 
+                            p={{ base: 3, md: 4 }} 
+                            pb={3} 
+                            borderBottom="1px solid" 
+                            borderColor="gray.100"
+                            bg="gradient-to-r from-teal.50 to-blue.50"
+                        >
+                            <HStack justify="space-between">
+                                <HStack gap={3}>
+                                    <Box p={2} bg="teal.500" borderRadius="lg">
+                                        <User size={20} color="white" />
+                                    </Box>
+                                    <VStack align="start" gap={0}>
+                                        <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
+                                            Employee Profile
+                                        </Heading>
+                                        <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                            Your information & quick actions
+                                        </Text>
+                                    </VStack>
+                                </HStack>
+                                <HStack gap={2}>
+                                    {/* My Concern Icon Button */}
+                                    <IconButton
+                                        aria-label="Raise Concern"
+                                        size="lg"
+                                        bg="linear-gradient(135deg, #fb923c 0%, #f97316 100%)"
+                                        color="white"
+                                        borderRadius="xl"
+                                        shadow="md"
+                                        _hover={{
+                                            transform: "translateY(-2px) scale(1.05)",
+                                            shadow: "xl",
+                                            bg: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)"
+                                        }}
+                                        _active={{
+                                            transform: "translateY(0px)"
+                                        }}
+                                        transition="all 0.3s ease"
+                                        title="Raise a Concern"
+                                        onClick={() => setIsConcernModalOpen(true)}
+                                    >
+                                        <AlertCircle size={22} />
+                                    </IconButton>
+                                    {/* Logout Icon Button */}
+                                    <IconButton
+                                        aria-label="Logout"
+                                        size="lg"
+                                        bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+                                        color="white"
+                                        borderRadius="xl"
+                                        shadow="md"
+                                        _hover={{
+                                            transform: "translateY(-2px) scale(1.05)",
+                                            shadow: "xl",
+                                            bg: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)"
+                                        }}
+                                        _active={{
+                                            transform: "translateY(0px)"
+                                        }}
+                                        transition="all 0.3s ease"
+                                        onClick={() => {
+                                            localStorage.clear();
+                                            sessionStorage.clear();
+                                            window.location.href = '/login';
+                                        }}
+                                        title="Logout"
+                                    >
+                                        <LogOut size={22} />
+                                    </IconButton>
+                                </HStack>
+                            </HStack>
+                        </Card.Header>
+                        <Card.Body p={{ base: 3, md: 4 }} flex={1} overflow="auto">
+                            <VStack gap={3} align="stretch">
+                                {/* Employee Info Section with Engagement Meter */}
+                                <HStack gap={4} align="start" flexWrap={{ base: "wrap", lg: "nowrap" }}>
+                                    {/* Profile Picture - Bigger */}
+                                    <Box
+                                        w={{ base: "160px", md: "180px" }}
+                                        h={{ base: "160px", md: "180px" }}
+                                        borderRadius="2xl"
+                                        overflow="hidden"
+                                        border="5px solid"
+                                        borderColor="teal.400"
+                                        shadow="2xl"
+                                        flexShrink={0}
+                                        position="relative"
+                                        _hover={{
+                                            transform: "scale(1.02)",
+                                            borderColor: "teal.500"
+                                        }}
+                                        transition="all 0.3s ease"
+                                    >
+                                        <img 
+                                            src={userProfile.avatar} 
+                                            alt={userProfile.name}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    </Box>
+                                    
+                                    {/* Employee Details */}
+                                    <VStack align="start" gap={1.5} flex={1} minW="200px">
+                                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="700">
+                                            {userProfile.name}
+                                        </Heading>
+                                        <Badge 
+                                            bg="teal.100" 
+                                            color="teal.700" 
+                                            px={3} 
+                                            py={1} 
+                                            borderRadius="full"
+                                            fontSize="sm"
+                                            fontWeight="600"
+                                        >
+                                            Active
+                                        </Badge>
+                                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }} fontWeight="500">
+                                            {userProfile.designation}
+                                        </Text>
+                                        <HStack gap={2} mt={1}>
+                                            <Box p={1.5} bg="blue.50" borderRadius="md">
+                                                <User size={16} color="#3182CE" />
+                                            </Box>
+                                            <Text color="gray.700" fontSize="md" fontWeight="600">
+                                                Employee ID: <Text as="span" fontWeight="400">EMP-2024-001</Text>
+                                            </Text>
+                                        </HStack>
+                                    </VStack>
+
+                                    {/* Engagement Meter - Half Donut */}
+                                    <VStack gap={2} align="center" minW="600px" flexShrink={0}>
+                                        <Text fontSize="sm" fontWeight="700" color="gray.700">
+                                            Engagement Meter
+                                        </Text>
+                                        
+                                        {/* Half Donut Chart */}
+                                        <Box position="relative" w="180px" h="100px">
+                                            <svg width="180" height="100" viewBox="0 0 180 100">
+                                                {/* Background Arc */}
+                                                <path
+                                                    d="M 20 90 A 70 70 0 0 1 160 90"
+                                                    fill="none"
+                                                    stroke="#e5e7eb"
+                                                    strokeWidth="20"
+                                                    strokeLinecap="round"
+                                                />
+                                                {/* Progress Arc */}
+                                                <path
+                                                    d="M 20 90 A 70 70 0 0 1 160 90"
+                                                    fill="none"
+                                                    stroke="url(#halfGradient)"
+                                                    strokeWidth="20"
+                                                    strokeLinecap="round"
+                                                    strokeDasharray={`${(projects.reduce((sum, p) => sum + p.allocation, 0) / 100) * 220} 220`}
+                                                    style={{ transition: 'stroke-dasharray 1s ease' }}
+                                                />
+                                                <defs>
+                                                    <linearGradient id="halfGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                        <stop offset="0%" style={{ stopColor: '#a855f7', stopOpacity: 1 }} />
+                                                        <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+                                                    </linearGradient>
+                                                </defs>
+                                            </svg>
+                                            {/* Center Text */}
+                                            <VStack
+                                                position="absolute"
+                                                bottom="-15px"
+                                                left="52%"
+                                                transform="translateX(-50%)"
+                                                gap={0}
+                                            >
+                                                <Text fontSize="3xl" fontWeight="800" color="purple.600" lineHeight="1">
+                                                    {projects.reduce((sum, p) => sum + p.allocation, 0)}%
+                                                </Text>
+                                                <Text fontSize="xs" color="gray.600" fontWeight="600">
+                                                    Occupied
+                                                </Text>
+                                            </VStack>
+                                        </Box>
+
+                                        {/* Legend */}
+                                        <HStack gap={3} justify="center" mt={3}>
+                                            <HStack gap={1.5}>
+                                                <Box w={2.5} h={2.5} bg="linear-gradient(90deg, #a855f7 0%, #3b82f6 100%)" borderRadius="sm" />
+                                                <Text fontSize="xs" color="gray.700" fontWeight="600">
+                                                    {projects.reduce((sum, p) => sum + p.allocation, 0)}%
+                                                </Text>
+                                            </HStack>
+                                            <HStack gap={1.5}>
+                                                <Box w={2.5} h={2.5} bg="gray.300" borderRadius="sm" />
+                                                <Text fontSize="xs" color="gray.700" fontWeight="600">
+                                                    {100 - projects.reduce((sum, p) => sum + p.allocation, 0)}%
+                                                </Text>
+                                            </HStack>
+                                        </HStack>
+                                    </VStack>
+                                </HStack>
+
+                                {/* My Space Quick Actions */}
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="700" color="gray.700" mb={2}>
+                                        Quick Actions
+                                    </Text>
+                                    <SimpleGrid columns={{ base: 2, md: 4 }} gap={2} w="full">
+                                        {/* View Survey */}
+                                        <Button
+                                            variant="outline"
+                                            minH="70px"
+                                            h="auto"
+                                            borderRadius="lg"
+                                            border="2px solid"
+                                            borderColor="purple.200"
+                                            bg="purple.50"
+                                            _hover={{ bg: "purple.100", borderColor: "purple.300", transform: "translateY(-2px)" }}
+                                            display="flex"
+                                            flexDirection="column"
+                                            gap={2}
+                                            p={3}
+                                            onClick={() => router.push('/survey-responses')}
+                                            transition="all 0.3s ease"
+                                        >
+                                            <Box p={1.5} bg="purple.100" borderRadius="md">
+                                                <FileText size={20} color="#805AD5" />
+                                            </Box>
+                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
+                                                View Survey
+                                            </Text>
+                                        </Button>
+
+                                        {/* Access Offering */}
+                                        <Button
+                                            variant="outline"
+                                            minH="70px"
+                                            h="auto"
+                                            borderRadius="lg"
+                                            border="2px solid"
+                                            borderColor="blue.200"
+                                            bg="blue.50"
+                                            _hover={{ bg: "blue.100", borderColor: "blue.300", transform: "translateY(-2px)" }}
+                                            display="flex"
+                                            flexDirection="column"
+                                            gap={2}
+                                            p={3}
+                                            onClick={() => router.push('/content')}
+                                            transition="all 0.3s ease"
+                                        >
+                                            <Box p={1.5} bg="blue.100" borderRadius="md">
+                                                <Package size={20} color="#3182CE" />
+                                            </Box>
+                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
+                                                Access Offering
+                                            </Text>
+                                        </Button>
+
+                                        {/* Event Calendar */}
+                                        <Button
+                                            variant="outline"
+                                            minH="70px"
+                                            h="auto"
+                                            borderRadius="lg"
+                                            border="2px solid"
+                                            borderColor="green.200"
+                                            bg="green.50"
+                                            _hover={{ bg: "green.100", borderColor: "green.300", transform: "translateY(-2px)" }}
+                                            display="flex"
+                                            flexDirection="column"
+                                            gap={2}
+                                            p={3}
+                                            onClick={() => setIsCalendarOpen(true)}
+                                            transition="all 0.3s ease"
+                                        >
+                                            <Box p={1.5} bg="green.100" borderRadius="md">
+                                                <Calendar size={20} color="#38A169" />
+                                            </Box>
+                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
+                                                Event Calendar
+                                            </Text>
+                                        </Button>
+
+                                        {/* Get Help */}
+                                        <Button
+                                            variant="outline"
+                                            minH="70px"
+                                            h="auto"
+                                            borderRadius="lg"
+                                            border="2px solid"
+                                            borderColor="orange.200"
+                                            bg="orange.50"
+                                            _hover={{ bg: "orange.100", borderColor: "orange.300", transform: "translateY(-2px)" }}
+                                            display="flex"
+                                            flexDirection="column"
+                                            gap={2}
+                                            p={3}
+                                            onClick={() => setIsHelpModalOpen(true)}
+                                            transition="all 0.3s ease"
+                                        >
+                                            <Box p={1.5} bg="orange.100" borderRadius="md">
+                                                <HelpCircle size={20} color="#DD6B20" />
+                                            </Box>
+                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
+                                                Get Help
+                                            </Text>
+                                        </Button>
+                                    </SimpleGrid>
+                                </Box>
+                            </VStack>
+                        </Card.Body>
+                    </Card.Root>
+
+                    {/* Quadrant 2: My Projects */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -982,198 +1175,123 @@ export default function TeamMemberView() {
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} display="flex" flexDirection="column" overflow="hidden">
-                            <VStack gap={4} align="stretch" flex={1}>
-                                {/* Project Allocation Bars */}
-                                <VStack gap={3} align="stretch" flex={1}>
-                                    {projects.map((project, index) => {
-                                        const colors = [
-                                            'purple.500',
-                                            'blue.500',
-                                            'green.500',
-                                            'orange.500',
-                                            'red.500'
-                                        ];
-                                        return (
-                                            <Box key={project.id}>
-                                                <HStack justify="space-between" mb={2}>
-                                                    <HStack gap={2}>
-                                                        <Box
-                                                            w={3}
-                                                            h={3}
-                                                            bg={colors[index]}
-                                                            borderRadius="sm"
-                                                            flexShrink={0}
-                                                        />
-                                                        <Text fontSize="sm" color="gray.700" fontWeight="500">
-                                                            {project.name}
-                                                        </Text>
-                                                    </HStack>
-                                                    <Text fontSize="sm" fontWeight="600" color="gray.800">
-                                                        {project.allocation}%
-                                                    </Text>
-                                                </HStack>
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="auto">
+                            <VStack gap={2} align="stretch">
+                                {projects.map((project, index) => {
+                                    const colorSchemes = [
+                                        { bg: 'purple.50', border: 'purple.200', bar: 'purple.500', text: 'purple.700' },
+                                        { bg: 'blue.50', border: 'blue.200', bar: 'blue.500', text: 'blue.700' },
+                                        { bg: 'green.50', border: 'green.200', bar: 'green.500', text: 'green.700' },
+                                        { bg: 'orange.50', border: 'orange.200', bar: 'orange.500', text: 'orange.700' },
+                                        { bg: 'pink.50', border: 'pink.200', bar: 'pink.500', text: 'pink.700' }
+                                    ];
+                                    const scheme = colorSchemes[index];
+                                    return (
+                                        <Box
+                                            key={project.id}
+                                            p={2.5}
+                                            bg={scheme.bg}
+                                            borderRadius="lg"
+                                            border="1px solid"
+                                            borderColor={scheme.border}
+                                            transition="all 0.2s ease"
+                                            _hover={{
+                                                shadow: "sm",
+                                                borderColor: scheme.bar
+                                            }}
+                                        >
+                                            <HStack justify="space-between" mb={1.5}>
+                                                <Text fontSize="sm" color="gray.800" fontWeight="600">
+                                                    {project.name}
+                                                </Text>
+                                                <Badge bg={scheme.bar} color="white" px={2} py={0.5} borderRadius="md" fontSize="xs" fontWeight="700">
+                                                    {project.allocation}%
+                                                </Badge>
+                                            </HStack>
+                                            <Box
+                                                w="full"
+                                                h="6px"
+                                                bg="white"
+                                                borderRadius="full"
+                                                overflow="hidden"
+                                            >
                                                 <Box
-                                                    w="full"
-                                                    h="8px"
-                                                    bg="gray.100"
+                                                    w={`${project.allocation}%`}
+                                                    h="full"
+                                                    bg={scheme.bar}
                                                     borderRadius="full"
-                                                    overflow="hidden"
-                                                >
-                                                    <Box
-                                                        w={`${project.allocation}%`}
-                                                        h="full"
-                                                        bg={colors[index]}
-                                                        borderRadius="full"
-                                                        transition="width 0.5s ease"
-                                                    />
-                                                </Box>
+                                                    transition="width 0.8s ease"
+                                                />
                                             </Box>
-                                        );
-                                    })}
-                                </VStack>
+                                        </Box>
+                                    );
+                                })}
                             </VStack>
-                            </Card.Body>
-                        </Card.Root>
+                        </Card.Body>
+                    </Card.Root>
 
-                    {/* Row 1 - Quadrant 2: My Space (Single Width) */}
+                    {/* Quadrant 3: Testimonies */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
                         borderColor="gray.200"
-                        borderRadius="xl"
+                        borderRadius="lg"
                         shadow="sm"
                         h="full"
                         display="flex"
                         flexDirection="column"
                     >
-                        <Card.Header 
-                            p={{ base: 2, md: 3 }} 
-                            pb={2} 
-                            borderBottom="1px solid" 
-                            borderColor="gray.100"
-                            bg="gradient-to-r from-green.50 to-green.100"
-                        >
-                            <HStack gap={3}>
-                                <Box p={2} bg="green.500" borderRadius="lg">
-                                    <BarChart3 size={18} color="white" />
+                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
+                            <HStack gap={2}>
+                                <Box p={1} bg="yellow.100" borderRadius="md">
+                                    <Award size={16} color="#D97706" />
                                 </Box>
                                 <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
-                                        My Space
+                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
+                                        Testimonies
                                     </Heading>
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                        Quick access
+                                    <Text fontSize="2xs" color="gray.600">
+                                        {testimonies.length} reviews
                                     </Text>
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1}>
-                            <SimpleGrid columns={{ base: 2, md: 2, lg: 2 }} gap={1} h="full">
-                                {/* View Survey */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "50px", md: "60px" }}
-                                    borderRadius="xl"
-                                    border="3px solid"
-                                    borderColor="purple.200"
-                                    bg="purple.50"
-                                    _hover={{ bg: "purple.100", borderColor: "purple.300", transform: "translateY(-2px)" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={3}
-                                    onClick={() => router.push('/survey-responses')}
-                                    transition="all 0.3s ease"
-                                >
-                                    <Box p={2} bg="purple.100" borderRadius="lg">
-                                        <FileText size={20} color="#805AD5" />
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
+                            <VStack gap={1.5} align="stretch">
+                                {testimonies.map((testimony) => (
+                                    <Box
+                                        key={testimony.id}
+                                        p={{ base: 1.5, md: 2 }}
+                                        bg="yellow.50"
+                                        borderRadius="md"
+                                        border="1px solid"
+                                        borderColor="yellow.200"
+                                    >
+                                        <VStack align="stretch" gap={1}>
+                                            <HStack justify="space-between">
+                                                <VStack align="start" gap={0}>
+                                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
+                                                        {testimony.author}
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.600">
+                                                        {testimony.role}
+                                                    </Text>
+                                                </VStack>
+                                                <Text fontSize="2xs" color="gray.500">
+                                                    {new Date(testimony.date).toLocaleDateString()}
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize={{ base: "2xs", md: "xs" }} color="gray.700" lineClamp={3}>
+                                                "{testimony.message}"
+                                            </Text>
+                                        </VStack>
                                     </Box>
-                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
-                                        View Survey
-                                    </Text>
-                                </Button>
-
-                                {/* Access Offering */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "50px", md: "60px" }}
-                                    borderRadius="xl"
-                                    border="3px solid"
-                                    borderColor="blue.200"
-                                    bg="blue.50"
-                                    _hover={{ bg: "blue.100", borderColor: "blue.300", transform: "translateY(-2px)" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={3}
-                                    onClick={() => router.push('/content')}
-                                    transition="all 0.3s ease"
-                                >
-                                    <Box p={2} bg="blue.100" borderRadius="lg">
-                                        <Package size={20} color="#3182CE" />
-                                    </Box>
-                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
-                                        Access Offering
-                                    </Text>
-                                </Button>
-
-                                {/* Event Calendar */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "50px", md: "60px" }}
-                                    borderRadius="xl"
-                                    border="3px solid"
-                                    borderColor="green.200"
-                                    bg="green.50"
-                                    _hover={{ bg: "green.100", borderColor: "green.300", transform: "translateY(-2px)" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={3}
-                                    onClick={() => setIsCalendarOpen(true)}
-                                    transition="all 0.3s ease"
-                                >
-                                    <Box p={2} bg="green.100" borderRadius="lg">
-                                        <Calendar size={20} color="#38A169" />
-                                    </Box>
-                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
-                                        Event Calendar
-                                    </Text>
-                                </Button>
-
-                                {/* Get Help */}
-                                <Button
-                                    variant="outline"
-                                    h="full"
-                                    minH={{ base: "50px", md: "60px" }}
-                                    borderRadius="xl"
-                                    border="3px solid"
-                                    borderColor="orange.200"
-                                    bg="orange.50"
-                                    _hover={{ bg: "orange.100", borderColor: "orange.300", transform: "translateY(-2px)" }}
-                                    display="flex"
-                                    flexDirection="column"
-                                    gap={2}
-                                    p={3}
-                                    onClick={() => setIsHelpModalOpen(true)}
-                                    transition="all 0.3s ease"
-                                >
-                                    <Box p={2} bg="orange.100" borderRadius="lg">
-                                        <HelpCircle size={20} color="#DD6B20" />
-                                    </Box>
-                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "sm", md: "md" }}>
-                                        Get Help
-                                    </Text>
-                                </Button>
-                            </SimpleGrid>
+                                ))}
+                            </VStack>
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Row 2 - Quadrant 1: Notifications */}
+                    {/* Quadrant 4: Notifications */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -1281,68 +1399,7 @@ export default function TeamMemberView() {
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Row 2 - Quadrant 2: Testimonies */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                    >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="yellow.100" borderRadius="md">
-                                    <Award size={16} color="#D97706" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        Testimonies
-                                    </Heading>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {testimonies.length} reviews
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
-                            <VStack gap={1.5} align="stretch">
-                                {testimonies.map((testimony) => (
-                                    <Box
-                                        key={testimony.id}
-                                        p={{ base: 1.5, md: 2 }}
-                                        bg="yellow.50"
-                                        borderRadius="md"
-                                        border="1px solid"
-                                        borderColor="yellow.200"
-                                    >
-                                        <VStack align="stretch" gap={1}>
-                                            <HStack justify="space-between">
-                                                <VStack align="start" gap={0}>
-                                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                        {testimony.author}
-                                                    </Text>
-                                                    <Text fontSize="2xs" color="gray.600">
-                                                        {testimony.role}
-                                                    </Text>
-                                                </VStack>
-                                                <Text fontSize="2xs" color="gray.500">
-                                                    {new Date(testimony.date).toLocaleDateString()}
-                                                </Text>
-                                            </HStack>
-                                            <Text fontSize={{ base: "2xs", md: "xs" }} color="gray.700" lineClamp={3}>
-                                                "{testimony.message}"
-                                            </Text>
-                                        </VStack>
-                                    </Box>
-                                ))}
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-
-                    {/* Row 2 - Quadrant 3: Technical Skills */}
+                    {/* Quadrant 5: Technical Skills */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -1368,165 +1425,54 @@ export default function TeamMemberView() {
                                 </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
-                            <SimpleGrid columns={2} gap={2}>
-                                {skills.map((skill) => (
-                                    <Box 
-                                        key={skill.id}
-                                        p={2}
-                                        bg={
-                                            skill.category === 'frontend' ? 'purple.50' :
-                                            skill.category === 'backend' ? 'blue.50' :
-                                            skill.category === 'database' ? 'green.50' :
-                                            skill.category === 'tools' ? 'orange.50' : 'gray.50'
-                                        }
-                                        borderRadius="md"
-                                        border="1px solid"
-                                        borderColor={
-                                            skill.category === 'frontend' ? 'purple.200' :
-                                            skill.category === 'backend' ? 'blue.200' :
-                                            skill.category === 'database' ? 'green.200' :
-                                            skill.category === 'tools' ? 'orange.200' : 'gray.200'
-                                        }
-                                    >
-                                        <VStack align="stretch" gap={1}>
-                                            <Text fontWeight="bold" color="gray.800" fontSize="xs" lineClamp={1}>
+                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="auto">
+                            <VStack gap={2} align="stretch">
+                                {skills.map((skill) => {
+                                    const categoryColors = {
+                                        frontend: { bg: 'purple.100', text: 'purple.700', dot: 'purple.500' },
+                                        backend: { bg: 'blue.100', text: 'blue.700', dot: 'blue.500' },
+                                        database: { bg: 'green.100', text: 'green.700', dot: 'green.500' },
+                                        tools: { bg: 'orange.100', text: 'orange.700', dot: 'orange.500' }
+                                    };
+                                    const colors = categoryColors[skill.category as keyof typeof categoryColors] || 
+                                                   { bg: 'gray.100', text: 'gray.700', dot: 'gray.500' };
+                                    
+                                    return (
+                                        <HStack
+                                            key={skill.id}
+                                            gap={3}
+                                            px={3}
+                                            py={2}
+                                            bg={colors.bg}
+                                            borderRadius="lg"
+                                            transition="all 0.2s ease"
+                                            _hover={{
+                                                shadow: "sm",
+                                                transform: "translateX(2px)"
+                                            }}
+                                            justify="space-between"
+                                        >
+                                            <Text fontSize="sm" fontWeight="600" color={colors.text} minW="120px">
                                                 {skill.name}
                                             </Text>
-                                            <HStack justify="space-between" align="center">
-                                                <HStack gap={0.5}>
-                                                    {[1, 2, 3, 4, 5].map((star) => (
-                                                        <Box
-                                                            key={star}
-                                                            w={2}
-                                                            h={2}
-                                                            borderRadius="full"
-                                                            bg={star <= skill.level ? 
-                                                                (skill.category === 'frontend' ? 'purple.500' :
-                                                                skill.category === 'backend' ? 'blue.500' :
-                                                                skill.category === 'database' ? 'green.500' :
-                                                                skill.category === 'tools' ? 'orange.500' : 'gray.500')
-                                                                : 'gray.300'}
-                                                        />
-                                                    ))}
-                                                </HStack>
-                                                <Text fontSize="2xs" color="gray.600" fontWeight="medium">
-                                                    {skill.level}/5
-                                                </Text>
+                                            <HStack gap={0.5} flexShrink={0}>
+                                                {[1, 2, 3, 4, 5].map((level) => (
+                                                    <Box
+                                                        key={level}
+                                                        w={2.5}
+                                                        h={2.5}
+                                                        borderRadius="full"
+                                                        bg={level <= skill.level ? colors.dot : 'gray.300'}
+                                                    />
+                                                ))}
                                             </HStack>
-                                        </VStack>
-                                    </Box>
-                                ))}
-                            </SimpleGrid>
-                        </Card.Body>
-                    </Card.Root>
-
-                    {/* Row 1 - Quadrant 3: Team Chat (Right side of My Space) */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="xl"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                        overflow="hidden"
-                    >
-                        <Card.Header 
-                            p={{ base: 2, md: 3 }} 
-                            pb={2} 
-                            borderBottom="1px solid" 
-                            borderColor="gray.100"
-                            bg="gradient-to-r from-teal.50 to-teal.100"
-                        >
-                            <HStack gap={3}>
-                                <Box p={2} bg="teal.500" borderRadius="lg">
-                                    <MessageCircle size={18} color="white" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
-                                        Team Chat
-                                    </Heading>
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                        Connect with colleagues
-                                    </Text>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {chatMessages.length} messages
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} display="flex" flexDirection="column" overflow="hidden">
-                            <VStack gap={2} align="stretch" flex={1}>
-                                {/* Chat Messages */}
-                                <VStack 
-                                    gap={1} 
-                                    align="stretch" 
-                                    flex={1} 
-                                    overflow="hidden"
-                                    maxH="150px"
-                                >
-                                    {chatMessages.map((message) => (
-                                        <Box
-                                            key={message.id}
-                                            p={2}
-                                            bg={message.sender === 'user' ? 'teal.50' : 'gray.50'}
-                                            borderRadius="lg"
-                                            border="1px solid"
-                                            borderColor={message.sender === 'user' ? 'teal.200' : 'gray.200'}
-                                        >
-                                            <VStack align="start" gap={1}>
-                                                <HStack justify="space-between" w="full">
-                                                    <Text fontSize="xs" fontWeight="bold" color="gray.700">
-                                                        {message.sender === 'user' ? 'You' : 'Team'}
-                                                    </Text>
-                                                    <Text fontSize="2xs" color="gray.500">
-                                                        {new Date(message.timestamp).toLocaleTimeString([], { 
-                                                            hour: '2-digit', 
-                                                            minute: '2-digit' 
-                                                        })}
-                                                    </Text>
-                                                </HStack>
-                                                <Text fontSize="sm" color="gray.800">
-                                                    {message.message}
-                                                </Text>
-                                            </VStack>
-                                        </Box>
-                                    ))}
-                                </VStack>
-
-                                {/* Message Input */}
-                                <HStack gap={2}>
-                                    <Input
-                                        placeholder="Type a message..."
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                                        size="sm"
-                                        borderRadius="lg"
-                                        bg="gray.50"
-                                        border="1px solid"
-                                        borderColor="gray.200"
-                                        _focus={{
-                                            borderColor: "teal.300",
-                                            bg: "white"
-                                        }}
-                                    />
-                                    <IconButton
-                                        aria-label="Send message"
-                                        size="sm"
-                                        colorScheme="teal"
-                                        borderRadius="lg"
-                                        onClick={handleSendMessage}
-                                        isDisabled={!newMessage.trim()}
-                                    >
-                                        <Send size={16} />
-                                    </IconButton>
-                                </HStack>
+                                        </HStack>
+                                    );
+                                })}
                             </VStack>
                         </Card.Body>
                     </Card.Root>
+
                 </SimpleGrid>
             </Box>
 
@@ -2139,7 +2085,119 @@ export default function TeamMemberView() {
                     </Box>
                 </Box>
             )}
-            </Box>
-        </LayoutWrapper>
+
+            {/* Concern Modal */}
+            {isConcernModalOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(8px)"
+                    zIndex={9999}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => setIsConcernModalOpen(false)}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW="500px"
+                        w="90%"
+                        p={6}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ animation: 'slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+                        shadow="2xl"
+                    >
+                        {/* Modal Header */}
+                        <HStack justify="space-between" mb={4}>
+                            <HStack gap={3}>
+                                <Box p={2} bg="orange.100" borderRadius="lg">
+                                    <AlertCircle size={24} color="#f97316" />
+                                </Box>
+                                <VStack align="start" gap={0}>
+                                    <Heading size="md" color="gray.800">
+                                        Raise a Concern
+                                    </Heading>
+                                    <Text fontSize="sm" color="gray.600">
+                                        Share your concerns with us
+                                    </Text>
+                                </VStack>
+                            </HStack>
+                            <IconButton
+                                aria-label="Close modal"
+                                onClick={() => setIsConcernModalOpen(false)}
+                                variant="ghost"
+                                color="gray.500"
+                                _hover={{ bg: 'gray.100' }}
+                                size="sm"
+                            >
+                                <XIcon size={20} />
+                            </IconButton>
+                        </HStack>
+
+                        {/* Modal Body */}
+                        <VStack gap={4} align="stretch">
+                            <Box>
+                                <Text fontSize="sm" fontWeight="600" color="gray.700" mb={2}>
+                                    Describe your concern
+                                </Text>
+                                <textarea
+                                    value={concernText}
+                                    onChange={(e) => setConcernText(e.target.value)}
+                                    placeholder="Please describe your concern in detail..."
+                                    style={{
+                                        width: '100%',
+                                        minHeight: '150px',
+                                        padding: '12px',
+                                        borderRadius: '12px',
+                                        border: '1px solid #e2e8f0',
+                                        fontSize: '14px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </Box>
+
+                            {/* Action Buttons */}
+                            <HStack gap={3} justify="flex-end">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setConcernText('');
+                                        setIsConcernModalOpen(false);
+                                    }}
+                                    borderRadius="lg"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    bg="linear-gradient(135deg, #fb923c 0%, #f97316 100%)"
+                                    color="white"
+                                    onClick={() => {
+                                        // Handle concern submission
+                                        console.log('Concern submitted:', concernText);
+                                        alert('Your concern has been submitted successfully!');
+                                        setConcernText('');
+                                        setIsConcernModalOpen(false);
+                                    }}
+                                    isDisabled={!concernText.trim()}
+                                    _hover={{
+                                        bg: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)"
+                                    }}
+                                    borderRadius="lg"
+                                >
+                                    Submit Concern
+                                </Button>
+                            </HStack>
+                        </VStack>
+                    </Box>
+                </Box>
+            )}
+        </Box>
     );
 }
