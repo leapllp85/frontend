@@ -201,16 +201,27 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
 }) => {
   return (
     <Card.Root 
-     bg="#ffffff"
+    //  bg="#ffffff"
+    //   shadow="xs" 
+    //   borderRadius="3xl" 
+    //   h="full" 
+    //   w="full"
+    //   display="flex" 
+    //   flexDirection="column" 
+    //   border="1px solid" 
+    //   borderColor="gray.200"
+    //   maxW="300px"
+
+      maxW="900px"
+      boxShadow="sm"
+      bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
       h="full" 
-      w="full"
       display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.200"
-      maxW="300px"
+      flexDirection="column"  
+      borderColor="gray.100"
+      p={2}
       // transition="all 0.2s ease"
       py={3}
     >

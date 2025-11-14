@@ -6,8 +6,7 @@ import { User } from "lucide-react";
 import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsApi } from '../../services';
 import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
 import type { UserProfile } from "../../services/userApi";
-import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
-import { AttritionRisk } from "../profile/criticality/AttritionRisk";
+import { AttritionAnalysis } from "../profile/AttritionAnalysis";
 import { CriticalTeamMembers } from "../profile/criticality/CriticalTeamMembers";
 import { StatsRow } from "../profile/StatsRow";
 import { AttritionTrendsPanel } from "../profile/AttritionTrendsPanel";
@@ -130,7 +129,7 @@ export const Profile = ({
           bg="whiteAlpha.900"
           backdropFilter="blur(10px)"
           borderRadius="2xl"
-          border="1px solid"
+          // border="1px solid"
           borderColor="whiteAlpha.300"
           shadow="sm"
           p={8}
@@ -141,7 +140,7 @@ export const Profile = ({
                 w="16"
                 h="16"
                 borderRadius="full"
-                border="4px solid"
+                // border="4px solid"
                 bg="#d4f1f4"
                 borderTopColor="transparent"
                 animation="spin 1s linear infinite"
@@ -195,41 +194,35 @@ export const Profile = ({
   return (
     <Box 
       w="full"
-      h="full" 
+      h="98%" 
       bg="#ffffff"
       position="relative"
-      gap={0}
-      p={0}
+      gap={2}
+      p={2}
       overflow="hidden"
     >
       {/* Main Content */}
-      <Box position="relative" h="98%" overflow="hidden" w="98%">
-        {/* Dashboard Content */}
-        <Box h="full" p={1} position="relative">
-          {/* Main Content Grid - Full Screen Layout */}
-          <HStack 
-            h="full"
-            w="full"
-            gap={0}
-            align="center"
-            minH="0"
-          >
-            {/* Left Side - Health Metrics (Full Height) */}
-            <VStack h="full" w="320px" flexShrink={0} gap={1} align="center">
-              <HealthMetrics 
-                metrics={metrics ? [
-                  { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
-                  { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                  { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                  { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                ] : []}
-              />
-            </VStack>
+      <Box h="auto" w="auto" p={2} overflow="hidden">
+        {/* Dashboard Content Grid */}
+        <HStack h="auto" w="auto" gap={2} align="stretch" minH="0">
+          {/* Left Side - Health Metrics */}
+          <Box w="220px" h="auto" flexShrink={0} borderRadius="3xl">
+            <HealthMetrics 
+              metrics={metrics ? [
+                { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
+                { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
+                { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
+                { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
+              ] : []}
+            />
+          </Box>
 
-            {/* Right Side - Stats Row + Main Content */}
-            <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
-              {/* Stats Row - Top Right */}
-              <Box w="full" flexShrink={0}>
+          {/* Main Content Area */}
+          <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
+            {/* Top Row - Stats Row + Critical Members */}
+            <HStack w="full" gap={2} align="stretch" h="130px" flexShrink={5}>
+              {/* Stats Row */}
+              <Box flex="1.5" h="full">
                 <StatsRow 
                   activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
                   teamMembers={teamStats?.team_members_count}
@@ -237,39 +230,41 @@ export const Profile = ({
                   highRiskProjects={projectStats?.high_risk_projects}
                 />
               </Box>
+              
+              {/* Critical Team Members - Top Part */}
+              <Box flex="1.2" h="full">
+                <CriticalTeamMembers userId={user?.id?.toString()} />
+              </Box>
+            </HStack>
 
-              {/* Main Content Area */}
-              <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
-                {/* Top - Criticality vs Attrition Risk */}
-                <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
-                  <Box w="30%" h="full" minW="0">
-                    <CriticalityVsRisk userId={user?.id?.toString()} />
-                  </Box>
-                  <Box w="30%" h="full" minW="0">
-                    <AttritionRisk userId={user?.id?.toString()} />
-                  </Box>
-                  <Box w="40%" h="full" minW="0">
-                    <CriticalTeamMembers userId={user?.id?.toString()} />
-                  </Box>
-                </HStack>
-                                
-                {/* Bottom Row - Notifications and Project Risks */}
-                <HStack gap={2} align="stretch" w="full" h="42%" minH="0">
-                  <Box flex="1" h="full" minH="0">
-                    <AttritionTrendsPanel 
-                      trends={notifications?.notifications}
-                    />
-                  </Box>
-                  <Box flex="1" h="full" minH="0">
-                    <ProjectRisks 
-                      projects={projectRisks?.projects}
-                    />
-                  </Box>
-                </HStack>
-              </VStack>
-            </VStack>
-          </HStack>
-        </Box>
+            {/* Middle Row - Attrition Analysis + Critical Members Extension */}
+            <HStack flex="2" w="full" gap={2} align="stretch" minH="0">
+              {/* Attrition Analysis */}
+              <Box flex="1.5" h="full">
+                <AttritionAnalysis userId={user?.id?.toString()} />
+              </Box>
+              
+              {/* Critical Members Extension */}
+              <Box flex="1.2" h="full">
+                {/* Visual continuation of Critical Members */}
+              </Box>
+            </HStack>
+            
+            {/* Bottom Row - AttritionTrends + ProjectRisks */}
+            <HStack w="full" gap={2} align="stretch" h="220px" flexShrink={0}>
+              <Box flex="0.8" h="full">
+                <AttritionTrendsPanel 
+                  trends={notifications?.notifications}
+                />
+              </Box>
+              <Box flex="1.2" h="full">
+                <ProjectRisks 
+                  projects={projectRisks?.projects}
+                />
+              </Box>
+            </HStack>
+          </VStack>
+        </HStack>
       </Box>
     </Box>
   );
