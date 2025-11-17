@@ -2,63 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-// Add keyframes for animations
-if (typeof document !== 'undefined') {
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-    `;
-    if (!document.head.querySelector('style[data-animations]')) {
-        style.setAttribute('data-animations', 'true');
-        document.head.appendChild(style);
-    }
-}
 import {
     Box,
     VStack,
@@ -102,7 +45,7 @@ import {
     LogOut,
     MessageCircle
 } from 'lucide-react';
-import { Line, Pie } from 'react-chartjs-2';
+import { Line, Pie, Scatter } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -193,6 +136,10 @@ export default function TeamMemberView() {
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
     const [concernText, setConcernText] = useState('');
+    const [isSkillAnalysisOpen, setIsSkillAnalysisOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'market' | 'learning' | 'wellness'>('overview');
+    const [skillModalTab, setSkillModalTab] = useState<'skills' | 'wellness'>('skills');
+    const [bookmarkedSkills, setBookmarkedSkills] = useState<string[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -208,6 +155,40 @@ export default function TeamMemberView() {
         designation: 'Senior Software Engineer',
         avatar: 'https://i.pravatar.cc/150?img=12' // Sample avatar image
     };
+
+    // Add CSS animation for tab transitions
+    useEffect(() => {
+        const styleId = 'fadeInSlide-animation';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                @keyframes fadeInSlide {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                @keyframes growthPulse {
+                    0%, 100% {
+                        transform: scale(1);
+                        background-color: rgba(240, 253, 250, 1);
+                        border-color: rgba(153, 246, 228, 1);
+                    }
+                    50% {
+                        transform: scale(1.02);
+                        background-color: rgba(204, 251, 241, 1);
+                        border-color: rgba(94, 234, 212, 1);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }, []);
 
 
     // Mock data - Replace with actual API calls
@@ -552,6 +533,24 @@ export default function TeamMemberView() {
             };
             setChatMessages(prev => [...prev, systemMessage]);
         }, 1000);
+    };
+
+    const toggleSkillBookmark = (skillName: string) => {
+        if (bookmarkedSkills.includes(skillName)) {
+            setBookmarkedSkills(bookmarkedSkills.filter(s => s !== skillName));
+        } else {
+            setBookmarkedSkills([...bookmarkedSkills, skillName]);
+            // Add to notifications
+            const newNotification: Notification = {
+                id: Date.now().toString(),
+                type: 'info',
+                title: 'Skill Bookmarked',
+                message: `${skillName} added to your upskilling to-do list`,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            setNotifications([newNotification, ...notifications]);
+        }
     };
 
     const markAsRead = (notificationId: string) => {
@@ -1109,28 +1108,30 @@ export default function TeamMemberView() {
                                             </Text>
                                         </Button>
 
-                                        {/* Get Help */}
+                                        {/* Analyze Skill */}
                                         <Button
                                             variant="outline"
                                             minH="70px"
                                             h="auto"
                                             borderRadius="lg"
                                             border="2px solid"
-                                            borderColor="orange.200"
-                                            bg="orange.50"
-                                            _hover={{ bg: "orange.100", borderColor: "orange.300", transform: "translateY(-2px)" }}
+                                            borderColor="teal.200"
+                                            bg="teal.50"
+                                            _hover={{ bg: "teal.100", borderColor: "teal.300", transform: "translateY(-2px)" }}
                                             display="flex"
                                             flexDirection="column"
                                             gap={2}
                                             p={3}
-                                            onClick={() => setIsHelpModalOpen(true)}
-                                            transition="all 0.3s ease"
+                                            onClick={() => setIsSkillAnalysisOpen(true)}
+                                            style={{
+                                                animation: 'growthPulse 3s ease-in-out infinite'
+                                            }}
                                         >
-                                            <Box p={1.5} bg="orange.100" borderRadius="md">
-                                                <HelpCircle size={20} color="#DD6B20" />
+                                            <Box p={1.5} bg="teal.100" borderRadius="md">
+                                                <TrendingUp size={20} color="#0D9488" />
                                             </Box>
                                             <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                Get Help
+                                                My Growth
                                             </Text>
                                         </Button>
                                     </SimpleGrid>
@@ -1911,12 +1912,13 @@ export default function TeamMemberView() {
                                     </Text>
                                 </VStack>
                                 <IconButton
-                                    aria-label="Close modal"
+                                    aria-label="Close"
                                     onClick={() => setIsHelpModalOpen(false)}
-                                    variant="ghost"
-                                    color="white"
-                                    _hover={{ bg: 'whiteAlpha.200' }}
-                                    size="sm"
+                                    borderRadius="lg"
+                                    bg="gray.100"
+                                    color="gray.600"
+                                    _hover={{ bg: 'gray.200' }}
+                                    size="md"
                                 >
                                     <XIcon size={20} />
                                 </IconButton>
@@ -2086,6 +2088,1122 @@ export default function TeamMemberView() {
                 </Box>
             )}
 
+            {/* Skill Analysis Modal - With Shadow Effect */}
+            {isSkillAnalysisOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.5)"
+                    backdropFilter="blur(4px)"
+                    zIndex={9999}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    p={6}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW="1600px"
+                        w="95%"
+                        h="92vh"
+                        display="flex"
+                        flexDirection="column"
+                        overflow="hidden"
+                        shadow="2xl"
+                        style={{ animation: 'scaleIn 0.3s ease-out' }}
+                    >
+                        {/* Modal Header - Compact Design */}
+                        <Box bg="white" borderBottom="1px solid" borderColor="gray.200">
+                            <Box p={3} pb={2}>
+                                <HStack justify="space-between">
+                                    <HStack gap={2}>
+                                        <Box p={2} bg="gray.100" borderRadius="lg">
+                                            <TrendingUp size={18} color="#6b7280" />
+                                        </Box>
+                                        <VStack align="start" gap={0}>
+                                            <Heading size="sm" color="gray.800" fontWeight="600">
+                                                {skillModalTab === 'skills' ? 'Skill Analysis & Career Growth' : 'Wellness Management'}
+                                            </Heading>
+                                            <Text fontSize="sm" color="gray.500">
+                                                {skillModalTab === 'skills' ? 'Personalized insights based on market trends' : 'Your mental health and wellness resources'}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                    <IconButton
+                                        aria-label="Close modal"
+                                        onClick={() => {
+                                            setIsSkillAnalysisOpen(false);
+                                            setActiveTab('overview');
+                                            setSkillModalTab('skills');
+                                        }}
+                                        borderRadius="lg"
+                                        variant="ghost"
+                                        colorScheme="gray"
+                                        size="md"
+                                    >
+                                        <XIcon size={20} />
+                                    </IconButton>
+                                </HStack>
+                            </Box>
+                            
+                            {/* Tab Navigation with Hover */}
+                            <HStack gap={0} px={3}>
+                                <Box
+                                    px={3}
+                                    py={2}
+                                    cursor="pointer"
+                                    borderBottom="3px solid"
+                                    borderColor={skillModalTab === 'skills' ? 'purple.500' : 'transparent'}
+                                    color={skillModalTab === 'skills' ? 'purple.600' : 'gray.500'}
+                                    fontWeight={skillModalTab === 'skills' ? '600' : '500'}
+                                    fontSize="sm"
+                                    transition="all 0.3s ease"
+                                    onMouseEnter={() => setSkillModalTab('skills')}
+                                    _hover={{
+                                        color: 'purple.600',
+                                        bg: 'purple.50'
+                                    }}
+                                    position="relative"
+                                >
+                                    <HStack gap={2}>
+                                        <TrendingUp size={16} />
+                                        <Text>Skill Analysis & Growth</Text>
+                                    </HStack>
+                                </Box>
+                                <Box
+                                    px={3}
+                                    py={2}
+                                    cursor="pointer"
+                                    borderBottom="3px solid"
+                                    borderColor={skillModalTab === 'wellness' ? 'green.500' : 'transparent'}
+                                    color={skillModalTab === 'wellness' ? 'green.600' : 'gray.500'}
+                                    fontWeight={skillModalTab === 'wellness' ? '600' : '500'}
+                                    fontSize="sm"
+                                    transition="all 0.3s ease"
+                                    onMouseEnter={() => setSkillModalTab('wellness')}
+                                    _hover={{
+                                        color: 'green.600',
+                                        bg: 'green.50'
+                                    }}
+                                    position="relative"
+                                >
+                                    <HStack gap={2}>
+                                        <SparklesIcon size={16} />
+                                        <Text>Wellness Management</Text>
+                                    </HStack>
+                                </Box>
+                            </HStack>
+                        </Box>
+
+                        {/* Modal Body - Clean Layout */}
+                        <Box flex={1} overflow="hidden" bg="#fafafa" p={3}>
+                            {/* Skill Analysis Tab Content */}
+                            {skillModalTab === 'skills' && (
+                                <Box 
+                                    h="full"
+                                    style={{ 
+                                        animation: 'fadeInSlide 0.4s ease-out',
+                                        opacity: 1
+                                    }}
+                                >
+                                    <SimpleGrid columns={{ base: 1, lg: 2 }} gap={3} h="full">
+                                {/* Left Column */}
+                                <VStack gap={3} align="stretch" overflowY="auto" pr={2}>
+                                    {/* Current Skills - Subtle */}
+                                    <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                        <HStack gap={2} mb={2}>
+                                            <Award size={16} color="#9ca3af" />
+                                            <Heading size="sm" color="gray.700" fontWeight="600">Your Skills</Heading>
+                                        </HStack>
+                                        <SimpleGrid columns={2} gap={2}>
+                                            {skills.map((skill) => (
+                                                <HStack key={skill.id} justify="space-between" p={2} bg="gray.50" borderRadius="md">
+                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">{skill.name}</Text>
+                                                    <HStack gap={0.5}>
+                                                        {[1, 2, 3, 4, 5].map((level) => (
+                                                            <Box key={level} w={1.5} h={1.5} borderRadius="full" bg={level <= skill.level ? 'teal.500' : 'gray.300'} />
+                                                        ))}
+                                                    </HStack>
+                                                </HStack>
+                                            ))}
+                                        </SimpleGrid>
+                                    </Box>
+                                    
+                                    {/* Quick Stats - Subtle */}
+                                    <SimpleGrid columns={4} gap={2}>
+                                        <Box p={2} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="700" color="gray.700">{skills.length}</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Skills</Text>
+                                        </Box>
+                                        <Box p={2} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="700" color="gray.700">{skills.filter(s => s.level === 5).length}</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Expert</Text>
+                                        </Box>
+                                        <Box p={2} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="700" color="gray.700">{projects.length}</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Projects</Text>
+                                        </Box>
+                                        <Box p={2} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" textAlign="center">
+                                            <Text fontSize="xl" fontWeight="700" color="gray.700">{projects.reduce((sum, p) => sum + p.allocation, 0)}%</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Engaged</Text>
+                                        </Box>
+                                    </SimpleGrid>
+
+                                    {/* Recommendations Section - Clean UX */}
+                                    <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column">
+                                        <HStack justify="space-between" mb={2}>
+                                            <VStack align="start" gap={0}>
+                                                <Heading size="sm" color="gray.700" fontWeight="600">Skills to Learn Next</Heading>
+                                                <Text fontSize="xs" color="gray.500">Based on market demand & your profile</Text>
+                                            </VStack>
+                                            <Badge bg="gray.100" color="gray.700" fontSize="2xs" px={2} py={1} borderRadius="md" fontWeight="600">
+                                                6 Recommendations
+                                            </Badge>
+                                        </HStack>
+                                        <VStack gap={1.5} align="stretch">
+                                            {/* Skill Card 1 - Advanced React */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="purple.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="purple.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "purple.400", bg: "purple.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="purple.200" borderRadius="md">
+                                                        <Code size={16} color="#7c3aed" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <Text fontWeight="700" color="purple.900" fontSize="xs">Advanced React</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Hooks, Performance, Patterns</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="red" fontSize="2xs" px={1.5} py={0.5}>95%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="purple"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('Advanced React');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('Advanced React') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+
+                                            {/* Skill Card 2 - GraphQL */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="blue.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="blue.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "blue.400", bg: "blue.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="blue.200" borderRadius="md">
+                                                        <BarChart3 size={16} color="#2563eb" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <Text fontWeight="700" color="blue.900" fontSize="xs">GraphQL & APIs</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Apollo, Schema, Resolvers</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="orange" fontSize="2xs" px={1.5} py={0.5}>82%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="blue"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('GraphQL & APIs');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('GraphQL & APIs') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+
+                                            {/* Skill Card 3 - AI/ML */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="red.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="red.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "red.400", bg: "red.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="red.200" borderRadius="md">
+                                                        <TrendingUp size={16} color="#dc2626" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <HStack gap={1}>
+                                                            <Text fontWeight="700" color="red.900" fontSize="xs">AI/ML Integration</Text>
+                                                            <Text fontSize="xs">🔥</Text>
+                                                        </HStack>
+                                                        <Text fontSize="2xs" color="gray.600">ChatGPT, TensorFlow, LangChain</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="red" fontSize="2xs" px={1.5} py={0.5}>99%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="red"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('AI/ML Integration');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('AI/ML Integration') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+
+                                            {/* Skill Card 4 - Python */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="orange.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="orange.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "orange.400", bg: "orange.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="orange.200" borderRadius="md">
+                                                        <Code size={16} color="#d97706" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <Text fontWeight="700" color="orange.900" fontSize="xs">Python & Data Science</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Pandas, NumPy, Scikit-learn</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="red" fontSize="2xs" px={1.5} py={0.5}>98%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="orange"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('Python & Data Science');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('Python & Data Science') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+
+                                            {/* Skill Card 5 - Kubernetes */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="teal.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="teal.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "teal.400", bg: "teal.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="teal.200" borderRadius="md">
+                                                        <TrendingUp size={16} color="#0d9488" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <Text fontWeight="700" color="teal.900" fontSize="xs">Kubernetes & Docker</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Container Orchestration</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="orange" fontSize="2xs" px={1.5} py={0.5}>88%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="teal"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('Kubernetes & Docker');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('Kubernetes & Docker') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+
+                                            {/* Skill Card 6 - Cloud */}
+                                            <HStack 
+                                                p={2} 
+                                                bg="cyan.50" 
+                                                borderRadius="md" 
+                                                border="1px solid" 
+                                                borderColor="cyan.200"
+                                                transition="all 0.2s"
+                                                _hover={{ borderColor: "cyan.400", bg: "cyan.100" }}
+                                                cursor="pointer"
+                                                justify="space-between"
+                                            >
+                                                <HStack gap={2} flex={1}>
+                                                    <Box p={1.5} bg="cyan.200" borderRadius="md">
+                                                        <Code size={16} color="#0891b2" />
+                                                    </Box>
+                                                    <VStack align="start" gap={0} flex={1}>
+                                                        <Text fontWeight="700" color="cyan.900" fontSize="xs">AWS & Cloud Services</Text>
+                                                        <Text fontSize="2xs" color="gray.600">EC2, Lambda, S3</Text>
+                                                    </VStack>
+                                                </HStack>
+                                                <HStack gap={1.5}>
+                                                    <Badge colorScheme="orange" fontSize="2xs" px={1.5} py={0.5}>85%</Badge>
+                                                    <IconButton
+                                                        aria-label="Bookmark"
+                                                        size="xs"
+                                                        variant="ghost"
+                                                        colorScheme="cyan"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSkillBookmark('AWS & Cloud Services');
+                                                        }}
+                                                    >
+                                                        {bookmarkedSkills.includes('AWS & Cloud Services') ? <BookmarkCheckIcon size={12} /> : <BookmarkIcon size={12} />}
+                                                    </IconButton>
+                                                </HStack>
+                                            </HStack>
+                                        </VStack>
+                                    </Box>
+                                </VStack>
+                                
+                                {/* Right Column */}
+                                <VStack gap={3} align="stretch" overflowY="auto" pr={2}>
+
+                                    {/* Consolidated Skills Analysis with Learning Curve */}
+                                    <Box 
+                                        p={3} 
+                                        bg="white" 
+                                        borderRadius="lg" 
+                                        border="1px solid" 
+                                        borderColor="gray.200"
+                                    >
+                                        <HStack gap={2} mb={2}>
+                                            <TrendingUp size={16} color="#9ca3af" />
+                                            <VStack align="start" gap={0}>
+                                                <Heading size="sm" color="gray.700" fontWeight="600">Overall Skill Positioning</Heading>
+                                                <Text fontSize="xs" color="gray.500">Your Consolidated Skills vs Market Standard</Text>
+                                            </VStack>
+                                        </HStack>
+                                        
+                                        {/* Main Consolidated Chart */}
+                                        <Box p={3} bg="gray.50" borderRadius="lg" border="2px solid" borderColor="gray.200">
+                                            {/* Stats Summary */}
+                                            <HStack justify="space-around" mb={3} p={2} bg="white" borderRadius="lg" shadow="sm">
+                                                <VStack gap={0}>
+                                                    <Text fontSize="xl" fontWeight="800" color="green.600">65%</Text>
+                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Your Skills</Text>
+                                                </VStack>
+                                                <Box w="1px" h="30px" bg="gray.300" />
+                                                <VStack gap={0}>
+                                                    <Text fontSize="xl" fontWeight="800" color="red.600">100%</Text>
+                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Market Demand</Text>
+                                                </VStack>
+                                                <Box w="1px" h="30px" bg="gray.300" />
+                                                <VStack gap={0}>
+                                                    <Text fontSize="xl" fontWeight="800" color="orange.600">35%</Text>
+                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Gap to Close</Text>
+                                                </VStack>
+                                            </HStack>
+                                            
+                                            {/* Comparative Bars with Area Graph */}
+                                            <Box position="relative" h="180px" p={2}>
+                                                {/* Y-axis labels */}
+                                                <VStack position="absolute" left={0} top={0} bottom={0} justify="space-between" align="end" pr={2}>
+                                                    <Text fontSize="2xs" color="gray.500" fontWeight="600">100%</Text>
+                                                    <Text fontSize="2xs" color="gray.500" fontWeight="600">75%</Text>
+                                                    <Text fontSize="2xs" color="gray.500" fontWeight="600">50%</Text>
+                                                    <Text fontSize="2xs" color="gray.500" fontWeight="600">25%</Text>
+                                                    <Text fontSize="2xs" color="gray.500" fontWeight="600">0%</Text>
+                                                </VStack>
+                                                
+                                                {/* Grid lines */}
+                                                <Box position="absolute" left="50px" right="30px" top={0} bottom={0}>
+                                                    {[0, 25, 50, 75, 100].map((val, idx) => (
+                                                        <Box 
+                                                            key={idx}
+                                                            position="absolute"
+                                                            left={0}
+                                                            right={0}
+                                                            top={`${100 - val}%`}
+                                                            h="1px"
+                                                            bg="gray.200"
+                                                            opacity={0.5}
+                                                        />
+                                                    ))}
+                                                </Box>
+                                                
+                                                {/* Chart Content */}
+                                                <Box position="absolute" left="50px" right="30px" top="20px" bottom="30px">
+                                                    {/* Learning Curve Area Graph - Full Width */}
+                                                    <Box
+                                                        w="full"
+                                                        h="full"
+                                                        position="relative"
+                                                        cursor="pointer"
+                                                    >
+                                                        {/* SVG Area Graph - Extended to 100% */}
+                                                        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                                            <defs>
+                                                                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                                    <stop offset="0%" stopColor="rgb(251, 146, 60)" stopOpacity={0.7} />
+                                                                    <stop offset="100%" stopColor="rgb(251, 146, 60)" stopOpacity={0.15} />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <path
+                                                                d="M 0,35 L 0,100 L 100,100 L 100,0 Q 90,8 80,18 Q 60,32 40,42 Q 20,52 0,60 Z"
+                                                                fill="url(#areaGradient)"
+                                                                opacity={0.9}
+                                                            />
+                                                            <path
+                                                                d="M 0,35 Q 20,52 40,42 Q 60,32 80,18 Q 90,8 100,0"
+                                                                fill="none"
+                                                                stroke="rgb(249, 115, 22)"
+                                                                strokeWidth={0.5}
+                                                                vectorEffect="non-scaling-stroke"
+                                                            />
+                                                        </svg>
+                                                        
+                                                        {/* Green Dot at 65% (Your Current Level) */}
+                                                        <Box
+                                                            position="absolute"
+                                                            left="-8px"
+                                                            top="35%"
+                                                            w="16px"
+                                                            h="16px"
+                                                            bg="linear-gradient(135deg, rgba(34, 197, 94, 1), rgba(22, 163, 74, 1))"
+                                                            borderRadius="full"
+                                                            border="3px solid white"
+                                                            shadow="xl"
+                                                            zIndex={2}
+                                                            transition="all 0.3s"
+                                                            _hover={{ transform: "scale(1.3)", shadow: "2xl" }}
+                                                        />
+                                                        <VStack
+                                                            position="absolute"
+                                                            left="-40px"
+                                                            top="35%"
+                                                            transform="translateY(-50%)"
+                                                            gap={0}
+                                                            align="end"
+                                                        >
+                                                            <Text fontSize="xs" fontWeight="800" color="green.700">65%</Text>
+                                                            <Text fontSize="2xs" fontWeight="600" color="gray.600">You</Text>
+                                                        </VStack>
+                                                        
+                                                        {/* Technology Names at Intervals */}
+                                                        <VStack position="absolute" left="12%" top="48%" transform="translateY(-50%)" gap={0} pointerEvents="none">
+                                                            <Text fontSize="xs" fontWeight="800" color="red.700">AI/ML</Text>
+                                                            <Text fontSize="2xs" color="red.600">Critical</Text>
+                                                        </VStack>
+                                                        
+                                                        <VStack position="absolute" left="30%" top="38%" transform="translateY(-50%)" gap={0} pointerEvents="none">
+                                                            <Text fontSize="xs" fontWeight="800" color="red.700">Kubernetes</Text>
+                                                            <Text fontSize="2xs" color="red.600">High Priority</Text>
+                                                        </VStack>
+                                                        
+                                                        <VStack position="absolute" left="50%" top="28%" transform="translateY(-50%)" gap={0} pointerEvents="none">
+                                                            <Text fontSize="xs" fontWeight="800" color="orange.700">DevOps</Text>
+                                                            <Text fontSize="2xs" color="orange.600">Important</Text>
+                                                        </VStack>
+                                                        
+                                                        <VStack position="absolute" left="68%" top="18%" transform="translateY(-50%)" gap={0} pointerEvents="none">
+                                                            <Text fontSize="xs" fontWeight="800" color="orange.700">Cloud</Text>
+                                                            <Text fontSize="2xs" color="orange.600">Medium</Text>
+                                                        </VStack>
+                                                        
+                                                        <VStack position="absolute" left="85%" top="8%" transform="translateY(-50%)" gap={0} pointerEvents="none">
+                                                            <Text fontSize="xs" fontWeight="800" color="yellow.700">GraphQL</Text>
+                                                            <Text fontSize="2xs" color="yellow.600">Enhance</Text>
+                                                        </VStack>
+                                                        
+                                                        {/* 100% Target Marker */}
+                                                        <Box
+                                                            position="absolute"
+                                                            right="-8px"
+                                                            top="0%"
+                                                            w="16px"
+                                                            h="16px"
+                                                            bg="linear-gradient(135deg, rgba(34, 197, 94, 1), rgba(22, 163, 74, 1))"
+                                                            borderRadius="full"
+                                                            border="3px solid white"
+                                                            shadow="xl"
+                                                            zIndex={2}
+                                                        />
+                                                        <VStack
+                                                            position="absolute"
+                                                            right="-45px"
+                                                            top="0%"
+                                                            transform="translateY(-50%)"
+                                                            gap={0}
+                                                            align="start"
+                                                        >
+                                                            <Text fontSize="xs" fontWeight="800" color="green.700">100%</Text>
+                                                            <Text fontSize="2xs" fontWeight="600" color="gray.600">Target</Text>
+                                                        </VStack>
+                                                            
+                                                            {/* Hover Tooltip */}
+                                                            <Box
+                                                                position="absolute"
+                                                                top="-10px"
+                                                                left="50%"
+                                                                transform="translateX(-50%)"
+                                                                bg="gray.900"
+                                                                color="white"
+                                                                p={3}
+                                                                borderRadius="lg"
+                                                                shadow="2xl"
+                                                                opacity={0}
+                                                                _hover={{ opacity: 1 }}
+                                                                transition="all 0.3s"
+                                                                zIndex={10}
+                                                                minW="220px"
+                                                            >
+                                                                <VStack align="start" gap={1.5}>
+                                                                    <Text fontSize="xs" fontWeight="700" color="orange.300">Complete Learning Path:</Text>
+                                                                    <VStack align="start" gap={1} pl={2}>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="red.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">AI/ML (Critical - 69% gap)</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="red.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">Kubernetes (92% gap)</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="red.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">DevOps (90% gap)</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="orange.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">Cloud Technologies (33% gap)</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="orange.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">GraphQL (38% gap)</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={1.5}>
+                                                                            <Box w={1.5} h={1.5} bg="yellow.400" borderRadius="full" />
+                                                                            <Text fontSize="2xs">Docker (22% gap)</Text>
+                                                                        </HStack>
+                                                                    </VStack>
+                                                                    <Box w="full" h="1px" bg="whiteAlpha.300" my={1} />
+                                                                    <Text fontSize="2xs" color="gray.400">Total Est. Time: 12-18 months</Text>
+                                                                </VStack>
+                                                                {/* Arrow pointing down */}
+                                                                <Box
+                                                                    position="absolute"
+                                                                    bottom="-8px"
+                                                                    left="50%"
+                                                                    transform="translateX(-50%)"
+                                                                    w={0}
+                                                                    h={0}
+                                                                    borderLeft="8px solid transparent"
+                                                                    borderRight="8px solid transparent"
+                                                                    borderTop="8px solid"
+                                                                    borderTopColor="gray.900"
+                                                                />
+                                                            </Box>
+                                                    </Box>
+                                                </Box>
+                                        </Box>
+                                        
+                                        {/* Key Insights */}
+                                        <VStack gap={1.5} mt={2}>
+                                            <HStack w="full" p={2} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200">
+                                                <Box p={1.5} bg="green.100" borderRadius="md">
+                                                    <CheckCircle size={14} color="#16a34a" />
+                                                </Box>
+                                                <VStack align="start" gap={0} flex={1}>
+                                                    <Text fontSize="2xs" fontWeight="700" color="green.900">Strong Foundation</Text>
+                                                    <Text fontSize="2xs" color="gray.600">React, TypeScript, Python, Node.js</Text>
+                                                </VStack>
+                                            </HStack>
+                                            
+                                            <HStack w="full" p={2} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200">
+                                                <Box p={1.5} bg="orange.100" borderRadius="md">
+                                                    <AlertCircle size={14} color="#ea580c" />
+                                                </Box>
+                                                <VStack align="start" gap={0} flex={1}>
+                                                    <Text fontSize="2xs" fontWeight="700" color="orange.900">Focus Areas</Text>
+                                                    <Text fontSize="2xs" color="gray.600">AI/ML, Kubernetes, DevOps</Text>
+                                                </VStack>
+                                            </HStack>
+                                        </VStack>
+                                        </Box>
+                                    </Box>
+
+                                    {/* Learning Path Section - Clean Timeline */}
+                                    <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                        <HStack gap={2} mb={2}>
+                                            <ClipboardList size={16} color="#9ca3af" />
+                                            <Heading size="sm" color="gray.700" fontWeight="600">Learning Timeline</Heading>
+                                        </HStack>
+                                        
+                                        {/* 3D Timeline */}
+                                        <Box p={2} bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)" borderRadius="lg" position="relative">
+                                            <HStack gap={2} align="start" position="relative" h="100px">
+                                                {/* 3D Timeline Line with Shadow */}
+                                                <Box position="absolute" top="35px" left="10%" right="10%" h="4px" bg="linear-gradient(90deg, #a855f7, #3b82f6, #f97316, #10b981)" borderRadius="full" shadow="lg" />
+                                                <Box position="absolute" top="38px" left="10%" right="10%" h="2px" bg="blackAlpha.200" filter="blur(2px)" />
+                                                
+                                                {/* Q1: React */}
+                                                <VStack flex={1} align="center" gap={2} position="relative" zIndex={1}>
+                                                    <Box 
+                                                        w="14" 
+                                                        h="14" 
+                                                        bg="linear-gradient(135deg, #a855f7 0%, #9333ea 100%)" 
+                                                        color="white" 
+                                                        borderRadius="xl" 
+                                                        display="flex" 
+                                                        alignItems="center" 
+                                                        justifyContent="center" 
+                                                        fontWeight="800" 
+                                                        fontSize="lg" 
+                                                        border="4px solid" 
+                                                        borderColor="white" 
+                                                        shadow="xl"
+                                                        transform="translateY(-5px)"
+                                                        transition="all 0.3s"
+                                                        _hover={{ transform: "translateY(-8px) scale(1.1)", shadow: "2xl" }}
+                                                    >
+                                                        Q1
+                                                    </Box>
+                                                    <VStack align="center" gap={0.5} p={2.5} bg="white" borderRadius="lg" border="2px solid" borderColor="purple.300" w="full" shadow="md">
+                                                        <Text fontWeight="800" color="purple.700" fontSize="xs" textAlign="center">React</Text>
+                                                        <Text fontSize="2xs" color="gray.600" textAlign="center" fontWeight="600">Months 1-3</Text>
+                                                    </VStack>
+                                                </VStack>
+                                                
+                                                {/* Q2: GraphQL */}
+                                                <VStack flex={1} align="center" gap={2} position="relative" zIndex={1}>
+                                                    <Box 
+                                                        w="14" 
+                                                        h="14" 
+                                                        bg="linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)" 
+                                                        color="white" 
+                                                        borderRadius="xl" 
+                                                        display="flex" 
+                                                        alignItems="center" 
+                                                        justifyContent="center" 
+                                                        fontWeight="800" 
+                                                        fontSize="lg" 
+                                                        border="4px solid" 
+                                                        borderColor="white" 
+                                                        shadow="xl"
+                                                        transform="translateY(-5px)"
+                                                        transition="all 0.3s"
+                                                        _hover={{ transform: "translateY(-8px) scale(1.1)", shadow: "2xl" }}
+                                                    >
+                                                        Q2
+                                                    </Box>
+                                                    <VStack align="center" gap={0.5} p={2.5} bg="white" borderRadius="lg" border="2px solid" borderColor="blue.300" w="full" shadow="md">
+                                                        <Text fontWeight="800" color="blue.700" fontSize="xs" textAlign="center">GraphQL</Text>
+                                                        <Text fontSize="2xs" color="gray.600" textAlign="center" fontWeight="600">Months 4-6</Text>
+                                                    </VStack>
+                                                </VStack>
+                                                
+                                                {/* Q3: AI */}
+                                                <VStack flex={1} align="center" gap={2} position="relative" zIndex={1}>
+                                                    <Box 
+                                                        w="14" 
+                                                        h="14" 
+                                                        bg="linear-gradient(135deg, #f97316 0%, #ea580c 100%)" 
+                                                        color="white" 
+                                                        borderRadius="xl" 
+                                                        display="flex" 
+                                                        alignItems="center" 
+                                                        justifyContent="center" 
+                                                        fontWeight="800" 
+                                                        fontSize="lg" 
+                                                        border="4px solid" 
+                                                        borderColor="white" 
+                                                        shadow="xl"
+                                                        transform="translateY(-5px)"
+                                                        transition="all 0.3s"
+                                                        _hover={{ transform: "translateY(-8px) scale(1.1)", shadow: "2xl" }}
+                                                    >
+                                                        Q3
+                                                    </Box>
+                                                    <VStack align="center" gap={0.5} p={2.5} bg="white" borderRadius="lg" border="2px solid" borderColor="orange.300" w="full" shadow="md">
+                                                        <Text fontWeight="800" color="orange.700" fontSize="xs" textAlign="center">AI 🔥</Text>
+                                                        <Text fontSize="2xs" color="gray.600" textAlign="center" fontWeight="600">Months 7-9</Text>
+                                                    </VStack>
+                                                </VStack>
+                                                
+                                                {/* Q4: Cloud */}
+                                                <VStack flex={1} align="center" gap={2} position="relative" zIndex={1}>
+                                                    <Box 
+                                                        w="14" 
+                                                        h="14" 
+                                                        bg="linear-gradient(135deg, #10b981 0%, #059669 100%)" 
+                                                        color="white" 
+                                                        borderRadius="xl" 
+                                                        display="flex" 
+                                                        alignItems="center" 
+                                                        justifyContent="center" 
+                                                        fontWeight="800" 
+                                                        fontSize="lg" 
+                                                        border="4px solid" 
+                                                        borderColor="white" 
+                                                        shadow="xl"
+                                                        transform="translateY(-5px)"
+                                                        transition="all 0.3s"
+                                                        _hover={{ transform: "translateY(-8px) scale(1.1)", shadow: "2xl" }}
+                                                    >
+                                                        Q4
+                                                    </Box>
+                                                    <VStack align="center" gap={0.5} p={2.5} bg="white" borderRadius="lg" border="2px solid" borderColor="green.300" w="full" shadow="md">
+                                                        <Text fontWeight="800" color="green.700" fontSize="xs" textAlign="center">Cloud</Text>
+                                                        <Text fontSize="2xs" color="gray.600" textAlign="center" fontWeight="600">Months 10-12</Text>
+                                                    </VStack>
+                                                </VStack>
+                                            </HStack>
+                                        </Box>
+                                    </Box>
+
+                                </VStack>
+                            </SimpleGrid>
+                                </Box>
+                            )}
+
+                            {/* Wellness Management Tab Content */}
+                            {skillModalTab === 'wellness' && (
+                                <Box 
+                                    h="full" 
+                                    style={{ 
+                                        animation: 'fadeInSlide 0.4s ease-out',
+                                        opacity: 1
+                                    }}
+                                >
+                                    <SimpleGrid columns={{ base: 1, lg: 2 }} gap={3} h="full">
+                                        {/* Left Column - Interactive Wellness */}
+                                        <VStack gap={2} align="stretch" overflowY="auto" pr={2}>
+                                            {/* Quick Actions */}
+                                            <SimpleGrid columns={2} gap={2}>
+                                                <Box p={2} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <HStack gap={2}>
+                                                        <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
+                                                            <Text fontSize="lg">🧘</Text>
+                                                        </Box>
+                                                        <VStack align="start" gap={0} flex={1}>
+                                                            <Text fontSize="xs" fontWeight="700" color="gray.800">5-Min Meditation</Text>
+                                                            <Text fontSize="2xs" color="gray.500">Start now</Text>
+                                                        </VStack>
+                                                    </HStack>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <HStack gap={2}>
+                                                        <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
+                                                            <Text fontSize="lg">💪</Text>
+                                                        </Box>
+                                                        <VStack align="start" gap={0} flex={1}>
+                                                            <Text fontSize="xs" fontWeight="700" color="gray.800">Desk Stretches</Text>
+                                                            <Text fontSize="2xs" color="gray.500">3 exercises</Text>
+                                                        </VStack>
+                                                    </HStack>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <HStack gap={2}>
+                                                        <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
+                                                            <Text fontSize="lg">😴</Text>
+                                                        </Box>
+                                                        <VStack align="start" gap={0} flex={1}>
+                                                            <Text fontSize="xs" fontWeight="700" color="gray.800">Sleep Tracker</Text>
+                                                            <Text fontSize="2xs" color="gray.500">7.5h avg</Text>
+                                                        </VStack>
+                                                    </HStack>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <HStack gap={2}>
+                                                        <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
+                                                            <Text fontSize="lg">💧</Text>
+                                                        </Box>
+                                                        <VStack align="start" gap={0} flex={1}>
+                                                            <Text fontSize="xs" fontWeight="700" color="gray.800">Water Reminder</Text>
+                                                            <Text fontSize="2xs" color="gray.500">6/8 glasses</Text>
+                                                        </VStack>
+                                                    </HStack>
+                                                </Box>
+                                            </SimpleGrid>
+
+                                            {/* Today's Wellness Timetable */}
+                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                <HStack gap={2} mb={2}>
+                                                    <Clock size={14} color="#9ca3af" />
+                                                    <Heading size="xs" color="gray.700" fontWeight="600">Today's Wellness Schedule</Heading>
+                                                </HStack>
+                                                <VStack gap={1.5} align="stretch">
+                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
+                                                        <HStack gap={2} flex={1}>
+                                                            <Box w="3px" h="30px" bg="blue.500" borderRadius="full" />
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Morning Stretch</Text>
+                                                                <Text fontSize="2xs" color="gray.500">5 min desk exercises</Text>
+                                                            </VStack>
+                                                        </HStack>
+                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">9:00 AM</Text>
+                                                    </HStack>
+
+                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
+                                                        <HStack gap={2} flex={1}>
+                                                            <Box w="3px" h="30px" bg="green.500" borderRadius="full" />
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Hydration Break</Text>
+                                                                <Text fontSize="2xs" color="gray.500">Drink water reminder</Text>
+                                                            </VStack>
+                                                        </HStack>
+                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">11:00 AM</Text>
+                                                    </HStack>
+
+                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
+                                                        <HStack gap={2} flex={1}>
+                                                            <Box w="3px" h="30px" bg="orange.500" borderRadius="full" />
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Lunch & Walk</Text>
+                                                                <Text fontSize="2xs" color="gray.500">15 min outdoor walk</Text>
+                                                            </VStack>
+                                                        </HStack>
+                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">1:00 PM</Text>
+                                                    </HStack>
+
+                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
+                                                        <HStack gap={2} flex={1}>
+                                                            <Box w="3px" h="30px" bg="purple.500" borderRadius="full" />
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Eye Rest</Text>
+                                                                <Text fontSize="2xs" color="gray.500">20-20-20 rule</Text>
+                                                            </VStack>
+                                                        </HStack>
+                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">3:00 PM</Text>
+                                                    </HStack>
+
+                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
+                                                        <HStack gap={2} flex={1}>
+                                                            <Box w="3px" h="30px" bg="pink.500" borderRadius="full" />
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Mindful Moment</Text>
+                                                                <Text fontSize="2xs" color="gray.500">3 min breathing</Text>
+                                                            </VStack>
+                                                        </HStack>
+                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">5:00 PM</Text>
+                                                    </HStack>
+                                                </VStack>
+                                            </Box>
+
+                                            {/* Wellness Tips Carousel */}
+                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                <HStack justify="space-between" mb={2}>
+                                                    <Heading size="xs" color="gray.700" fontWeight="600">Wellness Tips</Heading>
+                                                    <HStack gap={1}>
+                                                        <Box w="6px" h="6px" bg="blue.500" borderRadius="full" />
+                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
+                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
+                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
+                                                    </HStack>
+                                                </HStack>
+                                                <HStack gap={2} overflowX="auto" css={{
+                                                    '&::-webkit-scrollbar': { display: 'none' },
+                                                    scrollbarWidth: 'none'
+                                                }}>
+                                                    <Box minW="200px" p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200" textAlign="center">
+                                                        <Text fontSize="3xl" mb={2}>🧘</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Practice Mindfulness</Text>
+                                                        <Text fontSize="2xs" color="gray.600">5-10 min daily meditation</Text>
+                                                    </Box>
+                                                    <Box minW="200px" p={3} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200" textAlign="center">
+                                                        <Text fontSize="3xl" mb={2}>💪</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Stay Active</Text>
+                                                        <Text fontSize="2xs" color="gray.600">15-min walk boosts mood</Text>
+                                                    </Box>
+                                                    <Box minW="200px" p={3} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200" textAlign="center">
+                                                        <Text fontSize="3xl" mb={2}>😴</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Quality Sleep</Text>
+                                                        <Text fontSize="2xs" color="gray.600">7-9 hours nightly</Text>
+                                                    </Box>
+                                                    <Box minW="200px" p={3} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200" textAlign="center">
+                                                        <Text fontSize="3xl" mb={2}>👥</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Connect Socially</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Regular catch-ups</Text>
+                                                    </Box>
+                                                </HStack>
+                                            </Box>
+                                        </VStack>
+
+                                        {/* Right Column - Stress & Resources */}
+                                        <VStack gap={2} align="stretch" overflowY="auto" pr={2}>
+                                            {/* Quick Stress Relief */}
+                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                <HStack gap={2} mb={2}>
+                                                    <SparklesIcon size={14} color="#9ca3af" />
+                                                    <Heading size="xs" color="gray.700" fontWeight="600">Quick Stress Relief</Heading>
+                                                </HStack>
+                                                <SimpleGrid columns={2} gap={2}>
+                                                    <Box bg="white" borderRadius="lg" overflow="hidden" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ shadow: "md" }}>
+                                                        <Box
+                                                            h="100px"
+                                                            w="100%"
+                                                            bgImage="url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80')"
+                                                            bgSize="cover"
+                                                            bgPosition="center"
+                                                            position="relative"
+                                                        >
+                                                            <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
+                                                                <Text fontSize="3xl">🌬️</Text>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box p={2}>
+                                                            <Text fontWeight="700" color="gray.800" fontSize="xs" mb={0.5}>Deep Breathing</Text>
+                                                            <Text fontSize="2xs" color="gray.500">4-7-8 technique</Text>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box bg="white" borderRadius="lg" overflow="hidden" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ shadow: "md" }}>
+                                                        <Box
+                                                            h="100px"
+                                                            w="100%"
+                                                            bgImage="url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80')"
+                                                            bgSize="cover"
+                                                            bgPosition="center"
+                                                            position="relative"
+                                                        >
+                                                            <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
+                                                                <Text fontSize="3xl">🧘</Text>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box p={2}>
+                                                            <Text fontWeight="700" color="gray.800" fontSize="xs" mb={0.5}>Muscle Relaxation</Text>
+                                                            <Text fontSize="2xs" color="gray.500">Progressive technique</Text>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box bg="white" borderRadius="lg" overflow="hidden" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ shadow: "md" }}>
+                                                        <Box
+                                                            h="100px"
+                                                            w="100%"
+                                                            bgImage="url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80')"
+                                                            bgSize="cover"
+                                                            bgPosition="center"
+                                                            position="relative"
+                                                        >
+                                                            <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
+                                                                <Text fontSize="3xl">🌳</Text>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box p={2}>
+                                                            <Text fontWeight="700" color="gray.800" fontSize="xs" mb={0.5}>Nature Therapy</Text>
+                                                            <Text fontSize="2xs" color="gray.500">20 min outdoors</Text>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box bg="white" borderRadius="lg" overflow="hidden" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ shadow: "md" }}>
+                                                        <Box
+                                                            h="100px"
+                                                            w="100%"
+                                                            bgImage="url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80')"
+                                                            bgSize="cover"
+                                                            bgPosition="center"
+                                                            position="relative"
+                                                        >
+                                                            <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
+                                                                <Text fontSize="3xl">🎵</Text>
+                                                            </Box>
+                                                        </Box>
+                                                        <Box p={2}>
+                                                            <Text fontWeight="700" color="gray.800" fontSize="xs" mb={0.5}>Music Therapy</Text>
+                                                            <Text fontSize="2xs" color="gray.500">Calming sounds</Text>
+                                                        </Box>
+                                                    </Box>
+                                                </SimpleGrid>
+                                            </Box>
+
+                                            {/* Professional Support */}
+                                            <Box p={3} bg="red.50" borderRadius="lg" border="1px solid" borderColor="red.200">
+                                                <HStack gap={2} mb={2}>
+                                                    <AlertCircle size={14} color="#dc2626" />
+                                                    <Heading size="xs" color="red.900" fontWeight="600">Need Support?</Heading>
+                                                </HStack>
+                                                <VStack gap={1.5} align="stretch">
+                                                    <Text fontSize="2xs" color="gray.700" fontWeight="600">Reach out if experiencing:</Text>
+                                                    <VStack gap={1} align="stretch" pl={2}>
+                                                        <HStack gap={1.5}>
+                                                            <Box w={1} h={1} bg="red.500" borderRadius="full" flexShrink={0} mt={0.5} />
+                                                            <Text fontSize="2xs" color="gray.700">Persistent sadness</Text>
+                                                        </HStack>
+                                                        <HStack gap={1.5}>
+                                                            <Box w={1} h={1} bg="red.500" borderRadius="full" flexShrink={0} mt={0.5} />
+                                                            <Text fontSize="2xs" color="gray.700">Sleep/appetite changes</Text>
+                                                        </HStack>
+                                                        <HStack gap={1.5}>
+                                                            <Box w={1} h={1} bg="red.500" borderRadius="full" flexShrink={0} mt={0.5} />
+                                                            <Text fontSize="2xs" color="gray.700">Anxiety or panic attacks</Text>
+                                                        </HStack>
+                                                    </VStack>
+                                                    <Box mt={1} p={2} bg="white" borderRadius="md">
+                                                        <Text fontSize="2xs" fontWeight="600" color="blue.900" mb={0.5}>💙 Company Resources</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Contact HR for EAP & counseling</Text>
+                                                    </Box>
+                                                </VStack>
+                                            </Box>
+
+                                            {/* Quick Exercises */}
+                                            <SimpleGrid columns={2} gap={2}>
+                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <Text fontSize="xl" mb={0.5}>🧘‍♀️</Text>
+                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Desk Yoga</Text>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <Text fontSize="xl" mb={0.5}>👁️</Text>
+                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Eye Rest</Text>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <Text fontSize="xl" mb={0.5}>🚶</Text>
+                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Quick Walk</Text>
+                                                </Box>
+                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
+                                                    <Text fontSize="xl" mb={0.5}>💆</Text>
+                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Neck Stretch</Text>
+                                                </Box>
+                                            </SimpleGrid>
+                                        </VStack>
+                                    </SimpleGrid>
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+
             {/* Concern Modal */}
             {isConcernModalOpen && (
                 <Box
@@ -2185,7 +3303,7 @@ export default function TeamMemberView() {
                                         setConcernText('');
                                         setIsConcernModalOpen(false);
                                     }}
-                                    isDisabled={!concernText.trim()}
+                                    disabled={!concernText.trim()}
                                     _hover={{
                                         bg: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)"
                                     }}
