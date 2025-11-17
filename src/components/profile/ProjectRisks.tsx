@@ -104,21 +104,30 @@ const getRiskStatus = (level: 'High Risk' | 'Medium Risk' | 'Low Risk') => {
 export const ProjectRisks: React.FC<ProjectRisksProps> = ({
   projects = defaultProjects
 }) => {
-  // Show all projects as in dashboard
-  const displayProjects = projects;
+  // Show only top 3 projects for better display
+  const displayProjects = projects.slice(0, 3);
 
   return (
     <Card.Root 
-       bg="#ffffff"
+      //  bg="#ffffff"
+      // shadow="xs" 
+      // borderRadius="3xl" 
+      // h="full" 
+      // display="flex" 
+      // flexDirection="column" 
+      // border="1px solid" 
+      // borderColor="gray.200"
+      maxH="220px"
+      minH="200px"
+      maxW="800px"
+      bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
       h="full" 
       display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.200"
-      maxH="320px"
-      minH="280px"
+      flexDirection="column"  
+      borderColor="gray.100"
+      p={2}
      
       transition="all 0.2s ease"
     >
@@ -143,9 +152,9 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
     
 
       </Card.Header>
-      <Card.Body p={2} flex="1">
+      <Card.Body p={3} flex="1">
         {/* Table Header */}
-        <HStack justify="space-between" align="center" w="full" mb={3} px={1}>
+        <HStack justify="space-between" align="center" w="full" mb={4} px={1}>
           <Text fontSize="xs" fontWeight="600" color="gray.500" flex="2">
             Project
           </Text>
@@ -161,14 +170,14 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
         </HStack>
 
         {/* Project Rows */}
-        <VStack gap={0} align="start" w="full">
+        <VStack gap={3} align="start" w="full">
           {displayProjects.map((project) => {
             const riskColors = getRiskColor(project.riskLevel);
             const riskStatus = getRiskStatus(project.riskLevel);
             
             return (
               <Box key={project.id} w="full">
-                <HStack justify="space-between" align="center" w="full" mb={2}>
+                <HStack justify="space-between" align="center" w="full" mb={3}>
                   {/* Project Name */}
                   <Box flex="2">
                     <Text fontSize="sm" fontWeight="300" color="gray.900" truncate>
@@ -221,10 +230,15 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
                       </Text>
                     </HStack>
                   </Box>
+                  
                 </HStack>
               </Box>
+              
             );
           })}
+          <Box>
+            
+          </Box>
         </VStack>
       </Card.Body>
 

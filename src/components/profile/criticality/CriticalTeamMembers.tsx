@@ -152,6 +152,42 @@ const CriticalTeamMembersData = [
     criticality: 'Medium',
     attritionRisk: 'High',
     avatarImage: 'https://randomuser.me/api/portraits/women/10.jpg'
+  },
+  {
+    name: 'Daniel Park',
+    criticality: 'High',
+    attritionRisk: 'Medium',
+    avatarImage: 'https://randomuser.me/api/portraits/men/12.jpg'
+  },
+  {
+    name: 'Lisa Chen',
+    criticality: 'Medium',
+    attritionRisk: 'High',
+    avatarImage: 'https://randomuser.me/api/portraits/women/11.jpg'
+  },
+  {
+    name: 'Mark Taylor',
+    criticality: 'High',
+    attritionRisk: 'Low',
+    avatarImage: 'https://randomuser.me/api/portraits/men/13.jpg'
+  },
+  {
+    name: 'Sophie Wilson',
+    criticality: 'Medium',
+    attritionRisk: 'Medium',
+    avatarImage: 'https://randomuser.me/api/portraits/women/12.jpg'
+  },
+  {
+    name: 'Ryan Adams',
+    criticality: 'Low',
+    attritionRisk: 'High',
+    avatarImage: 'https://randomuser.me/api/portraits/men/14.jpg'
+  },
+  {
+    name: 'Grace Lee',
+    criticality: 'High',
+    attritionRisk: 'Medium',
+    avatarImage: 'https://randomuser.me/api/portraits/women/13.jpg'
   }
 ];
 
@@ -230,17 +266,28 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
 export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
   return (
     <Box 
-     bg="#ffffff"
+    //  bg="#ffffff"
+    //   shadow="xs" 
+    //   borderRadius="3xl" 
+      h="530px" 
+    //   display="flex" 
+    //   flexDirection="column" 
+    //   border="1px solid" 
+    //   borderColor="gray.200"
+    //   transition="all 0.2s ease"
+    //   w="full"
+    //   suppressHydrationWarning
+
+    //  maxW="900px"
+      bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
-      h="full" 
+      // h="full" 
       display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
+      flexDirection="column"  
       borderColor="gray.200"
-      transition="all 0.2s ease"
-      w="full"
-      suppressHydrationWarning
+      // boxShadow="sm"
+      p={2}
     >
       <Box px={2} py={2}>
         <VStack gap={1}>
@@ -260,8 +307,8 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
         </VStack>
       </Box>
       <Box h="full" display="flex" flexDirection="column" w="full" px={10} py={2} position="center">
-        <SimpleGrid columns={2} gap={2} w="95%" h="98%">
-          {CriticalTeamMembersData.slice(0, 10).map((member, index) => (
+        <SimpleGrid columns={3} gap={1} w="95%" h="98%">
+          {CriticalTeamMembersData.slice(0, 18).map((member, index) => (
             <Box key={index} w="98%">
               <CriticalTeamMember 
                 name={member.name}

@@ -319,13 +319,14 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
       display="flex" 
       flexDirection="column" 
       border="1px solid" 
-      borderColor="gray.200"
-      maxH="320px"
-      minH="280px"
+      borderColor="gray.100"
+      maxH="240px"
+      minH="220px"
+      maxW="900px"
    
       transition="all 0.2s ease"
     >
-      <Card.Header p={3} pb={0} >
+      <Card.Header p={0} pb={0} >
         <VStack justify="space-between" align="center">
           <Heading
                       size="md"
@@ -343,7 +344,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
         </VStack>
       </Card.Header>
       
-      <Card.Body p={3} flex="1" display="flex" flexDirection="column">
+      <Card.Body p={0} flex="1" display="flex" flexDirection="column">
         {/* Line Chart with Area Fill */}
         <Box w="full" h="full" flex="1">
           <Box 
