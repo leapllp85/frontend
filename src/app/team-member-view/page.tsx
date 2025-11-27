@@ -43,7 +43,10 @@ import {
     ClipboardList,
     ArrowRight,
     LogOut,
-    MessageCircle
+    MessageCircle,
+    BookOpen,
+    Heart,
+    Users
 } from 'lucide-react';
 import { Line, Pie, Scatter } from 'react-chartjs-2';
 import {
@@ -140,6 +143,12 @@ export default function TeamMemberView() {
     const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'market' | 'learning' | 'wellness'>('overview');
     const [skillModalTab, setSkillModalTab] = useState<'skills' | 'wellness'>('skills');
     const [bookmarkedSkills, setBookmarkedSkills] = useState<string[]>([]);
+    const [isExpertChatOpen, setIsExpertChatOpen] = useState(false);
+    const [isAnonymous, setIsAnonymous] = useState(false);
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
+    const [isContentModalOpen, setIsContentModalOpen] = useState(false);
     const [projects, setProjects] = useState<Project[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -183,6 +192,72 @@ export default function TeamMemberView() {
                         transform: scale(1.02);
                         background-color: rgba(204, 251, 241, 1);
                         border-color: rgba(94, 234, 212, 1);
+                    }
+                }
+                @keyframes bounceChat {
+                    0%, 100% {
+                        transform: translateY(0);
+                    }
+                    50% {
+                        transform: translateY(-8px);
+                    }
+                }
+                @keyframes shimmerExpert {
+                    0% {
+                        transform: translateX(-100%);
+                    }
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+                @keyframes ping {
+                    0% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                    75%, 100% {
+                        transform: scale(1.5);
+                        opacity: 0;
+                    }
+                }
+                @keyframes pulse {
+                    0%, 100% {
+                        opacity: 1;
+                    }
+                    50% {
+                        opacity: 0.7;
+                    }
+                }
+                @keyframes bounce {
+                    0%, 100% {
+                        transform: translateY(0);
+                    }
+                    50% {
+                        transform: translateY(-10px);
+                    }
+                }
+                @keyframes pulseButton {
+                    0%, 100% {
+                        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+                    }
+                    50% {
+                        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.6);
+                    }
+                }
+                @keyframes glowPulse {
+                    0%, 100% {
+                        box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+                    }
+                    50% {
+                        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.4);
+                    }
+                }
+                @keyframes scroll {
+                    0% {
+                        transform: translateX(0);
+                    }
+                    100% {
+                        transform: translateX(-50%);
                     }
                 }
             `;
@@ -1047,7 +1122,7 @@ export default function TeamMemberView() {
                                             flexDirection="column"
                                             gap={2}
                                             p={3}
-                                            onClick={() => router.push('/survey-responses')}
+                                            onClick={() => setIsSurveyModalOpen(true)}
                                             transition="all 0.3s ease"
                                         >
                                             <Box p={1.5} bg="purple.100" borderRadius="md">
@@ -1072,14 +1147,14 @@ export default function TeamMemberView() {
                                             flexDirection="column"
                                             gap={2}
                                             p={3}
-                                            onClick={() => router.push('/content')}
+                                            onClick={() => setIsContentModalOpen(true)}
                                             transition="all 0.3s ease"
                                         >
                                             <Box p={1.5} bg="blue.100" borderRadius="md">
                                                 <Package size={20} color="#3182CE" />
                                             </Box>
                                             <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                Access Offering
+                                                Content Library
                                             </Text>
                                         </Button>
 
@@ -1131,7 +1206,7 @@ export default function TeamMemberView() {
                                                 <TrendingUp size={20} color="#0D9488" />
                                             </Box>
                                             <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                My Growth
+                                                My Growth & Health
                                             </Text>
                                         </Button>
                                     </SimpleGrid>
@@ -1986,7 +2061,7 @@ export default function TeamMemberView() {
                                     cursor="pointer"
                                     onClick={() => {
                                         setIsHelpModalOpen(false);
-                                        router.push('/survey-responses');
+                                        setIsSurveyModalOpen(true);
                                     }}
                                 >
                                     <Card.Body p={5}>
@@ -2032,7 +2107,7 @@ export default function TeamMemberView() {
                                     cursor="pointer"
                                     onClick={() => {
                                         setIsHelpModalOpen(false);
-                                        router.push('/content');
+                                        setIsContentModalOpen(true);
                                     }}
                                 >
                                     <Card.Body p={5}>
@@ -2043,7 +2118,7 @@ export default function TeamMemberView() {
                                             <VStack align="start" gap={2} flex={1}>
                                                 <HStack justify="space-between" w="full">
                                                     <Heading size="md" color="purple.800">
-                                                        Access Offerings
+                                                        Content Library
                                                     </Heading>
                                                     <ArrowRight size={20} color="#9333ea" />
                                                 </HStack>
@@ -2527,15 +2602,12 @@ export default function TeamMemberView() {
                                                     <Text fontSize="xl" fontWeight="800" color="green.600">65%</Text>
                                                     <Text fontSize="2xs" color="gray.600" fontWeight="600">Your Skills</Text>
                                                 </VStack>
-                                                <Box w="1px" h="30px" bg="gray.300" />
-                                                <VStack gap={0}>
-                                                    <Text fontSize="xl" fontWeight="800" color="red.600">100%</Text>
-                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Market Demand</Text>
-                                                </VStack>
+                                                
+                                                
                                                 <Box w="1px" h="30px" bg="gray.300" />
                                                 <VStack gap={0}>
                                                     <Text fontSize="xl" fontWeight="800" color="orange.600">35%</Text>
-                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Gap to Close</Text>
+                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">Gp to Close</Text>
                                                 </VStack>
                                             </HStack>
                                             
@@ -2960,106 +3032,200 @@ export default function TeamMemberView() {
                                                 </Box>
                                             </SimpleGrid>
 
-                                            {/* Today's Wellness Timetable */}
-                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
-                                                <HStack gap={2} mb={2}>
-                                                    <Clock size={14} color="#9ca3af" />
-                                                    <Heading size="xs" color="gray.700" fontWeight="600">Today's Wellness Schedule</Heading>
+                                            {/* Today's Wellness Schedule - Clock View */}
+                                            <Box 
+                                                p={4} 
+                                                bg="linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%)" 
+                                                borderRadius="xl" 
+                                                position="relative" 
+                                                overflow="hidden" 
+                                                border="1px solid" 
+                                                borderColor="purple.200"
+                                                boxShadow="0 1px 3px rgba(0,0,0,0.05)"
+                                            >
+                                                {/* Header with Live Clock */}
+                                                <HStack justify="space-between" mb={4}>
+                                                    <HStack gap={2}>
+                                                        <Box 
+                                                            p={2} 
+                                                            bg="white" 
+                                                            borderRadius="lg"
+                                                            border="1px solid"
+                                                            borderColor="purple.200"
+                                                            style={{ animation: 'pulse 2s infinite' }}
+                                                            boxShadow="sm"
+                                                        >
+                                                            <Clock size={16} color="#9333ea" />
+                                                        </Box>
+                                                        <Heading size="sm" color="gray.900" fontWeight="700">Today's Schedule</Heading>
+                                                    </HStack>
+                                                    <Box px={3} py={1} bg="white" borderRadius="lg" border="1px solid" borderColor="purple.200" boxShadow="sm">
+                                                        <Text fontSize="xs" fontWeight="700" color="purple.700" fontFamily="monospace">
+                                                            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                        </Text>
+                                                    </Box>
                                                 </HStack>
-                                                <VStack gap={1.5} align="stretch">
-                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
-                                                        <HStack gap={2} flex={1}>
-                                                            <Box w="3px" h="30px" bg="blue.500" borderRadius="full" />
-                                                            <VStack align="start" gap={0}>
-                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Morning Stretch</Text>
-                                                                <Text fontSize="2xs" color="gray.500">5 min desk exercises</Text>
-                                                            </VStack>
-                                                        </HStack>
-                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">9:00 AM</Text>
-                                                    </HStack>
 
-                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
-                                                        <HStack gap={2} flex={1}>
-                                                            <Box w="3px" h="30px" bg="green.500" borderRadius="full" />
-                                                            <VStack align="start" gap={0}>
-                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Hydration Break</Text>
-                                                                <Text fontSize="2xs" color="gray.500">Drink water reminder</Text>
-                                                            </VStack>
-                                                        </HStack>
-                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">11:00 AM</Text>
-                                                    </HStack>
+                                                {/* Timeline with Clock Positions */}
+                                                <Box position="relative" h="280px">
+                                                    {/* Timeline Base */}
+                                                    <Box 
+                                                        position="absolute" 
+                                                        left="50%" 
+                                                        top="0" 
+                                                        bottom="0" 
+                                                        w="2px" 
+                                                        bg="gray.200"
+                                                        transform="translateX(-50%)"
+                                                    />
 
-                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
-                                                        <HStack gap={2} flex={1}>
-                                                            <Box w="3px" h="30px" bg="orange.500" borderRadius="full" />
-                                                            <VStack align="start" gap={0}>
-                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Lunch & Walk</Text>
-                                                                <Text fontSize="2xs" color="gray.500">15 min outdoor walk</Text>
-                                                            </VStack>
-                                                        </HStack>
-                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">1:00 PM</Text>
-                                                    </HStack>
+                                                    {/* Current Time Indicator */}
+                                                    <Box
+                                                        position="absolute"
+                                                        left="50%"
+                                                        top="20%"
+                                                        w="12px"
+                                                        h="12px"
+                                                        bg="purple.500"
+                                                        borderRadius="full"
+                                                        transform="translateX(-50%)"
+                                                        boxShadow="0 0 15px rgba(147, 51, 234, 0.4)"
+                                                        style={{ animation: 'pulse 2s infinite' }}
+                                                        zIndex={2}
+                                                    />
 
-                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
-                                                        <HStack gap={2} flex={1}>
-                                                            <Box w="3px" h="30px" bg="purple.500" borderRadius="full" />
-                                                            <VStack align="start" gap={0}>
-                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Eye Rest</Text>
-                                                                <Text fontSize="2xs" color="gray.500">20-20-20 rule</Text>
-                                                            </VStack>
+                                                    {/* Schedule Items */}
+                                                    <VStack gap={3} position="relative" zIndex={1}>
+                                                        {/* 9:00 AM */}
+                                                        <HStack w="full" justify="space-between" position="relative">
+                                                            <Box flex={1} textAlign="right" pr={4}>
+                                                                <Text fontSize="xs" fontWeight="600" color="gray.600">9:00 AM</Text>
+                                                            </Box>
+                                                            <Box w="8px" h="8px" bg="blue.400" borderRadius="full" border="2px solid white" boxShadow="sm" />
+                                                            <Box flex={1} pl={4}>
+                                                                <Box bg="blue.50" p={2} borderRadius="md" border="1px solid" borderColor="blue.100">
+                                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">🧘 Morning Stretch</Text>
+                                                                    <Text fontSize="2xs" color="gray.600">5 min desk exercises</Text>
+                                                                </Box>
+                                                            </Box>
                                                         </HStack>
-                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">3:00 PM</Text>
-                                                    </HStack>
 
-                                                    <HStack p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200" justify="space-between">
-                                                        <HStack gap={2} flex={1}>
-                                                            <Box w="3px" h="30px" bg="pink.500" borderRadius="full" />
-                                                            <VStack align="start" gap={0}>
-                                                                <Text fontSize="xs" fontWeight="700" color="gray.800">Mindful Moment</Text>
-                                                                <Text fontSize="2xs" color="gray.500">3 min breathing</Text>
-                                                            </VStack>
+                                                        {/* 11:00 AM */}
+                                                        <HStack w="full" justify="space-between" position="relative">
+                                                            <Box flex={1} textAlign="right" pr={4}>
+                                                                <Box bg="green.50" p={2} borderRadius="md" border="1px solid" borderColor="green.100">
+                                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">💧 Hydration Break</Text>
+                                                                    <Text fontSize="2xs" color="gray.600">Drink water</Text>
+                                                                </Box>
+                                                            </Box>
+                                                            <Box w="8px" h="8px" bg="green.400" borderRadius="full" border="2px solid white" boxShadow="sm" />
+                                                            <Box flex={1} pl={4}>
+                                                                <Text fontSize="xs" fontWeight="600" color="gray.600">11:00 AM</Text>
+                                                            </Box>
                                                         </HStack>
-                                                        <Text fontSize="xs" fontWeight="600" color="gray.600">5:00 PM</Text>
-                                                    </HStack>
-                                                </VStack>
+
+                                                        {/* 1:00 PM */}
+                                                        <HStack w="full" justify="space-between" position="relative">
+                                                            <Box flex={1} textAlign="right" pr={4}>
+                                                                <Text fontSize="xs" fontWeight="600" color="gray.600">1:00 PM</Text>
+                                                            </Box>
+                                                            <Box w="8px" h="8px" bg="orange.400" borderRadius="full" border="2px solid white" boxShadow="sm" />
+                                                            <Box flex={1} pl={4}>
+                                                                <Box bg="orange.50" p={2} borderRadius="md" border="1px solid" borderColor="orange.100">
+                                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">🚶 Lunch & Walk</Text>
+                                                                    <Text fontSize="2xs" color="gray.600">15 min outdoor</Text>
+                                                                </Box>
+                                                            </Box>
+                                                        </HStack>
+
+                                                        {/* 3:00 PM */}
+                                                        <HStack w="full" justify="space-between" position="relative">
+                                                            <Box flex={1} textAlign="right" pr={4}>
+                                                                <Box bg="purple.50" p={2} borderRadius="md" border="1px solid" borderColor="purple.100">
+                                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">👁️ Eye Rest</Text>
+                                                                    <Text fontSize="2xs" color="gray.600">20-20-20 rule</Text>
+                                                                </Box>
+                                                            </Box>
+                                                            <Box w="8px" h="8px" bg="purple.400" borderRadius="full" border="2px solid white" boxShadow="sm" />
+                                                            <Box flex={1} pl={4}>
+                                                                <Text fontSize="xs" fontWeight="600" color="gray.600">3:00 PM</Text>
+                                                            </Box>
+                                                        </HStack>
+
+                                                        {/* 5:00 PM */}
+                                                        <HStack w="full" justify="space-between" position="relative">
+                                                            <Box flex={1} textAlign="right" pr={4}>
+                                                                <Text fontSize="xs" fontWeight="600" color="gray.600">5:00 PM</Text>
+                                                            </Box>
+                                                            <Box w="8px" h="8px" bg="pink.400" borderRadius="full" border="2px solid white" boxShadow="sm" />
+                                                            <Box flex={1} pl={4}>
+                                                                <Box bg="pink.50" p={2} borderRadius="md" border="1px solid" borderColor="pink.100">
+                                                                    <Text fontSize="xs" fontWeight="600" color="gray.800">🧘 Mindful Moment</Text>
+                                                                    <Text fontSize="2xs" color="gray.600">3 min breathing</Text>
+                                                                </Box>
+                                                            </Box>
+                                                        </HStack>
+                                                    </VStack>
+                                                </Box>
                                             </Box>
 
                                             {/* Wellness Tips Carousel */}
-                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
-                                                <HStack justify="space-between" mb={2}>
-                                                    <Heading size="xs" color="gray.700" fontWeight="600">Wellness Tips</Heading>
-                                                    <HStack gap={1}>
-                                                        <Box w="6px" h="6px" bg="blue.500" borderRadius="full" />
-                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
-                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
-                                                        <Box w="6px" h="6px" bg="gray.300" borderRadius="full" />
-                                                    </HStack>
-                                                </HStack>
-                                                <HStack gap={2} overflowX="auto" css={{
-                                                    '&::-webkit-scrollbar': { display: 'none' },
-                                                    scrollbarWidth: 'none'
-                                                }}>
-                                                    <Box minW="200px" p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200" textAlign="center">
+                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" position="relative" overflow="hidden">
+                                                <Heading size="xs" color="gray.700" fontWeight="600" mb={3}>Wellness Tips</Heading>
+                                                <Box 
+                                                    style={{ 
+                                                        animation: 'scroll 30s linear infinite',
+                                                        display: 'flex',
+                                                        gap: '8px'
+                                                    }}
+                                                >
+                                                    <Box minW="180px" p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200" textAlign="center" flexShrink={0}>
                                                         <Text fontSize="3xl" mb={2}>🧘</Text>
                                                         <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Practice Mindfulness</Text>
                                                         <Text fontSize="2xs" color="gray.600">5-10 min daily meditation</Text>
                                                     </Box>
-                                                    <Box minW="200px" p={3} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200" textAlign="center">
-                                                        <Text fontSize="3xl" mb={2}>💪</Text>
-                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Stay Active</Text>
+                                                    <Box minW="180px" p={3} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>🧘‍♀️</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Desk Yoga</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Stretch at your desk</Text>
+                                                    </Box>
+                                                    <Box minW="180px" p={3} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>👁️</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Eye Rest</Text>
+                                                        <Text fontSize="2xs" color="gray.600">20-20-20 rule</Text>
+                                                    </Box>
+                                                    <Box minW="180px" p={3} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>🚶</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Quick Walk</Text>
                                                         <Text fontSize="2xs" color="gray.600">15-min walk boosts mood</Text>
                                                     </Box>
-                                                    <Box minW="200px" p={3} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200" textAlign="center">
+                                                    <Box minW="180px" p={3} bg="pink.50" borderRadius="lg" border="1px solid" borderColor="pink.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>💆</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Neck Stretch</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Release tension</Text>
+                                                    </Box>
+                                                    <Box minW="180px" p={3} bg="cyan.50" borderRadius="lg" border="1px solid" borderColor="cyan.200" textAlign="center" flexShrink={0}>
                                                         <Text fontSize="3xl" mb={2}>😴</Text>
                                                         <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Quality Sleep</Text>
                                                         <Text fontSize="2xs" color="gray.600">7-9 hours nightly</Text>
                                                     </Box>
-                                                    <Box minW="200px" p={3} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200" textAlign="center">
+                                                    <Box minW="180px" p={3} bg="teal.50" borderRadius="lg" border="1px solid" borderColor="teal.200" textAlign="center" flexShrink={0}>
                                                         <Text fontSize="3xl" mb={2}>👥</Text>
                                                         <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Connect Socially</Text>
                                                         <Text fontSize="2xs" color="gray.600">Regular catch-ups</Text>
                                                     </Box>
-                                                </HStack>
+                                                    {/* Duplicate for seamless loop */}
+                                                    <Box minW="180px" p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>🧘</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Practice Mindfulness</Text>
+                                                        <Text fontSize="2xs" color="gray.600">5-10 min daily meditation</Text>
+                                                    </Box>
+                                                    <Box minW="180px" p={3} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200" textAlign="center" flexShrink={0}>
+                                                        <Text fontSize="3xl" mb={2}>🧘‍♀️</Text>
+                                                        <Text fontSize="xs" fontWeight="700" color="gray.800" mb={1}>Desk Yoga</Text>
+                                                        <Text fontSize="2xs" color="gray.600">Stretch at your desk</Text>
+                                                    </Box>
+                                                </Box>
                                             </Box>
                                         </VStack>
 
@@ -3173,28 +3339,39 @@ export default function TeamMemberView() {
                                                         <Text fontSize="2xs" fontWeight="600" color="blue.900" mb={0.5}>💙 Company Resources</Text>
                                                         <Text fontSize="2xs" color="gray.600">Contact HR for EAP & counseling</Text>
                                                     </Box>
+                                                    
+                                                    {/* Spacer to push button down */}
+                                                    <Box flex={1} />
+                                                    
+                                                    {/* Talk to Expert Button - Centered */}
+                                                    <Box 
+                                                        mt="auto"
+                                                        mb={0}
+                                                        px={4}
+                                                        py={2.5}
+                                                        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                                                        borderRadius="lg" 
+                                                        cursor="pointer" 
+                                                        transition="all 0.3s" 
+                                                        _hover={{ 
+                                                            transform: "translateY(-2px) scale(1.05)", 
+                                                            shadow: "xl",
+                                                            bg: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)"
+                                                        }}
+                                                        onClick={() => setIsExpertChatOpen(true)}
+                                                        position="relative"
+                                                        overflow="hidden"
+                                                        boxShadow="0 4px 12px rgba(102, 126, 234, 0.5)"
+                                                        textAlign="center"
+                                                    >
+                                                        <HStack gap={2} justify="center">
+                                                            <Text fontSize="2xl" style={{ animation: 'bounceChat 1.5s infinite' }}>💬</Text>
+                                                            <Text fontSize="sm" fontWeight="700" color="white">Talk to Expert</Text>
+                                                        </HStack>
+                                                    </Box>
                                                 </VStack>
                                             </Box>
 
-                                            {/* Quick Exercises */}
-                                            <SimpleGrid columns={2} gap={2}>
-                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
-                                                    <Text fontSize="xl" mb={0.5}>🧘‍♀️</Text>
-                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Desk Yoga</Text>
-                                                </Box>
-                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
-                                                    <Text fontSize="xl" mb={0.5}>👁️</Text>
-                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Eye Rest</Text>
-                                                </Box>
-                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
-                                                    <Text fontSize="xl" mb={0.5}>🚶</Text>
-                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Quick Walk</Text>
-                                                </Box>
-                                                <Box p={2} bg="gray.50" borderRadius="md" textAlign="center" border="1px solid" borderColor="gray.200" cursor="pointer" transition="all 0.2s" _hover={{ bg: "gray.100", shadow: "sm" }}>
-                                                    <Text fontSize="xl" mb={0.5}>💆</Text>
-                                                    <Text fontSize="2xs" fontWeight="600" color="gray.800">Neck Stretch</Text>
-                                                </Box>
-                                            </SimpleGrid>
                                         </VStack>
                                     </SimpleGrid>
                                 </Box>
@@ -3313,6 +3490,944 @@ export default function TeamMemberView() {
                                 </Button>
                             </HStack>
                         </VStack>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Expert Chat Modal */}
+            {isExpertChatOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(8px)"
+                    zIndex={9999}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => {
+                        setIsExpertChatOpen(false);
+                        setIsAnonymous(false);
+                        setIsConnecting(false);
+                        setShowWelcome(false);
+                    }}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW={isAnonymous ? "700px" : "500px"}
+                        w="90%"
+                        maxH={isAnonymous ? "700px" : "600px"}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ animation: 'slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+                        shadow="2xl"
+                        overflow="hidden"
+                    >
+                        {/* Modal Header */}
+                        <HStack justify="space-between" p={4} borderBottom="1px solid" borderColor="gray.200" bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                            <HStack gap={3}>
+                                <Box 
+                                    p={2} 
+                                    bg="whiteAlpha.300" 
+                                    borderRadius="lg"
+                                    style={{
+                                        animation: 'bounceChat 2s infinite'
+                                    }}
+                                >
+                                    <MessageCircle size={24} color="white" />
+                                </Box>
+                                <VStack align="start" gap={0}>
+                                    <Heading size="md" color="white">
+                                        Talk to Expert
+                                    </Heading>
+                                    <Text fontSize="sm" color="whiteAlpha.900">
+                                        Confidential wellness support
+                                    </Text>
+                                </VStack>
+                            </HStack>
+                            <IconButton
+                                aria-label="Close modal"
+                                onClick={() => {
+                                    setIsExpertChatOpen(false);
+                                    setIsAnonymous(false);
+                                    setIsConnecting(false);
+                                }}
+                                variant="ghost"
+                                color="white"
+                                _hover={{ bg: 'whiteAlpha.300' }}
+                                size="sm"
+                            >
+                                <XIcon size={20} />
+                            </IconButton>
+                        </HStack>
+
+                        {/* Modal Body */}
+                        <Box p={6}>
+                            {!isAnonymous && !isConnecting ? (
+                                // Initial Screen - Anonymous Option
+                                <VStack gap={6} align="stretch">
+                                    <VStack gap={2}>
+                                        <Text fontSize="lg" fontWeight="700" color="gray.800" textAlign="center">
+                                            How would you like to connect?
+                                        </Text>
+                                        <Text fontSize="sm" color="gray.600" textAlign="center">
+                                            Choose your preferred mode of communication
+                                        </Text>
+                                    </VStack>
+
+                                    <VStack gap={3}>
+                                        {/* Go Anonymous Option */}
+                                        <Box
+                                            p={4}
+                                            bg="purple.50"
+                                            borderRadius="xl"
+                                            border="2px solid"
+                                            borderColor="purple.200"
+                                            cursor="pointer"
+                                            transition="all 0.2s"
+                                            _hover={{ borderColor: "purple.400", bg: "purple.100", transform: "translateY(-2px)" }}
+                                            onClick={() => {
+                                                setIsAnonymous(true);
+                                                setIsConnecting(true);
+                                                setTimeout(() => {
+                                                    setIsConnecting(false);
+                                                    setShowWelcome(true);
+                                                }, 3000);
+                                            }}
+                                            w="full"
+                                        >
+                                            <HStack gap={3}>
+                                                <Box p={3} bg="purple.500" borderRadius="lg">
+                                                    <Text fontSize="2xl">🎭</Text>
+                                                </Box>
+                                                <VStack align="start" gap={1} flex={1}>
+                                                    <Text fontSize="md" fontWeight="700" color="gray.800">
+                                                        Go Anonymous
+                                                    </Text>
+                                                    <Text fontSize="sm" color="gray.600">
+                                                        Your identity will remain completely private
+                                                    </Text>
+                                                </VStack>
+                                                <ArrowRight size={20} color="#6b7280" />
+                                            </HStack>
+                                        </Box>
+
+                                        {/* Use My Profile Option */}
+                                        <Box
+                                            p={4}
+                                            bg="blue.50"
+                                            borderRadius="xl"
+                                            border="2px solid"
+                                            borderColor="blue.200"
+                                            cursor="pointer"
+                                            transition="all 0.2s"
+                                            _hover={{ borderColor: "blue.400", bg: "blue.100", transform: "translateY(-2px)" }}
+                                            onClick={() => {
+                                                setIsAnonymous(false);
+                                                setIsConnecting(true);
+                                            }}
+                                            w="full"
+                                        >
+                                            <HStack gap={3}>
+                                                <Box p={3} bg="blue.500" borderRadius="lg">
+                                                    <User size={24} color="white" />
+                                                </Box>
+                                                <VStack align="start" gap={1} flex={1}>
+                                                    <Text fontSize="md" fontWeight="700" color="gray.800">
+                                                        Use My Profile
+                                                    </Text>
+                                                    <Text fontSize="sm" color="gray.600">
+                                                        Expert can see your profile for personalized help
+                                                    </Text>
+                                                </VStack>
+                                                <ArrowRight size={20} color="#6b7280" />
+                                            </HStack>
+                                        </Box>
+                                    </VStack>
+
+                                    <Box p={3} bg="gray.50" borderRadius="lg">
+                                        <Text fontSize="xs" color="gray.600" textAlign="center">
+                                            🔒 All conversations are confidential and secure
+                                        </Text>
+                                    </Box>
+                                </VStack>
+                            ) : showWelcome ? (
+                                // Welcome Screen
+                                <VStack gap={6} p={6}>
+                                    <Box textAlign="center">
+                                        <Text fontSize="4xl" mb={2}>👋</Text>
+                                        <Heading size="xl" color="gray.900" mb={2}>
+                                            Welcome to Safe Space
+                                        </Heading>
+                                        <Text fontSize="md" color="gray.600">
+                                            {isAnonymous ? 'You are chatting anonymously' : 'Connected with your profile'}
+                                        </Text>
+                                    </Box>
+
+                                    <Box p={4} bg="purple.50" borderRadius="xl" border="1px solid" borderColor="purple.200">
+                                        <VStack gap={3} align="stretch">
+                                            <Text fontSize="sm" fontWeight="600" color="gray.800">
+                                                Our wellness expert is here to help you with:
+                                            </Text>
+                                            <VStack gap={2} align="stretch">
+                                                <HStack gap={2}>
+                                                    <Text>✓</Text>
+                                                    <Text fontSize="sm" color="gray.700">Stress and anxiety management</Text>
+                                                </HStack>
+                                                <HStack gap={2}>
+                                                    <Text>✓</Text>
+                                                    <Text fontSize="sm" color="gray.700">Work-life balance guidance</Text>
+                                                </HStack>
+                                                <HStack gap={2}>
+                                                    <Text>✓</Text>
+                                                    <Text fontSize="sm" color="gray.700">Mental health support</Text>
+                                                </HStack>
+                                                <HStack gap={2}>
+                                                    <Text>✓</Text>
+                                                    <Text fontSize="sm" color="gray.700">Confidential counseling</Text>
+                                                </HStack>
+                                            </VStack>
+                                        </VStack>
+                                    </Box>
+
+                                    <Box p={4} bg="blue.50" borderRadius="lg">
+                                        <Text fontSize="sm" color="blue.900" textAlign="center" fontWeight="600">
+                                            💙 Remember: This is a safe, judgment-free space
+                                        </Text>
+                                    </Box>
+
+                                    <Button
+                                        bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                                        color="white"
+                                        size="lg"
+                                        w="full"
+                                        _hover={{ bg: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)" }}
+                                    >
+                                        Start Conversation
+                                    </Button>
+                                </VStack>
+                            ) : (
+                                // Connecting Screen
+                                <VStack gap={6} py={8}>
+                                    <Box
+                                        style={{
+                                            animation: 'pulse 1.5s infinite'
+                                        }}
+                                    >
+                                        <Box
+                                            p={6}
+                                            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                                            borderRadius="full"
+                                            position="relative"
+                                        >
+                                            <MessageCircle size={48} color="white" />
+                                            <Box
+                                                position="absolute"
+                                                top={0}
+                                                left={0}
+                                                right={0}
+                                                bottom={0}
+                                                borderRadius="full"
+                                                border="4px solid"
+                                                borderColor="purple.300"
+                                                style={{
+                                                    animation: 'ping 1.5s infinite'
+                                                }}
+                                            />
+                                        </Box>
+                                    </Box>
+
+                                    <VStack gap={2}>
+                                        <Heading size="lg" color="gray.800" textAlign="center">
+                                            Connecting to Expert...
+                                        </Heading>
+                                        <Text fontSize="md" color="gray.600" textAlign="center">
+                                            {isAnonymous ? '🎭 Anonymous Mode Active' : '👤 Using Your Profile'}
+                                        </Text>
+                                        <Text fontSize="sm" color="gray.500" textAlign="center">
+                                            Please wait while we connect you with a wellness expert
+                                        </Text>
+                                    </VStack>
+
+                                    <HStack gap={2}>
+                                        <Box w={2} h={2} bg="purple.500" borderRadius="full" style={{ animation: 'bounce 1s infinite 0s' }} />
+                                        <Box w={2} h={2} bg="purple.500" borderRadius="full" style={{ animation: 'bounce 1s infinite 0.2s' }} />
+                                        <Box w={2} h={2} bg="purple.500" borderRadius="full" style={{ animation: 'bounce 1s infinite 0.4s' }} />
+                                    </HStack>
+
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            setIsConnecting(false);
+                                            setIsAnonymous(false);
+                                        }}
+                                        borderRadius="lg"
+                                        size="sm"
+                                    >
+                                        Cancel
+                                    </Button>
+                                </VStack>
+                            )}
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Survey Responses Modal */}
+            {isSurveyModalOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(8px)"
+                    zIndex={9999}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => setIsSurveyModalOpen(false)}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW="1200px"
+                        w="95%"
+                        maxH="90vh"
+                        overflow="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                        boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                        style={{ animation: 'slideUp 0.3s ease-out' }}
+                    >
+                        {/* Modal Header */}
+                        <Box
+                            p={6}
+                            borderBottom="1px solid"
+                            borderColor="gray.200"
+                            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                        >
+                            <HStack justify="space-between" align="center">
+                                <HStack gap={3}>
+                                    <Box p={3} bg="whiteAlpha.200" borderRadius="xl">
+                                        <FileText size={28} color="white" />
+                                    </Box>
+                                    <VStack align="start" gap={0}>
+                                        <Heading size="lg" color="white" fontWeight="700">Survey Responses</Heading>
+                                        <Text fontSize="sm" color="whiteAlpha.900">View your feedback and manager responses</Text>
+                                    </VStack>
+                                </HStack>
+                                <IconButton
+                                    aria-label="Close"
+                                    onClick={() => setIsSurveyModalOpen(false)}
+                                    bg="whiteAlpha.200"
+                                    color="white"
+                                    _hover={{ bg: "whiteAlpha.300" }}
+                                    borderRadius="lg"
+                                    size="lg"
+                                >
+                                    <XIcon size={24} />
+                                </IconButton>
+                            </HStack>
+                        </Box>
+
+                        {/* Modal Body */}
+                        <Box p={6} overflowY="auto" maxH="calc(90vh - 120px)">
+                            <VStack gap={4} align="stretch">
+                                {/* Survey Response Card 1 */}
+                                <Box borderRadius="xl" border="2px solid" borderColor="green.200" boxShadow="sm" overflow="hidden">
+                                    {/* Header with subtle color */}
+                                    <Box p={5} bg="linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)">
+                                        <HStack justify="space-between">
+                                            <VStack align="start" gap={1}>
+                                                <Heading size="md" color="gray.800">Q4 2024 Wellness Check-in</Heading>
+                                                <HStack gap={2}>
+                                                    <Badge colorScheme="green" fontSize="xs" px={2} py={1}>Reviewed</Badge>
+                                                    <Text fontSize="sm" color="gray.600">Submitted: Oct 15, 2024</Text>
+                                                </HStack>
+                                            </VStack>
+                                            <Box p={3} bg="white" borderRadius="lg" boxShadow="sm">
+                                                <CheckCircle size={24} color="#22c55e" />
+                                            </Box>
+                                        </HStack>
+                                    </Box>
+                                    
+                                    {/* Body */}
+                                    <Box p={5} bg="white">
+
+                                    {/* Your Responses */}
+                                    <Box mb={4} p={4} bg="gray.50" borderRadius="lg">
+                                        <Heading size="sm" color="gray.800" mb={3}>Your Responses</Heading>
+                                        <VStack gap={3} align="stretch">
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="600" color="gray.700" mb={1}>
+                                                    How would you rate your current work-life balance?
+                                                </Text>
+                                                <Text fontSize="sm" color="gray.600">
+                                                    2/5 - Struggling with long hours and tight deadlines
+                                                </Text>
+                                            </Box>
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="600" color="gray.700" mb={1}>
+                                                    What challenges are you facing?
+                                                </Text>
+                                                <Text fontSize="sm" color="gray.600">
+                                                    Working late nights frequently due to project deadlines. Finding it difficult to disconnect after work hours.
+                                                </Text>
+                                            </Box>
+                                        </VStack>
+                                    </Box>
+
+                                    {/* Manager Response */}
+                                    <Box p={4} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200">
+                                        <HStack justify="space-between" mb={3}>
+                                            <HStack gap={2}>
+                                                <Box p={2} bg="purple.100" borderRadius="lg">
+                                                    <User size={16} color="#9333ea" />
+                                                </Box>
+                                                <VStack align="start" gap={0}>
+                                                    <Text fontSize="sm" fontWeight="700" color="gray.800">Manager Response</Text>
+                                                    <Text fontSize="xs" color="gray.600">Sarah Johnson • Oct 18, 2024</Text>
+                                                </VStack>
+                                            </HStack>
+                                            <Badge colorScheme="red" fontSize="xs">High Priority</Badge>
+                                        </HStack>
+                                        <Text fontSize="sm" color="gray.700" mb={3}>
+                                            Thank you for sharing your concerns. I understand the pressure you've been under with the recent project deadlines. Your wellbeing is a priority, and we need to address this immediately.
+                                        </Text>
+                                        <Box p={3} bg="white" borderRadius="md">
+                                            <Text fontSize="sm" fontWeight="600" color="gray.800" mb={2}>Action Plan:</Text>
+                                            <VStack align="stretch" gap={1}>
+                                                <Text fontSize="sm" color="gray.700">• Redistributing tasks within the team to balance workload</Text>
+                                                <Text fontSize="sm" color="gray.700">• Implementing no-meeting Fridays for focused work</Text>
+                                                <Text fontSize="sm" color="gray.700">• Enrolling you in stress management workshop</Text>
+                                                <Text fontSize="sm" color="gray.700">• Setting up bi-weekly 1-on-1 check-ins</Text>
+                                            </VStack>
+                                        </Box>
+                                    </Box>
+                                    
+                                    {/* Action Buttons */}
+                                    <Box p={5} pt={0}>
+                                        <HStack gap={3} justify="flex-end">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                colorScheme="gray"
+                                                leftIcon={<MessageCircle size={16} />}
+                                            >
+                                                Add Comment
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                backgroundColor="cornflowerblue"
+                                                colorScheme="green"
+                                                leftIcon={<CheckCircle size={16} />}
+                                            >
+                                                Accept Response
+                                            </Button>
+                                        </HStack>
+                                    </Box>
+                                    </Box>
+                                </Box>
+
+                                {/* Survey Response Card 2 */}
+                                <Box borderRadius="xl" border="2px solid" borderColor="blue.200" boxShadow="sm" overflow="hidden">
+                                    {/* Header with subtle color */}
+                                    <Box p={5} bg="linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)">
+                                        <HStack justify="space-between">
+                                            <VStack align="start" gap={1}>
+                                                <Heading size="md" color="gray.800">Employee Engagement Survey - October</Heading>
+                                                <HStack gap={2}>
+                                                    <Badge colorScheme="blue" fontSize="xs" px={2} py={1}>Reviewed</Badge>
+                                                    <Text fontSize="sm" color="gray.600">Submitted: Oct 20, 2024</Text>
+                                                </HStack>
+                                            </VStack>
+                                            <Box p={3} bg="white" borderRadius="lg" boxShadow="sm">
+                                                <CheckCircle size={24} color="#3b82f6" />
+                                            </Box>
+                                        </HStack>
+                                    </Box>
+                                    
+                                    {/* Body */}
+                                    <Box p={5} bg="white">
+
+                                    {/* Your Responses */}
+                                    <Box mb={4} p={4} bg="gray.50" borderRadius="lg">
+                                        <Heading size="sm" color="gray.800" mb={3}>Your Responses</Heading>
+                                        <VStack gap={3} align="stretch">
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="600" color="gray.700" mb={1}>
+                                                    How engaged do you feel with your current projects?
+                                                </Text>
+                                                <Text fontSize="sm" color="gray.600">
+                                                    4/5 - Generally engaged but seeking more challenging work
+                                                </Text>
+                                            </Box>
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="600" color="gray.700" mb={1}>
+                                                    What would increase your engagement at work?
+                                                </Text>
+                                                <Text fontSize="sm" color="gray.600">
+                                                    Opportunities to work on innovative projects, learning new technologies, and taking on leadership responsibilities.
+                                                </Text>
+                                            </Box>
+                                        </VStack>
+                                    </Box>
+
+                                    {/* Manager Response */}
+                                    <Box p={4} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200">
+                                        <HStack justify="space-between" mb={3}>
+                                            <HStack gap={2}>
+                                                <Box p={2} bg="purple.100" borderRadius="lg">
+                                                    <User size={16} color="#9333ea" />
+                                                </Box>
+                                                <VStack align="start" gap={0}>
+                                                    <Text fontSize="sm" fontWeight="700" color="gray.800">Manager Response</Text>
+                                                    <Text fontSize="xs" color="gray.600">Sarah Johnson • Oct 22, 2024</Text>
+                                                </VStack>
+                                            </HStack>
+                                            <Badge colorScheme="orange" fontSize="xs">Medium Priority</Badge>
+                                        </HStack>
+                                        <Text fontSize="sm" color="gray.700" mb={3}>
+                                            Great to hear you're engaged! Your desire for growth and new challenges is exactly what we need. Let's explore opportunities to leverage your full skill set.
+                                        </Text>
+                                        <Box p={3} bg="white" borderRadius="md">
+                                            <Text fontSize="sm" fontWeight="600" color="gray.800" mb={2}>Action Plan:</Text>
+                                            <VStack align="stretch" gap={1}>
+                                                <Text fontSize="sm" color="gray.700">• Assigning you as technical lead for upcoming AI integration project</Text>
+                                                <Text fontSize="sm" color="gray.700">• Sponsoring enrollment in advanced cloud architecture certification</Text>
+                                                <Text fontSize="sm" color="gray.700">• Involving you in architecture review meetings</Text>
+                                                <Text fontSize="sm" color="gray.700">• Mentoring junior team members</Text>
+                                            </VStack>
+                                        </Box>
+                                    </Box>
+                                    
+                                    {/* Action Buttons */}
+                                    <Box p={5} pt={0}>
+                                        <HStack gap={3} justify="flex-end">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                colorScheme="gray"
+                                                leftIcon={<MessageCircle size={16} />}
+                                            >
+                                                Add Comment
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                backgroundColor="cornflowerblue"
+                                                colorScheme="green"
+                                                leftIcon={<CheckCircle size={16} />}
+                                            >
+                                                Accept Response
+                                            </Button>
+                                        </HStack>
+                                    </Box>
+                                    </Box>
+                                </Box>
+                            </VStack>
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Content Offerings Modal */}
+            {isContentModalOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(8px)"
+                    zIndex={9999}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => setIsContentModalOpen(false)}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW="1400px"
+                        w="95%"
+                        maxH="90vh"
+                        overflow="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                        boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                        style={{ animation: 'slideUp 0.3s ease-out' }}
+                    >
+                        {/* Modal Header */}
+                        <Box
+                            p={6}
+                            borderBottom="1px solid"
+                            borderColor="gray.200"
+                            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                        >
+                            <HStack justify="space-between" align="center">
+                                <HStack gap={3}>
+                                    <Box p={3} bg="whiteAlpha.200" borderRadius="xl">
+                                        <Package size={28} color="white" />
+                                    </Box>
+                                    <VStack align="start" gap={0}>
+                                        <Heading size="lg" color="white" fontWeight="700">Wellness Offerings</Heading>
+                                        <Text fontSize="sm" color="whiteAlpha.900">Explore resources, events, and support programs</Text>
+                                    </VStack>
+                                </HStack>
+                                <IconButton
+                                    aria-label="Close"
+                                    onClick={() => setIsContentModalOpen(false)}
+                                    bg="whiteAlpha.200"
+                                    color="white"
+                                    _hover={{ bg: "whiteAlpha.300" }}
+                                    borderRadius="lg"
+                                    size="lg"
+                                >
+                                    <XIcon size={24} />
+                                </IconButton>
+                            </HStack>
+                        </Box>
+
+                        {/* Modal Body */}
+                        <Box p={6} overflowY="auto" maxH="calc(90vh - 120px)" bg="gray.50">
+                            <VStack gap={6} align="stretch">
+                                {/* Content Stats */}
+                                <SimpleGrid columns={{ base: 2, md: 3 }} gap={4}>
+                                    <Box p={4} bg="white" borderRadius="lg" boxShadow="sm" border="1px solid" borderColor="gray.200">
+                                        <VStack gap={1}>
+                                            <Text fontSize="4xl" fontWeight="900" color="blue.600">24</Text>
+                                            <Text fontSize="sm" color="gray.600" fontWeight="600">Wellness Articles</Text>
+                                        </VStack>
+                                    </Box>
+                                    <Box p={4} bg="white" borderRadius="lg" boxShadow="sm" border="1px solid" borderColor="gray.200">
+                                        <VStack gap={1}>
+                                            <Text fontSize="4xl" fontWeight="900" color="purple.600">18</Text>
+                                            <Text fontSize="sm" color="gray.600" fontWeight="600">Video Resources</Text>
+                                        </VStack>
+                                    </Box>
+                                    <Box p={4} bg="white" borderRadius="lg" boxShadow="sm" border="1px solid" borderColor="gray.200">
+                                        <VStack gap={1}>
+                                            <Text fontSize="4xl" fontWeight="900" color="green.600">2.5k+</Text>
+                                            <Text fontSize="sm" color="gray.600" fontWeight="600">Total Views</Text>
+                                        </VStack>
+                                    </Box>
+                                </SimpleGrid>
+
+                                {/* Featured Articles Section */}
+                                <Box p={5} bg="white" borderRadius="xl" boxShadow="md">
+                                    <HStack justify="space-between" mb={4}>
+                                        <HStack gap={2}>
+                                            <Box p={2} bg="blue.100" borderRadius="lg">
+                                                <BookOpen size={20} color="#3b82f6" />
+                                            </Box>
+                                            <Heading size="md" color="gray.800">Featured Articles</Heading>
+                                        </HStack>
+                                        <Badge colorScheme="blue" fontSize="xs" px={3} py={1}>24 Available</Badge>
+                                    </HStack>
+                                    
+                                    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+                                        {/* Article 1 */}
+                                        <Box 
+                                            p={4} 
+                                            bg="gradient-to-br from-blue-50 to-white" 
+                                            borderRadius="lg" 
+                                            border="2px solid" 
+                                            borderColor="blue.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "blue.400" }}
+                                        >
+                                            <Badge colorScheme="blue" fontSize="2xs" mb={2}>WELLNESS</Badge>
+                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                                Mental Health in the Workplace
+                                            </Heading>
+                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                                Complete guide to maintaining work-life balance and mental wellness.
+                                            </Text>
+                                            <HStack justify="space-between" fontSize="2xs" color="gray.500">
+                                                <Text>📖 5 min read</Text>
+                                                <Text>👁️ 1.2k views</Text>
+                                            </HStack>
+                                        </Box>
+
+                                        {/* Article 2 */}
+                                        <Box 
+                                            p={4} 
+                                            bg="gradient-to-br from-purple-50 to-white" 
+                                            borderRadius="lg" 
+                                            border="2px solid" 
+                                            borderColor="purple.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "purple.400" }}
+                                        >
+                                            <Badge colorScheme="purple" fontSize="2xs" mb={2}>CAREER</Badge>
+                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                                Setting Career Goals for 2025
+                                            </Heading>
+                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                                Learn how to set achievable goals and create a professional roadmap.
+                                            </Text>
+                                            <HStack justify="space-between" fontSize="2xs" color="gray.500">
+                                                <Text>📖 7 min read</Text>
+                                                <Text>👁️ 890 views</Text>
+                                            </HStack>
+                                        </Box>
+
+                                        {/* Article 3 */}
+                                        <Box 
+                                            p={4} 
+                                            bg="gradient-to-br from-green-50 to-white" 
+                                            borderRadius="lg" 
+                                            border="2px solid" 
+                                            borderColor="green.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "green.400" }}
+                                        >
+                                            <Badge colorScheme="green" fontSize="2xs" mb={2}>HEALTH</Badge>
+                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                                Nutrition Tips for Busy Professionals
+                                            </Heading>
+                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                                Practical nutrition advice for maintaining energy throughout the day.
+                                            </Text>
+                                            <HStack justify="space-between" fontSize="2xs" color="gray.500">
+                                                <Text>📖 4 min read</Text>
+                                                <Text>👁️ 650 views</Text>
+                                            </HStack>
+                                        </Box>
+                                    </SimpleGrid>
+                                </Box>
+
+                                {/* Wellness Videos Section */}
+                                <Box p={5} bg="white" borderRadius="xl" boxShadow="md">
+                                    <HStack justify="space-between" mb={4}>
+                                        <HStack gap={2}>
+                                            <Box p={2} bg="purple.100" borderRadius="lg">
+                                                <FileText size={20} color="#9333ea" />
+                                            </Box>
+                                            <Heading size="md" color="gray.800">Wellness Videos</Heading>
+                                        </HStack>
+                                        <Badge colorScheme="purple" fontSize="xs" px={3} py={1}>18 Available</Badge>
+                                    </HStack>
+                                    
+                                    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+                                        {/* Video 1 - Meditation Guide */}
+                                        <Box 
+                                            borderRadius="xl" 
+                                            overflow="hidden"
+                                            border="2px solid" 
+                                            borderColor="purple.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "xl", borderColor: "purple.400" }}
+                                            bg="white"
+                                        >
+                                            {/* Video Thumbnail */}
+                                            <Box 
+                                                h="180px" 
+                                                bgImage="url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80')"
+                                                bgSize="cover"
+                                                bgPosition="center"
+                                                position="relative"
+                                            >
+                                                {/* Play Button Overlay */}
+                                                <Box 
+                                                    position="absolute"
+                                                    top="50%"
+                                                    left="50%"
+                                                    transform="translate(-50%, -50%)"
+                                                    w="60px"
+                                                    h="60px"
+                                                    bg="whiteAlpha.900"
+                                                    borderRadius="full"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    boxShadow="lg"
+                                                >
+                                                    <Text fontSize="2xl">▶️</Text>
+                                                </Box>
+                                                <Box position="absolute" top={2} left={2}>
+                                                    <Badge colorScheme="purple" fontSize="2xs">MEDITATION</Badge>
+                                                </Box>
+                                                <Box position="absolute" bottom={2} right={2} bg="blackAlpha.700" px={2} py={1} borderRadius="md">
+                                                    <Text fontSize="xs" color="white" fontWeight="600">8:45</Text>
+                                                </Box>
+                                            </Box>
+                                            
+                                            {/* Video Details */}
+                                            <VStack align="stretch" p={4} gap={2}>
+                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                    Guided Meditation for Stress Relief
+                                                </Heading>
+                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                    Learn mindfulness techniques to reduce stress and anxiety in daily life
+                                                </Text>
+                                                <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
+                                                    <Text>👁️ 1.2k views</Text>
+                                                    <Text>⭐ 4.8/5</Text>
+                                                </HStack>
+                                            </VStack>
+                                        </Box>
+
+                                        {/* Video 2 - Yoga Tutorial */}
+                                        <Box 
+                                            borderRadius="xl" 
+                                            overflow="hidden"
+                                            border="2px solid" 
+                                            borderColor="green.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "xl", borderColor: "green.400" }}
+                                            bg="white"
+                                        >
+                                            {/* Video Thumbnail */}
+                                            <Box 
+                                                h="180px" 
+                                                bgImage="url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80')"
+                                                bgSize="cover"
+                                                bgPosition="center"
+                                                position="relative"
+                                            >
+                                                {/* Play Button Overlay */}
+                                                <Box 
+                                                    position="absolute"
+                                                    top="50%"
+                                                    left="50%"
+                                                    transform="translate(-50%, -50%)"
+                                                    w="60px"
+                                                    h="60px"
+                                                    bg="whiteAlpha.900"
+                                                    borderRadius="full"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    boxShadow="lg"
+                                                >
+                                                    <Text fontSize="2xl">▶️</Text>
+                                                </Box>
+                                                <Box position="absolute" top={2} left={2}>
+                                                    <Badge colorScheme="green" fontSize="2xs">YOGA</Badge>
+                                                </Box>
+                                                <Box position="absolute" bottom={2} right={2} bg="blackAlpha.700" px={2} py={1} borderRadius="md">
+                                                    <Text fontSize="xs" color="white" fontWeight="600">12:30</Text>
+                                                </Box>
+                                            </Box>
+                                            
+                                            {/* Video Details */}
+                                            <VStack align="stretch" p={4} gap={2}>
+                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                    Morning Yoga for Beginners
+                                                </Heading>
+                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                    Start your day right with gentle stretches and breathing exercises
+                                                </Text>
+                                                <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
+                                                    <Text>👁️ 890 views</Text>
+                                                    <Text>⭐ 4.9/5</Text>
+                                                </HStack>
+                                            </VStack>
+                                        </Box>
+
+                                        {/* Video 3 - Nutrition Tips */}
+                                        <Box 
+                                            borderRadius="xl" 
+                                            overflow="hidden"
+                                            border="2px solid" 
+                                            borderColor="orange.200"
+                                            cursor="pointer"
+                                            transition="all 0.3s"
+                                            _hover={{ transform: "translateY(-4px)", shadow: "xl", borderColor: "orange.400" }}
+                                            bg="white"
+                                        >
+                                            {/* Video Thumbnail */}
+                                            <Box 
+                                                h="180px" 
+                                                bgImage="url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80')"
+                                                bgSize="cover"
+                                                bgPosition="center"
+                                                position="relative"
+                                            >
+                                                {/* Play Button Overlay */}
+                                                <Box 
+                                                    position="absolute"
+                                                    top="50%"
+                                                    left="50%"
+                                                    transform="translate(-50%, -50%)"
+                                                    w="60px"
+                                                    h="60px"
+                                                    bg="whiteAlpha.900"
+                                                    borderRadius="full"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    boxShadow="lg"
+                                                >
+                                                    <Text fontSize="2xl">▶️</Text>
+                                                </Box>
+                                                <Box position="absolute" top={2} left={2}>
+                                                    <Badge colorScheme="orange" fontSize="2xs">NUTRITION</Badge>
+                                                </Box>
+                                                <Box position="absolute" bottom={2} right={2} bg="blackAlpha.700" px={2} py={1} borderRadius="md">
+                                                    <Text fontSize="xs" color="white" fontWeight="600">6:15</Text>
+                                                </Box>
+                                            </Box>
+                                            
+                                            {/* Video Details */}
+                                            <VStack align="stretch" p={4} gap={2}>
+                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                    Healthy Eating for Busy Professionals
+                                                </Heading>
+                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                    Quick and nutritious meal ideas to fuel your workday
+                                                </Text>
+                                                <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
+                                                    <Text>👁️ 650 views</Text>
+                                                    <Text>⭐ 4.7/5</Text>
+                                                </HStack>
+                                            </VStack>
+                                        </Box>
+                                    </SimpleGrid>
+                                </Box>
+
+                                {/* EAP Support Banner */}
+                                <Box 
+                                    p={5} 
+                                    bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)" 
+                                    borderRadius="xl" 
+                                    boxShadow="lg"
+                                    position="relative"
+                                    overflow="hidden"
+                                >
+                                    <Box position="absolute" top="-20px" right="-20px" opacity={0.1}>
+                                        <Heart size={120} color="white" />
+                                    </Box>
+                                    <HStack gap={4} align="center" position="relative">
+                                        <Box p={3} bg="whiteAlpha.300" borderRadius="xl">
+                                            <Heart size={32} color="white" />
+                                        </Box>
+                                        <VStack align="start" gap={2} flex={1}>
+                                            <Heading size="md" color="white">24/7 Employee Assistance Program</Heading>
+                                            <Text fontSize="sm" color="whiteAlpha.900">
+                                                Confidential support for personal and work-related concerns • 500+ employees helped this year
+                                            </Text>
+                                        </VStack>
+                                        <Button bg="white" color="purple.600" size="md" _hover={{ bg: "whiteAlpha.900" }}>
+                                            Get Support
+                                        </Button>
+                                    </HStack>
+                                </Box>
+                            </VStack>
+                        </Box>
                     </Box>
                 </Box>
             )}

@@ -27,7 +27,12 @@ import {
     UserCheck,
     BarChart3,
     Calendar,
-    Heart
+    Heart,
+    BookOpen,
+    Video,
+    MessageCircle,
+    CheckCircle,
+    AlertCircleIcon
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
@@ -51,6 +56,10 @@ export default function Teams() {
     const [pageSize, setPageSize] = useState(20);
     const [totalCount, setTotalCount] = useState(0);
     const [filteredCount, setFilteredCount] = useState(0);
+    
+    // Modal state
+    const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+    const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
 
     // Fetch quick data first for immediate dashboard display
     useEffect(() => {
@@ -896,10 +905,15 @@ export default function Teams() {
                                             {teamMembers.map((member, index) => (
                                                 <tr 
                                                     key={member.id}
+                                                    onClick={() => {
+                                                        setSelectedMember(member);
+                                                        setIsSummaryModalOpen(true);
+                                                    }}
                                                     style={{ 
                                                         borderBottom: '1px solid #f3f4f6',
                                                         backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                                        transition: 'background-color 0.2s ease'
+                                                        transition: 'background-color 0.2s ease',
+                                                        cursor: 'pointer'
                                                     }}
                                                     className={`table-row ${index % 2 === 1 ? 'table-row-alt' : ''}`}
                                                 >
@@ -1105,6 +1119,355 @@ export default function Teams() {
                         )}
                     </VStack>
                 </Box>
+
+                {/* Member Summary Modal */}
+                {isSummaryModalOpen && selectedMember && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(8px)"
+                    zIndex={9999}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => setIsSummaryModalOpen(false)}
+                    style={{ animation: 'fadeIn 0.3s ease-out' }}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        maxW="900px"
+                        w="90%"
+                        maxH="85vh"
+                        overflow="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                        boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+                        style={{ animation: 'slideUp 0.3s ease-out' }}
+                    >
+                        {/* Modal Header */}
+                        <Box
+                            p={6}
+                            borderBottom="1px solid"
+                            borderColor="gray.200"
+                            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                        >
+                            <HStack justify="space-between" align="start">
+                                <HStack gap={4}>
+                                    <Box
+                                        w="60px"
+                                        h="60px"
+                                        borderRadius="full"
+                                        bg="white"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        fontSize="2xl"
+                                        fontWeight="bold"
+                                        color="purple.600"
+                                    >
+                                        {selectedMember.name.charAt(0).toUpperCase()}
+                                    </Box>
+                                    <VStack align="start" gap={1}>
+                                        <Heading size="lg" color="white" fontWeight="600">
+                                            {selectedMember.name}
+                                        </Heading>
+                                        <Text color="whiteAlpha.900" fontSize="sm">
+                                            {selectedMember.email}
+                                        </Text>
+                                    </VStack>
+                                </HStack>
+                                <Button
+                                    onClick={() => setIsSummaryModalOpen(false)}
+                                    variant="ghost"
+                                    color="white"
+                                    _hover={{ bg: "whiteAlpha.200" }}
+                                    size="sm"
+                                >
+                                    ✕
+                                </Button>
+                            </HStack>
+                        </Box>
+
+                        {/* Modal Body */}
+                        <Box p={6} overflowY="auto" maxH="calc(85vh - 140px)">
+                            <VStack gap={6} align="stretch">
+                                {/* Skill Positioning */}
+                                <Box p={4} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200">
+                                    <HStack gap={3} mb={4}>
+                                        <Box p={2} bg="blue.100" borderRadius="md">
+                                            <Target size={20} color="#2563eb" />
+                                        </Box>
+                                        <Heading size="md" color="gray.800" fontWeight="600">
+                                            Skill Positioning
+                                        </Heading>
+                                    </HStack>
+                                    <SimpleGrid columns={2} gap={4}>
+                                        <Box>
+                                            <Text fontSize="xs" color="gray.600" mb={1}>Current Level</Text>
+                                            <HStack>
+                                                <Box flex={1} h="8px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                    <Box w="65%" h="full" bg="blue.500" />
+                                                </Box>
+                                                <Text fontSize="sm" fontWeight="600" color="blue.600">65%</Text>
+                                            </HStack>
+                                        </Box>
+                                        <Box>
+                                            <Text fontSize="xs" color="gray.600" mb={1}>Target Level</Text>
+                                            <HStack>
+                                                <Box flex={1} h="8px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                    <Box w="100%" h="full" bg="green.500" />
+                                                </Box>
+                                                <Text fontSize="sm" fontWeight="600" color="green.600">100%</Text>
+                                            </HStack>
+                                        </Box>
+                                    </SimpleGrid>
+                                    <Box mt={4}>
+                                        <Text fontSize="xs" color="gray.600" mb={2}>Top Skills</Text>
+                                        <HStack gap={2} flexWrap="wrap">
+                                            <Badge colorScheme="blue" fontSize="xs">React</Badge>
+                                            <Badge colorScheme="purple" fontSize="xs">TypeScript</Badge>
+                                            <Badge colorScheme="green" fontSize="xs">Node.js</Badge>
+                                            <Badge colorScheme="orange" fontSize="xs">Python</Badge>
+                                        </HStack>
+                                    </Box>
+                                </Box>
+
+                                {/* Learning Curve */}
+                                <Box p={4} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200">
+                                    <HStack gap={3} mb={4}>
+                                        <Box p={2} bg="purple.100" borderRadius="md">
+                                            <TrendingUp size={20} color="#9333ea" />
+                                        </Box>
+                                        <Heading size="md" color="gray.800" fontWeight="600">
+                                            Learning Curve
+                                        </Heading>
+                                    </HStack>
+                                    <SimpleGrid columns={3} gap={4}>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <Text fontSize="2xl" fontWeight="bold" color="purple.600">12</Text>
+                                            <Text fontSize="xs" color="gray.600">Courses Completed</Text>
+                                        </Box>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <Text fontSize="2xl" fontWeight="bold" color="green.600">85%</Text>
+                                            <Text fontSize="xs" color="gray.600">Avg. Score</Text>
+                                        </Box>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <Text fontSize="2xl" fontWeight="bold" color="blue.600">24h</Text>
+                                            <Text fontSize="xs" color="gray.600">Learning Time</Text>
+                                        </Box>
+                                    </SimpleGrid>
+                                    <Box mt={4}>
+                                        <Text fontSize="xs" color="gray.600" mb={2}>Recent Progress</Text>
+                                        <VStack gap={2} align="stretch">
+                                            <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                <Text fontSize="xs" color="gray.700">Advanced React Patterns</Text>
+                                                <Badge colorScheme="green" fontSize="2xs">Completed</Badge>
+                                            </HStack>
+                                            <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                <Text fontSize="xs" color="gray.700">System Design Fundamentals</Text>
+                                                <Badge colorScheme="blue" fontSize="2xs">In Progress</Badge>
+                                            </HStack>
+                                        </VStack>
+                                    </Box>
+                                </Box>
+
+                                {/* Mental Health */}
+                                <Box p={4} bg="pink.50" borderRadius="lg" border="1px solid" borderColor="pink.200">
+                                    <HStack gap={3} mb={4}>
+                                        <Box p={2} bg="pink.100" borderRadius="md">
+                                            <Heart size={20} color="#ec4899" />
+                                        </Box>
+                                        <Heading size="md" color="gray.800" fontWeight="600">
+                                            Mental Health & Well-being
+                                        </Heading>
+                                    </HStack>
+                                    <SimpleGrid columns={2} gap={4}>
+                                        <Box>
+                                            <Text fontSize="xs" color="gray.600" mb={2}>Mental Health Risk</Text>
+                                            <Badge
+                                                colorScheme={selectedMember.mentalHealth === 'High' ? 'red' : selectedMember.mentalHealth === 'Medium' ? 'orange' : 'green'}
+                                                fontSize="sm"
+                                                px={3}
+                                                py={1}
+                                            >
+                                                {selectedMember.mentalHealth}
+                                            </Badge>
+                                        </Box>
+                                        <Box>
+                                            <Text fontSize="xs" color="gray.600" mb={2}>Motivation Level</Text>
+                                            <Badge
+                                                colorScheme={selectedMember.motivationFactor === 'High' ? 'red' : selectedMember.motivationFactor === 'Medium' ? 'orange' : 'green'}
+                                                fontSize="sm"
+                                                px={3}
+                                                py={1}
+                                            >
+                                                {selectedMember.motivationFactor}
+                                            </Badge>
+                                        </Box>
+                                    </SimpleGrid>
+                                    <Box mt={4}>
+                                        <Text fontSize="xs" color="gray.600" mb={2}>Key Indicators</Text>
+                                        <VStack gap={2} align="stretch">
+                                            <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                <Text fontSize="xs" color="gray.700">Work-Life Balance</Text>
+                                                <Text fontSize="xs" fontWeight="600" color="green.600">Good</Text>
+                                            </HStack>
+                                            <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                <Text fontSize="xs" color="gray.700">Stress Level</Text>
+                                                <Text fontSize="xs" fontWeight="600" color="orange.600">Moderate</Text>
+                                            </HStack>
+                                            <HStack justify="space-between" p={2} bg="white" borderRadius="md">
+                                                <Text fontSize="xs" color="gray.700">Career Satisfaction</Text>
+                                                <Badge colorScheme={selectedMember.careerOpportunities === 'High' ? 'red' : selectedMember.careerOpportunities === 'Medium' ? 'orange' : 'green'} fontSize="2xs">
+                                                    {selectedMember.careerOpportunities}
+                                                </Badge>
+                                            </HStack>
+                                        </VStack>
+                                    </Box>
+                                </Box>
+
+                                {/* Wellness Engagement */}
+                                <Box p={4} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200">
+                                    <HStack gap={3} mb={4}>
+                                        <Box p={2} bg="orange.100" borderRadius="md">
+                                            <BookOpen size={20} color="#dd6b20" />
+                                        </Box>
+                                        <Heading size="md" color="gray.800" fontWeight="600">
+                                            Wellness Engagement
+                                        </Heading>
+                                    </HStack>
+                                    
+                                    {/* Engagement Stats */}
+                                    <SimpleGrid columns={3} gap={4} mb={4}>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <HStack justify="center" gap={2} mb={1}>
+                                                <BookOpen size={16} color="#dd6b20" />
+                                                <Text fontSize="2xl" fontWeight="bold" color="orange.600">
+                                                    {Math.floor(Math.random() * 15) + 8}
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="xs" color="gray.600">Articles Read</Text>
+                                        </Box>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <HStack justify="center" gap={2} mb={1}>
+                                                <Video size={16} color="#9333ea" />
+                                                <Text fontSize="2xl" fontWeight="bold" color="purple.600">
+                                                    {Math.floor(Math.random() * 10) + 4}
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="xs" color="gray.600">Videos Watched</Text>
+                                        </Box>
+                                        <Box textAlign="center" p={3} bg="white" borderRadius="md">
+                                            <HStack justify="center" gap={2} mb={1}>
+                                                <MessageCircle size={16} color="#3b82f6" />
+                                                <Text fontSize="2xl" fontWeight="bold" color="blue.600">
+                                                    {Math.floor(Math.random() * 5) + 2}
+                                                </Text>
+                                            </HStack>
+                                            <Text fontSize="xs" color="gray.600">Chat Sessions</Text>
+                                        </Box>
+                                    </SimpleGrid>
+
+                                    {/* Content Trends */}
+                                    <Box>
+                                        <Text fontSize="xs" color="gray.600" mb={2} fontWeight="600">Content Engagement Trends</Text>
+                                        <VStack gap={2} align="stretch">
+                                            <Box p={3} bg="white" borderRadius="md">
+                                                <HStack justify="space-between" mb={2}>
+                                                    <Text fontSize="xs" color="gray.700" fontWeight="600">🧘 Stress Management</Text>
+                                                    <Badge colorScheme="orange" fontSize="2xs">High Interest</Badge>
+                                                </HStack>
+                                                <Text fontSize="2xs" color="gray.600" mb={2}>8 times in last 2 weeks</Text>
+                                                <Box w="full" h="4px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                    <Box w="75%" h="full" bg="orange.400" />
+                                                </Box>
+                                            </Box>
+                                            <Box p={3} bg="white" borderRadius="md">
+                                                <HStack justify="space-between" mb={2}>
+                                                    <Text fontSize="xs" color="gray.700" fontWeight="600">💤 Work-Life Balance</Text>
+                                                    <Badge colorScheme="purple" fontSize="2xs">Moderate</Badge>
+                                                </HStack>
+                                                <Text fontSize="2xs" color="gray.600" mb={2}>5 videos last month</Text>
+                                                <Box w="full" h="4px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                    <Box w="55%" h="full" bg="purple.400" />
+                                                </Box>
+                                            </Box>
+                                            <Box p={3} bg="white" borderRadius="md">
+                                                <HStack justify="space-between" mb={2}>
+                                                    <Text fontSize="xs" color="gray.700" fontWeight="600">💬 Chat Support</Text>
+                                                    <Badge colorScheme="blue" fontSize="2xs">Recent</Badge>
+                                                </HStack>
+                                                <Text fontSize="2xs" color="gray.600" mb={2}>3 sessions this week</Text>
+                                                <Box w="full" h="4px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                    <Box w="40%" h="full" bg="blue.400" />
+                                                </Box>
+                                            </Box>
+                                        </VStack>
+                                    </Box>
+
+                                    {/* AI Insights */}
+                                    <Box mt={4} p={3} bg="white" borderRadius="md" border="1px solid" borderColor="orange.300">
+                                        <HStack gap={2} mb={2}>
+                                            <Brain size={14} color="#9333ea" />
+                                            <Text fontSize="xs" fontWeight="600" color="gray.800">AI Insight</Text>
+                                        </HStack>
+                                        <Text fontSize="xs" color="gray.700" lineHeight="1.6">
+                                            {selectedMember.name.split(' ')[0]} shows consistent engagement with <strong>stress-related content</strong>, 
+                                            particularly during <strong>Monday mornings and late evenings</strong>. Recommend scheduling a 1-on-1 check-in.
+                                        </Text>
+                                    </Box>
+
+                                    {/* Recommended Actions */}
+                                    <Box mt={4}>
+                                        <Text fontSize="xs" color="gray.600" mb={2} fontWeight="600">Recommended Actions</Text>
+                                        <VStack gap={2} align="stretch">
+                                            <HStack gap={2} p={2} bg="white" borderRadius="md">
+                                                <CheckCircle size={12} color="#22c55e" />
+                                                <Text fontSize="xs" color="gray.700">Schedule 1-on-1 for workload discussion</Text>
+                                            </HStack>
+                                            <HStack gap={2} p={2} bg="white" borderRadius="md">
+                                                <CheckCircle size={12} color="#22c55e" />
+                                                <Text fontSize="xs" color="gray.700">Recommend stress management workshop</Text>
+                                            </HStack>
+                                            <HStack gap={2} p={2} bg="white" borderRadius="md">
+                                                <CheckCircle size={12} color="#22c55e" />
+                                                <Text fontSize="xs" color="gray.700">Connect with EAP counselor</Text>
+                                            </HStack>
+                                        </VStack>
+                                    </Box>
+                                </Box>
+
+                                {/* Overall Assessment */}
+                                <Box p={4} bg="gray.50" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                    <HStack gap={3} mb={3}>
+                                        <Box p={2} bg="gray.200" borderRadius="md">
+                                            <BarChart3 size={20} color="#4b5563" />
+                                        </Box>
+                                        <Heading size="md" color="gray.800" fontWeight="600">
+                                            Overall Assessment
+                                        </Heading>
+                                    </HStack>
+                                    <HStack justify="space-between" align="center">
+                                        <Text fontSize="sm" color="gray.700">Attrition Risk</Text>
+                                        <Badge
+                                            colorScheme={selectedMember.attritionRisk === 'High' ? 'red' : selectedMember.attritionRisk === 'Medium' ? 'orange' : 'green'}
+                                            fontSize="md"
+                                            px={4}
+                                            py={2}
+                                        >
+                                            {selectedMember.attritionRisk}
+                                        </Badge>
+                                    </HStack>
+                                </Box>
+                            </VStack>
+                        </Box>
+                    </Box>
+                </Box>
+                )}
             </AppLayout>
     );
 }

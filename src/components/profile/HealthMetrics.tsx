@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { Box, Text, VStack, HStack, Card, Heading } from "@chakra-ui/react";
+import { Box, Text, VStack, Card, Heading } from "@chakra-ui/react";
 
 interface MetricData {
   label: string;
