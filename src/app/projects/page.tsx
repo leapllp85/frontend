@@ -42,6 +42,7 @@ type Project = ApiProject & {
     name: string; // Map title to name for UI compatibility
     timeline: string; // Map go_live_date to timeline for UI compatibility
     contributors: any[]; // Will be populated from assigned_to
+    business_unit?: string; // Business unit for the project
 };
 
 export default function ProjectsPage() {
@@ -58,6 +59,11 @@ export default function ProjectsPage() {
     const [hasPrevious, setHasPrevious] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [currentRequestId, setCurrentRequestId] = useState(0);
+    const [filters, setFilters] = useState({
+        businessUnit: '',
+        criticality: '',
+        status: ''
+    });
 
     // Fetch projects from API with pagination
     const fetchProjects = async (params?: ProjectsQueryParams, isSearch = false) => {
@@ -79,11 +85,13 @@ export default function ProjectsPage() {
             console.log('Current projects state before update:', projects.length);
 
             // Transform API data to match UI expectations
-            const transformedProjects: Project[] = response.results.projects.map(project => ({
+            const businessUnits = ['Supply Chain', 'Merchandising', 'Digital', 'Operations', 'Finance'];
+            const transformedProjects: Project[] = response.results.projects.map((project, index) => ({
                 ...project,
                 name: project.title, // Map title to name
                 timeline: project.go_live_date, // Map go_live_date to timeline
-                contributors: project.assigned_to || [] // Use assigned_to as contributors
+                contributors: project.assigned_to || [], // Use assigned_to as contributors
+                business_unit: project.business_unit || businessUnits[index % businessUnits.length] // Add dummy business unit
             }));
             
             console.log('Transformed projects:', transformedProjects.length);
@@ -153,425 +161,338 @@ export default function ProjectsPage() {
     return (
         <AppLayout>
             <Box w="full" h="100vh" bg="gray.50" overflow="auto">
-                {/* Professional Header */}
-                {/* <Box 
-                    bg="linear-gradient(135deg, #1a7a8a 0%, #226773 100%)" 
-                    px={8} 
-                    py={8}
-                    borderBottom="1px solid"
-                    borderColor="gray.200"
-                >
-                    <VStack align="start" gap={3}>
-                        <Heading size="2xl" color="white" fontWeight="bold" letterSpacing="tight">
-                            📁 Projects Dashboard
-                        </Heading>
-                        <Text color="blue.100" fontSize="lg" maxW="600px" lineHeight="1.6">
-                            Manage and track all your projects with comprehensive insights, team collaboration, and real-time progress monitoring.
-                        </Text>
-                    </VStack>
-                </Box> */}
-
                 {/* Content */}
                 <Box px={8} py={6}>
-                    <VStack gap={8} align="stretch" w="full">
-                    {/* Header with Search and Pagination Info */}
+                    <VStack gap={6} align="stretch" w="full">
+                    {/* Stats Cards */}
                     {!loading && !error && (
-                        <VStack align="stretch" gap={4}>
-                            <HStack justify="space-between" flexWrap="wrap">
-                                <VStack align="start" gap={1}>
-                                    <Heading size="xl" color="gray.800">
-                                        Projects
-                                    </Heading>
-                                    <Text fontSize="sm" color="gray.700">
-                                        {searchQuery ? (
-                                            `Showing ${filteredCount} of ${totalCount} projects matching "${searchQuery}"`
-                                        ) : (
-                                            `Showing ${projects.length} of ${totalCount} projects`
-                                        )}
-                                    </Text>
-                                </VStack>
-                                
-                                <RequireProjectCreate>
-                                    <Button 
-                                        onClick={() => router.push('/projects/onboard')}
-                                        bg="blue.600"
-                                        color="white"
-                                        _hover={{ bg: "blue.700" }}
-                                        size="lg"
-                                        borderRadius="lg"
-                                        fontWeight="semibold"
-                                    >
-                                        <Plus size={20} />
-                                        Create New Project
-                                    </Button>
-                                </RequireProjectCreate>
-                            </HStack>
-                            
-                            {/* Search and Filters */}
-                            <HStack gap={4} flexWrap="wrap">
-                                <Box flex={1} minW="300px">
-                                    <Box position="relative">
-                                        <Input
-                                            placeholder="Search projects by title, description, or criticality..."
-                                            value={searchQuery}
-                                            onChange={(e) => {
-                                                setSearchQuery(e.target.value);
-                                                setCurrentPage(1); // Reset to first page on search
-                                            }}
-                                            pl={10}
-                                            size="md"
-                                            bg="white"
-                                            border="1px solid"
-                                            borderColor="gray.300"
-                                            color="gray.800"
-                                            _placeholder={{ color: "gray.500" }}
-                                            _focus={{
-                                                borderColor: "blue.500",
-                                                boxShadow: "0 0 0 1px #3182ce"
-                                            }}
-                                        />
-                                        <Box
-                                            position="absolute"
-                                            left={3}
-                                            top="50%"
-                                            transform="translateY(-50%)"
-                                            color="gray.400"
-                                        >
-                                            <Search size={16} />
-                                        </Box>
-                                    </Box>
-                                </Box>
-                                <HStack gap={2}>
-                                    <Text fontSize="sm" color="gray.600">Page size:</Text>
-                                    <select
-                                        value={pageSize}
-                                        onChange={(e) => {
-                                            setPageSize(Number(e.target.value));
-                                            setCurrentPage(1);
-                                        }}
-                                        style={{
-                                            padding: '6px 12px',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '6px',
-                                            fontSize: '14px',
-                                            backgroundColor: 'white',
-                                            color: '#4a5568',
-                                            outline: 'none',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <option value={6}>6 per page</option>
-                                        <option value={12}>12 per page</option>
-                                        <option value={24}>24 per page</option>
-                                        <option value={48}>48 per page</option>
-                                    </select>
-                                </HStack>
-                            </HStack>
-                            
-                            {/* Search Results Info */}
-                            {searchQuery && (
-                                <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
-                                    <Text fontSize="sm" color="blue.700">
-                                        <strong>{filteredCount}</strong> projects found matching <strong>"{searchQuery}"</strong>
-                                        {filteredCount !== totalCount && (
-                                            <span> (filtered from {totalCount} total projects)</span>
-                                        )}
-                                    </Text>
-                                </Box>
-                            )}
-                        </VStack>
-                    )}
-
-                    {/* Stats Section - Compact Design */}
-                    {!loading && !error && (
-                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4} maxW="800px">
-                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                            <Card.Body p={4}>
-                                <HStack gap={3} align="center">
-                                    <Box bg="blue.100" p={2} borderRadius="lg">
-                                        <Folder color="#3182ce" size={20} />
-                                    </Box>
-                                    <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                                            Total Projects
-                                        </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
-                                            {projects.length}
-                                        </Text>
+                    <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+                        <Card.Root bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                            <Card.Body p={5}>
+                                <HStack justify="space-between">
+                                    <VStack align="start" gap={1}>
+                                        <Text fontSize="sm" color="gray.600" fontWeight="500">Total Projects</Text>
+                                        <Text fontSize="3xl" fontWeight="700" color="gray.900">{totalCount}</Text>
                                     </VStack>
+                                    <Box p={3} bg="teal.50" borderRadius="lg">
+                                        <Folder size={24} color="#0f766e" />
+                                    </Box>
                                 </HStack>
                             </Card.Body>
                         </Card.Root>
-                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                            <Card.Body p={4}>
-                                <HStack gap={3} align="center">
-                                    <Box bg="green.100" p={2} borderRadius="lg">
-                                        <Users color="#38a169" size={20} />
-                                    </Box>
-                                    <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                                            Active Projects
-                                        </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
-                                            {projects.filter(p => p.status === 'Active').length}
-                                        </Text>
+                        <Card.Root bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                            <Card.Body p={5}>
+                                <HStack justify="space-between">
+                                    <VStack align="start" gap={1}>
+                                        <Text fontSize="sm" color="gray.600" fontWeight="500">Active</Text>
+                                        <Text fontSize="3xl" fontWeight="700" color="green.600">{projects.filter(p => p.status === 'Active').length}</Text>
                                     </VStack>
+                                    <Box p={3} bg="green.50" borderRadius="lg">
+                                        <Users size={24} color="#16a34a" />
+                                    </Box>
                                 </HStack>
                             </Card.Body>
                         </Card.Root>
-                        <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                            <Card.Body p={4}>
-                                <HStack gap={3} align="center">
-                                    <Box bg="red.100" p={2} borderRadius="lg">
-                                        <AlertTriangle color="#e53e3e" size={20} />
-                                    </Box>
-                                    <VStack align="start" gap={0} flex={1}>
-                                        <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                                            High Priority
-                                        </Text>
-                                        <Text fontSize="2xl" fontWeight="bold" color="gray.900">
-                                            {projects.filter(p => p.criticality === 'High').length}
-                                        </Text>
+                        <Card.Root bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                            <Card.Body p={5}>
+                                <HStack justify="space-between">
+                                    <VStack align="start" gap={1}>
+                                        <Text fontSize="sm" color="gray.600" fontWeight="500">High Priority</Text>
+                                        <Text fontSize="3xl" fontWeight="700" color="red.600">{projects.filter(p => p.criticality === 'High').length}</Text>
                                     </VStack>
+                                    <Box p={3} bg="red.50" borderRadius="lg">
+                                        <AlertTriangle size={24} color="#dc2626" />
+                                    </Box>
                                 </HStack>
                             </Card.Body>
                         </Card.Root>
                     </SimpleGrid>
                     )}
-                    
-                    {/* {!loading && !error && (
-                        <Box>
-                            <Button 
-                                onClick={() => router.push('/projects/onboard')}
-                                colorPalette="purple"
-                                size="lg"
-                            >
-                                <Plus size={20} />
-                                Create New Project
-                            </Button>
-                        </Box>
-                    )} */}
+
+                    {/* Search Bar and New Project Button */}
+                    {!loading && !error && (
+                        <HStack gap={4} flexWrap="wrap">
+                            <Box position="relative" flex={1} minW="300px">
+                                <Input
+                                    placeholder="Search projects..."
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                    pl={10}
+                                    size="lg"
+                                    bg="white"
+                                    border="2px solid"
+                                    borderColor="gray.200"
+                                    borderRadius="md"
+                                    _focus={{
+                                        borderColor: "teal.500",
+                                        boxShadow: "0 0 0 3px rgba(20, 184, 166, 0.1)"
+                                    }}
+                                />
+                                <Box
+                                    position="absolute"
+                                    left={4}
+                                    top="50%"
+                                    transform="translateY(-50%)"
+                                    color="gray.400"
+                                >
+                                    <Search size={18} />
+                                </Box>
+                            </Box>
+                            <RequireProjectCreate>
+                                <Button 
+                                    onClick={() => router.push('/projects/onboard')}
+                                    colorPalette="teal"
+                                    size="lg"
+                                    fontWeight="600"
+                                >
+                                    <Plus size={20} />
+                                    New Project
+                                </Button>
+                            </RequireProjectCreate>
+                        </HStack>
+                    )}
 
                     {/* Loading State */}
                     {loading && (
-                        <Box textAlign="center" py={12}>
-                            <Spinner size="xl" color="blue.500" mb={4} />
-                            <Text fontSize="lg" color="gray.700">Loading projects...</Text>
-                        </Box>
+                        <Flex justify="center" align="center" minH="400px">
+                            <VStack gap={4}>
+                                <Spinner size="xl" color="teal.500" />
+                                <Text color="gray.600">Loading projects...</Text>
+                            </VStack>
+                        </Flex>
                     )}
 
                     {/* Error State */}
                     {error && (
-                        <Box textAlign="center" py={12}>
-                            <Text fontSize="lg" color="red.600" mb={4}>{error}</Text>
-                            <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
-                                Retry
-                            </Button>
-                        </Box>
+                        <Card.Root bg="white" borderRadius="lg">
+                            <Card.Body p={8}>
+                                <VStack gap={4}>
+                                    <Text color="red.600">{error}</Text>
+                                    <Button onClick={() => window.location.reload()} colorPalette="teal">
+                                        Retry
+                                    </Button>
+                                </VStack>
+                            </Card.Body>
+                        </Card.Root>
                     )}
 
-                    {/* Projects Grid */}
+                    {/* Projects Table */}
                     {!loading && !error && (
-                        <Box position="relative">
-                            {searchLoading && (
-                                <Box
-                                    position="absolute"
-                                    top={0}
-                                    left={0}
-                                    right={0}
-                                    bottom={0}
-                                    bg="white"
-                                    opacity={0.8}
-                                    zIndex={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    borderRadius="xl"
-                                >
-                                    <VStack gap={2}>
-                                        <Spinner size="lg" color="blue.500" />
-                                        <Text fontSize="sm" color="gray.700">Searching projects...</Text>
-                                    </VStack>
-                                </Box>
-                            )}
-                        <Grid 
-                            templateColumns={{
-                                base: "repeat(1, 1fr)",
-                                md: "repeat(2, 1fr)",
-                                lg: "repeat(3, 1fr)",
-                                xl: "repeat(4, 1fr)",
-                            }}
-                            gap={6}
-                            alignItems="stretch"
-                        >
-                            {projects.map((project) => (
-                                <GridItem key={project.id} h="full">
-                                    <Card.Root
-                                        bg="white"
-                                        shadow="sm"
-                                        borderRadius="xl"
-                                        _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                        transition="all 0.3s ease"
-                                        overflow="hidden"
-                                        h="full"
-                                        display="flex"
-                                        flexDirection="column"
-                                    >
-                                        {/* Header with neutral gradient */}
-                                        <Box 
-                                            bg="linear-gradient(135deg, #4a5568 0%, #2d3748 100%)"
-                                            p={6}
-                                            position="relative"
-                                        >
-                                            <VStack align="start" gap={3} w="full">
-                                                <HStack justify="space-between" w="full">
-                                                    <Heading size="lg" color="white" fontWeight="bold" lineHeight="1.2">
-                                                        {project.name}
-                                                    </Heading>
-                                                    <Badge
-                                                        colorPalette={getRiskColor(project.status === 'Active' ? 'Low' : 'High')}
-                                                        variant="solid"
-                                                        px={3}
-                                                        py={1}
-                                                        borderRadius="full"
-                                                    >
-                                                        {project.status}
-                                                    </Badge>
-                                                </HStack>
-                                                <Text 
-                                                    color="gray.200" 
-                                                    fontSize="md" 
-                                                    lineHeight="1.5" 
-                                                    fontWeight="medium"
-                                                    overflow="hidden"
-                                                    textOverflow="ellipsis"
-                                                    display="-webkit-box"
-                                                    css={{
-                                                        WebkitLineClamp: 2,
-                                                        WebkitBoxOrient: 'vertical'
-                                                    }}
-                                                >
-                                                    {project.description}
-                                                </Text>
-                                            </VStack>
-                                        </Box>
-                                        
-                                        <Card.Body p={6} display="flex" flexDirection="column" flex={1}>
-
-                                            {/* Project Details */}
-                                            <VStack gap={4} w="full" flex={1}>
-                                                <Grid templateColumns="repeat(2, 1fr)" gap={4} w="full">
-                                                    {/* Criticality */}
-                                                    <GridItem>
-                                                        <Box bg="gray.50" p={4} borderRadius="lg" w="full">
-                                                            <VStack align="start" gap={2}>
-                                                                <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="red.100" borderRadius="md">
-                                                                        <AlertTriangle size={12} color="#dc2626" />
-                                                                    </Box>
-                                                                    <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
-                                                                        CRITICALITY
-                                                                    </Text>
-                                                                </HStack>
-                                                                <Badge
-                                                                    colorPalette={getRiskColor(project.criticality)}
-                                                                    variant="solid"
-                                                                    px={2}
-                                                                    py={1}
-                                                                    borderRadius="full"
-                                                                    fontSize="xs"
-                                                                >
-                                                                    {project.criticality}
-                                                                </Badge>
-                                                            </VStack>
-                                                        </Box>
-                                                    </GridItem>
-
-                                                    {/* Timeline */}
-                                                    <GridItem>
-                                                        <Box bg="gray.50" p={4} borderRadius="lg" w="full">
-                                                            <VStack align="start" gap={2}>
-                                                                <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="blue.100" borderRadius="md">
-                                                                        <Calendar size={12} color="#3182ce" />
-                                                                    </Box>
-                                                                    <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
-                                                                        TIMELINE
-                                                                    </Text>
-                                                                </HStack>
-                                                                <Text fontSize="xs" color="gray.700" fontWeight="medium">
-                                                                    {new Date(project.start_date).toLocaleDateString()} - {new Date(project.go_live_date).toLocaleDateString()}
+                        <Card.Root bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                            <Card.Body p={0}>
+                                <Box overflowX="auto">
+                                    <Table.Root size="sm" variant="line">
+                                        <Table.Header>
+                                            <Table.Row bg="linear-gradient(to bottom, #e5e7eb 0%, #d1d5db 100%)" borderBottom="2px solid" borderColor="gray.300">
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <VStack align="start" gap={2} h="70px">
+                                                        <Text fontSize="sm">Business Unit</Text>
+                                                        <Input
+                                                            size="sm"
+                                                            placeholder="Filter..."
+                                                            value={filters.businessUnit}
+                                                            onChange={(e) => setFilters({...filters, businessUnit: e.target.value})}
+                                                            bg="white"
+                                                            fontSize="xs"
+                                                        />
+                                                    </VStack>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <Box h="70px" display="flex" alignItems="start">
+                                                        <Text fontSize="sm">Project Name</Text>
+                                                    </Box>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" w="250px" verticalAlign="top">
+                                                    <Box h="70px" display="flex" alignItems="start">
+                                                        <Text fontSize="sm">Description</Text>
+                                                    </Box>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <VStack align="start" gap={2} h="70px">
+                                                        <Text fontSize="sm">Criticality</Text>
+                                                        <select
+                                                            value={filters.criticality}
+                                                            onChange={(e) => setFilters({...filters, criticality: e.target.value})}
+                                                            style={{
+                                                                padding: '4px 8px',
+                                                                fontSize: '12px',
+                                                                border: '1px solid #e5e7eb',
+                                                                borderRadius: '4px',
+                                                                backgroundColor: 'white',
+                                                                width: '100%'
+                                                            }}
+                                                        >
+                                                            <option value="">All</option>
+                                                            <option value="High">High</option>
+                                                            <option value="Medium">Medium</option>
+                                                            <option value="Low">Low</option>
+                                                        </select>
+                                                    </VStack>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <Box h="70px" display="flex" alignItems="start">
+                                                        <Text fontSize="sm">Timeline</Text>
+                                                    </Box>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <Box h="70px" display="flex" alignItems="start">
+                                                        <Text fontSize="sm">Contributors</Text>
+                                                    </Box>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" verticalAlign="top">
+                                                    <VStack align="start" gap={2} h="70px">
+                                                        <Text fontSize="sm">Status</Text>
+                                                        <select
+                                                            value={filters.status}
+                                                            onChange={(e) => setFilters({...filters, status: e.target.value})}
+                                                            style={{
+                                                                padding: '4px 8px',
+                                                                fontSize: '12px',
+                                                                border: '1px solid #e5e7eb',
+                                                                borderRadius: '4px',
+                                                                backgroundColor: 'white',
+                                                                width: '100%'
+                                                            }}
+                                                        >
+                                                            <option value="">All</option>
+                                                            <option value="Active">Active</option>
+                                                            <option value="Inactive">Inactive</option>
+                                                        </select>
+                                                    </VStack>
+                                                </Table.ColumnHeader>
+                                                <Table.ColumnHeader p={3} fontWeight="600" color="gray.800" textAlign="center" verticalAlign="top">
+                                                    <Box h="70px" display="flex" alignItems="start" justifyContent="center">
+                                                        <Text fontSize="sm">Actions</Text>
+                                                    </Box>
+                                                </Table.ColumnHeader>
+                                            </Table.Row>
+                                        </Table.Header>
+                                        <Table.Body>
+                                            {projects
+                                                .filter(p => !filters.businessUnit || (p.business_unit || '').toLowerCase().includes(filters.businessUnit.toLowerCase()))
+                                                .filter(p => !filters.criticality || p.criticality === filters.criticality)
+                                                .filter(p => !filters.status || p.status === filters.status)
+                                                .map((project) => (
+                                                    <Table.Row key={project.id} _hover={{ bg: "teal.50" }} h="60px">
+                                                        <Table.Cell p={3}>
+                                                            <Text fontSize="sm" fontWeight="500" color="gray.900">
+                                                                {project.business_unit || 'N/A'}
+                                                            </Text>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <Text fontSize="sm" fontWeight="600" color="teal.700">
+                                                                {project.name}
+                                                            </Text>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3} w="250px">
+                                                            <Box maxH="45px" overflowY="auto" pr={2}
+                                                                css={{
+                                                                    '&::-webkit-scrollbar': {
+                                                                        width: '4px',
+                                                                    },
+                                                                    '&::-webkit-scrollbar-track': {
+                                                                        background: '#f1f1f1',
+                                                                    },
+                                                                    '&::-webkit-scrollbar-thumb': {
+                                                                        background: '#14b8a6',
+                                                                        borderRadius: '2px',
+                                                                    },
+                                                                }}
+                                                            >
+                                                                <Text fontSize="xs" color="gray.600" lineHeight="1.4">
+                                                                    {project.description}
+                                                                </Text>
+                                                            </Box>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <Badge
+                                                                colorPalette={getRiskColor(project.criticality)}
+                                                                variant="solid"
+                                                                size="sm"
+                                                            >
+                                                                {project.criticality}
+                                                            </Badge>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <VStack align="start" gap={0}>
+                                                                <Text fontSize="xs" color="gray.700" fontWeight="500">
+                                                                    {new Date(project.start_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
+                                                                </Text>
+                                                                <Text fontSize="2xs" color="gray.400">↓</Text>
+                                                                <Text fontSize="xs" color="gray.700" fontWeight="500">
+                                                                    {new Date(project.go_live_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })}
                                                                 </Text>
                                                             </VStack>
-                                                        </Box>
-                                                    </GridItem>
-
-                                                    {/* Contributors */}
-                                                    <GridItem colSpan={2}>
-                                                        <Box bg="gray.50" p={4} borderRadius="lg" w="full">
-                                                            <VStack align="start" gap={2}>
-                                                                <HStack gap={2} align="center">
-                                                                    <Box p={1} bg="blue.100" borderRadius="md">
-                                                                        <Users size={12} color="#3182ce" />
-                                                                    </Box>
-                                                                    <Text fontSize="xs" fontWeight="semibold" color="gray.600" letterSpacing="0.5px">
-                                                                        CONTRIBUTORS ({project.contributors.length})
-                                                                    </Text>
-                                                                </HStack>
-                                                                <HStack gap={2} align="center">
-                                                                     <AvatarGroup size="sm">
-                                                                         {project.contributors.slice(0, 4).map((contributor: any) => (
-                                                                             <Avatar.Root key={contributor.id} size="sm" bg="blue.600" color="white">
-                                                                                 <Avatar.Fallback bg="blue.600" color="white" fontWeight="semibold" fontSize="xs">{(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}</Avatar.Fallback>
-                                                                             </Avatar.Root>
-                                                                         ))}
-                                                                     </AvatarGroup>
-                                                                    {project.contributors.length > 4 && (
-                                                                        <Text fontSize="xs" color="gray.600" fontWeight="medium">
-                                                                            +{project.contributors.length - 4} more
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <VStack align="start" gap={1}>
+                                                                <HStack gap={1}>
+                                                                    <AvatarGroup size="xs">
+                                                                        {project.contributors.slice(0, 2).map((contributor: any, idx: number) => (
+                                                                            <Avatar.Root key={contributor.id || idx} size="xs" bg="teal.600" color="white">
+                                                                                <Avatar.Fallback fontSize="2xs" fontWeight="600">
+                                                                                    {(contributor.first_name?.[0] || contributor.username?.[0] || 'U')}{(contributor.last_name?.[0] || '')}
+                                                                                </Avatar.Fallback>
+                                                                            </Avatar.Root>
+                                                                        ))}
+                                                                    </AvatarGroup>
+                                                                    {project.contributors.length > 2 && (
+                                                                        <Text fontSize="2xs" color="gray.600">
+                                                                            +{project.contributors.length - 2}
                                                                         </Text>
                                                                     )}
                                                                 </HStack>
+                                                                {project.contributors.length > 0 && (
+                                                                    <Text fontSize="2xs" color="gray.600" lineClamp={1}>
+                                                                        {project.contributors.slice(0, 2).map((c: any) => 
+                                                                            `${c.first_name || c.username || 'User'} ${c.last_name || ''}`.trim()
+                                                                        ).join(', ')}
+                                                                        {project.contributors.length > 2 && '...'}
+                                                                    </Text>
+                                                                )}
                                                             </VStack>
-                                                        </Box>
-                                                    </GridItem>
-                                                </Grid>
-
-                                                {/* Action Buttons */}
-                                                <HStack gap={2} mt="auto" pt={4} w="full">
-                                                    <Button
-                                                        size="sm"
-                                                        bg="blue.600"
-                                                        color="white"
-                                                        _hover={{ bg: "blue.700" }}
-                                                        borderRadius="full"
-                                                        px={4}
-                                                        flex={1}
-                                                        onClick={() => router.push(`/projects/edit/${project.id}`)}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        borderColor="blue.600"
-                                                        color="blue.600"
-                                                        _hover={{ bg: "blue.50" }}
-                                                        borderRadius="full"
-                                                        px={4}
-                                                        flex={1}
-                                                        onClick={() => router.push(`/projects/${project.id}`)}
-                                                    >
-                                                        View Details
-                                                    </Button>
-                                                </HStack>
-                                            </VStack>
-                                        </Card.Body>
-                                    </Card.Root>
-                                </GridItem>
-                            ))}
-                        </Grid>
-                        </Box>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <Badge
+                                                                colorPalette={getStatusColor(project.status)}
+                                                                variant="subtle"
+                                                                size="sm"
+                                                            >
+                                                                {project.status}
+                                                            </Badge>
+                                                        </Table.Cell>
+                                                        <Table.Cell p={3}>
+                                                            <HStack gap={2} justify="center">
+                                                                <Button
+                                                                    size="xs"
+                                                                    colorPalette="teal"
+                                                                    variant="outline"
+                                                                    onClick={() => router.push(`/projects/edit/${project.id}`)}
+                                                                >
+                                                                    <Edit size={12} />
+                                                                    Edit
+                                                                </Button>
+                                                                <Button
+                                                                    size="xs"
+                                                                    colorPalette="blue"
+                                                                    variant="ghost"
+                                                                    onClick={() => router.push(`/projects/${project.id}`)}
+                                                                >
+                                                                    <Eye size={12} />
+                                                                    View
+                                                                </Button>
+                                                            </HStack>
+                                                        </Table.Cell>
+                                                    </Table.Row>
+                                                ))}
+                                            </Table.Body>
+                                        </Table.Root>
+                                    </Box>
+                                </Card.Body>
+                            </Card.Root>
                     )}
                     
                     {/* Pagination Footer */}

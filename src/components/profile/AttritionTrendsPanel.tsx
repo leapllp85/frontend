@@ -248,9 +248,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
     scales: {
       x: {
         grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1
+          display: false
         },
         ticks: {
           color: '#4A5568',
@@ -269,9 +267,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
         min: 150,
         max: 500,
         grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1
+          display: false
         },
         ticks: {
           color: '#4A5568',
@@ -311,54 +307,27 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
   };
 
   return (
-    <Card.Root 
-      bg="#ffffff"
-      shadow="xs" 
-      borderRadius="3xl" 
+    <VStack 
+      align="center" 
+      justify="center" 
       h="full" 
-      display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.100"
-      maxH="240px"
-      minH="220px"
-      maxW="900px"
-   
-      transition="all 0.2s ease"
+      gap={2}
+      flex="1"
+      minH="0"
     >
-      <Card.Header p={0} pb={0} >
-        <VStack justify="space-between" align="center">
-          <Heading
-                      size="md"
-                      color="gray.900"
-                      textAlign="center"
-                      fontWeight="normal"
-                    >
-                       Attrition Risk Trends
-                      </Heading>
-                       <Box 
-                                              w="80%" 
-                                              h="0.9px" 
-                                              bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                                            />
-        </VStack>
-      </Card.Header>
+      <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">
+        Attrition Risk Trends
+      </Text>
       
-      <Card.Body p={0} flex="1" display="flex" flexDirection="column">
-        {/* Line Chart with Area Fill */}
-        <Box w="full" h="full" flex="1">
-          <Box 
-            w="full" 
-            h="full" 
-            bg="transparent" 
-            borderRadius="3xl" 
-            p={2}
-            position="relative"
-          >
-            <Line data={chartData} options={chartOptions} />
-          </Box>
-        </Box>
-      </Card.Body>
-    </Card.Root>
+      {/* Line Chart */}
+      <Box
+        w="full"
+        h="200px"
+        maxH="200px"
+        transition="all 0.2s ease"
+      >
+        <Line data={chartData} options={chartOptions} />
+      </Box>
+    </VStack>
   );
 };

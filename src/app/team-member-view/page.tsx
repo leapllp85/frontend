@@ -17,6 +17,9 @@ import {
     Flex,
     IconButton
 } from '@chakra-ui/react';
+import { LoadingScreen } from '@/components/common/LoadingScreen';
+import { DailyCheckInModal } from '@/components/common/DailyCheckInModal';
+import { TrendModal } from '@/components/common/TrendModal';
 import { 
     FolderKanban, 
     Bell, 
@@ -133,8 +136,11 @@ interface CalendarEvent {
 }
 
 export default function TeamMemberView() {
+    console.log('🚀 TeamMemberView component loaded');
+    
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [showLoadingScreen, setShowLoadingScreen] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
@@ -157,12 +163,446 @@ export default function TeamMemberView() {
     const [skills, setSkills] = useState<Skill[]>([]);
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<'all' | 'csr' | 'yoga' | 'wellness'>('all');
+    const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
+    const [showTrendModal, setShowTrendModal] = useState(false);
+    
+    console.log('📊 State initialized, showDailyCheckIn:', showDailyCheckIn);
     
     // User profile data
     const userProfile = {
         name: 'John Doe',
         designation: 'Senior Software Engineer',
         avatar: 'https://i.pravatar.cc/150?img=12' // Sample avatar image
+    };
+
+    // Request notification permission on mount
+    useEffect(() => {
+        console.log('Notification support:', 'Notification' in window);
+        console.log('Current permission:', Notification?.permission);
+        
+        if ('Notification' in window) {
+            if (Notification.permission === 'default') {
+                console.log('Requesting notification permission...');
+                Notification.requestPermission().then(permission => {
+                    console.log('Notification permission result:', permission);
+                });
+            }
+        }
+    }, []);
+
+    // Function to send browser notification
+    const sendNotification = async () => {
+        console.log('=== NOTIFICATION DEBUG START ===');
+        console.log('1. Notification available:', 'Notification' in window);
+        
+        if (!('Notification' in window)) {
+            console.error('Notifications not supported in this browser');
+            alert('Your browser does not support notifications');
+            return;
+        }
+        
+        console.log('2. Current permission:', Notification.permission);
+        
+        // Request permission if needed
+        if (Notification.permission === 'default') {
+            console.log('3. Requesting permission...');
+            const permission = await Notification.requestPermission();
+            console.log('4. Permission result:', permission);
+            
+            if (permission !== 'granted') {
+                console.error('Permission denied by user');
+                alert('Please allow notifications to receive check-in reminders');
+                return;
+            }
+        }
+        
+        if (Notification.permission === 'denied') {
+            console.error('Notifications are blocked. Please enable them in browser settings.');
+            alert('Notifications are blocked. Please enable them in your browser settings:\nChrome: Settings → Privacy → Site Settings → Notifications');
+            return;
+        }
+        
+        if (Notification.permission === 'granted') {
+            console.log('5. Permission granted, creating notification...');
+            try {
+                // Enhanced notification with attention-grabbing text
+                const notification = new Notification('🔔 DAILY CHECK-IN REQUIRED!', {
+                    body: '⚡ Action Needed: Share how you\'re feeling today!\n\n👆 Click here to complete your check-in now!',
+                    requireInteraction: true,
+                    tag: 'daily-checkin',
+                    silent: false,
+                    renotify: true
+                });
+
+                notification.onclick = () => {
+                    console.log('6. Notification clicked - opening check-in popup');
+                    notification.close();
+                    
+                    // Open check-in modal in a popup window
+                    const popupWidth = 750;
+                    const popupHeight = 700;
+                    const left = (screen.width - popupWidth) / 2;
+                    const top = (screen.height - popupHeight) / 2;
+                    
+                    const popup = window.open(
+                        '/team-member-view/checkin',
+                        'DailyCheckIn',
+                        `width=${popupWidth},height=${popupHeight},left=${left},top=${top},frame=no,titlebar=no,resizable=no,scrollbars=no,status=no,toolbar=no,menubar=no,location=no,chrome=no`
+                    );
+                    
+                    if (popup) {
+                        popup.focus();
+                    } else {
+                        // Fallback: if popup blocked, show modal in current window
+                        window.focus();
+                        setShowDailyCheckIn(true);
+                    }
+                };
+                
+                notification.onerror = (error) => {
+                    console.error('7. Notification error:', error);
+                };
+                
+                console.log('8. Notification created successfully:', notification);
+                console.log('=== NOTIFICATION DEBUG END ===');
+            } catch (error) {
+                console.error('9. Error creating notification:', error);
+                alert('Error creating notification: ' + error);
+            }
+        }
+    };
+
+    // Check for pending check-in when page becomes visible
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                const lastCheckIn = localStorage.getItem('lastDailyCheckIn');
+                const today = new Date().toDateString();
+                
+                if (lastCheckIn !== today && !showDailyCheckIn) {
+                    setShowDailyCheckIn(true);
+                    sendNotification();
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [showDailyCheckIn]);
+
+    // Periodic check for daily check-in (every 5 minutes when tab is active)
+    useEffect(() => {
+        const checkInterval = setInterval(() => {
+            const lastCheckIn = localStorage.getItem('lastDailyCheckIn');
+            const today = new Date().toDateString();
+            
+            if (lastCheckIn !== today && !showDailyCheckIn) {
+                setShowDailyCheckIn(true);
+                sendNotification();
+            }
+        }, 5 * 60 * 1000); // Check every 5 minutes
+
+        return () => clearInterval(checkInterval);
+    }, [showDailyCheckIn]);
+
+    // Check if daily check-in has been completed today
+    useEffect(() => {
+        const lastCheckIn = localStorage.getItem('lastDailyCheckIn');
+        const today = new Date().toDateString();
+        
+        console.log('Check-in status:', { lastCheckIn, today, loading, match: lastCheckIn === today });
+        
+        if (lastCheckIn !== today && !loading) {
+            console.log('Showing daily check-in modal...');
+            // Show modal after a short delay for better UX
+            setTimeout(() => {
+                setShowDailyCheckIn(true);
+                console.log('Modal state set to true');
+                // Send browser notification
+                sendNotification();
+                
+                // Show on-screen alert
+                if (typeof window !== 'undefined') {
+                    // Create custom on-screen notification
+                    const alertDiv = document.createElement('div');
+                    alertDiv.id = 'daily-checkin-alert';
+                    alertDiv.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                        color: white;
+                        padding: 24px 28px;
+                        border-radius: 20px;
+                        box-shadow: 0 20px 60px rgba(99, 102, 241, 0.6), 0 0 0 1px rgba(255,255,255,0.2);
+                        z-index: 10000;
+                        max-width: 380px;
+                        animation: slideInBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), pulse 2s ease-in-out 0.8s infinite;
+                        font-family: system-ui, -apple-system, sans-serif;
+                        backdrop-filter: blur(10px);
+                        border: 2px solid rgba(255,255,255,0.3);
+                        cursor: pointer;
+                        transition: transform 0.3s ease;
+                    `;
+                    
+                    alertDiv.onmouseenter = () => {
+                        alertDiv.style.transform = 'scale(1.05) translateY(-5px)';
+                        alertDiv.style.boxShadow = '0 25px 70px rgba(99, 102, 241, 0.8), 0 0 0 1px rgba(255,255,255,0.3)';
+                    };
+                    
+                    alertDiv.onmouseleave = () => {
+                        alertDiv.style.transform = 'scale(1) translateY(0)';
+                        alertDiv.style.boxShadow = '0 20px 60px rgba(99, 102, 241, 0.6), 0 0 0 1px rgba(255,255,255,0.2)';
+                    };
+                    
+                    alertDiv.innerHTML = `
+                        <div style="display: flex; align-items: start; gap: 16px;">
+                            <div style="
+                                font-size: 40px;
+                                animation: bounce 1s ease-in-out infinite;
+                                filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+                            ">📋</div>
+                            <div style="flex: 1;">
+                                <div style="
+                                    font-weight: bold;
+                                    font-size: 18px;
+                                    margin-bottom: 6px;
+                                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                    animation: glow 2s ease-in-out infinite;
+                                ">
+                                    Daily Check-In Required ✨
+                                </div>
+                                <div style="
+                                    font-size: 14px;
+                                    opacity: 0.95;
+                                    line-height: 1.5;
+                                ">
+                                    Please share how you're feeling today
+                                </div>
+                                <div style="
+                                    margin-top: 12px;
+                                    padding: 8px 12px;
+                                    background: rgba(255,255,255,0.2);
+                                    border-radius: 8px;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    text-align: center;
+                                    animation: shimmer 2s ease-in-out infinite;
+                                ">
+                                    👆 Click to complete
+                                </div>
+                            </div>
+                            <button id="close-alert" style="
+                                background: rgba(255,255,255,0.25);
+                                border: none;
+                                color: white;
+                                width: 28px;
+                                height: 28px;
+                                border-radius: 50%;
+                                cursor: pointer;
+                                font-size: 18px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                transition: all 0.3s ease;
+                                font-weight: bold;
+                            " onmouseover="this.style.background='rgba(255,255,255,0.4)'; this.style.transform='rotate(90deg) scale(1.1)'" onmouseout="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='rotate(0deg) scale(1)'">×</button>
+                        </div>
+                    `;
+                    
+                    // Add animation keyframes
+                    if (!document.getElementById('alert-animations')) {
+                        const style = document.createElement('style');
+                        style.id = 'alert-animations';
+                        style.textContent = `
+                            @keyframes slideInBounce {
+                                0% {
+                                    transform: translateX(500px) scale(0.5);
+                                    opacity: 0;
+                                }
+                                60% {
+                                    transform: translateX(-20px) scale(1.05);
+                                    opacity: 1;
+                                }
+                                80% {
+                                    transform: translateX(10px) scale(0.98);
+                                }
+                                100% {
+                                    transform: translateX(0) scale(1);
+                                    opacity: 1;
+                                }
+                            }
+                            @keyframes slideOutRight {
+                                0% {
+                                    transform: translateX(0) scale(1);
+                                    opacity: 1;
+                                }
+                                100% {
+                                    transform: translateX(500px) scale(0.8);
+                                    opacity: 0;
+                                }
+                            }
+                            @keyframes pulse {
+                                0%, 100% {
+                                    box-shadow: 0 20px 60px rgba(99, 102, 241, 0.6), 0 0 0 1px rgba(255,255,255,0.2);
+                                }
+                                50% {
+                                    box-shadow: 0 25px 70px rgba(99, 102, 241, 0.8), 0 0 0 2px rgba(255,255,255,0.4), 0 0 30px rgba(99, 102, 241, 0.6);
+                                }
+                            }
+                            @keyframes bounce {
+                                0%, 100% {
+                                    transform: translateY(0) rotate(0deg);
+                                }
+                                25% {
+                                    transform: translateY(-10px) rotate(-5deg);
+                                }
+                                75% {
+                                    transform: translateY(-5px) rotate(5deg);
+                                }
+                            }
+                            @keyframes glow {
+                                0%, 100% {
+                                    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                                }
+                                50% {
+                                    text-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 0 20px rgba(255,255,255,0.5);
+                                }
+                            }
+                            @keyframes shimmer {
+                                0% {
+                                    background: rgba(255,255,255,0.2);
+                                    transform: scale(1);
+                                }
+                                50% {
+                                    background: rgba(255,255,255,0.35);
+                                    transform: scale(1.02);
+                                }
+                                100% {
+                                    background: rgba(255,255,255,0.2);
+                                    transform: scale(1);
+                                }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
+                    
+                    document.body.appendChild(alertDiv);
+                    
+                    // Close button handler
+                    const closeBtn = document.getElementById('close-alert');
+                    if (closeBtn) {
+                        closeBtn.onclick = () => {
+                            alertDiv.style.animation = 'slideOutRight 0.3s ease-in';
+                            setTimeout(() => alertDiv.remove(), 300);
+                        };
+                    }
+                    
+                    // Auto-remove after 10 seconds
+                    setTimeout(() => {
+                        if (alertDiv && alertDiv.parentNode) {
+                            alertDiv.style.animation = 'slideOutRight 0.3s ease-in';
+                            setTimeout(() => alertDiv.remove(), 300);
+                        }
+                    }, 10000);
+                }
+            }, 1000);
+        }
+    }, [loading]);
+
+    const handleCheckInComplete = (data: { energy: string; workload: string }) => {
+        console.log('Daily check-in completed:', data);
+        
+        // Get historical data
+        const historyStr = localStorage.getItem('checkInHistory');
+        const history = historyStr ? JSON.parse(historyStr) : [];
+        
+        // Add today's data
+        const today = {
+            date: new Date().toISOString().split('T')[0],
+            energy: data.energy,
+            workload: data.workload,
+            timestamp: new Date().toISOString()
+        };
+        
+        history.push(today);
+        
+        // Keep only last 30 days
+        const last30Days = history.slice(-30);
+        localStorage.setItem('checkInHistory', JSON.stringify(last30Days));
+        
+        // Save to localStorage (legacy support)
+        localStorage.setItem('lastDailyCheckIn', new Date().toDateString());
+        localStorage.setItem('todayEnergy', data.energy);
+        localStorage.setItem('todayWorkload', data.workload);
+        
+        // Remove on-screen alert if it exists
+        const alertDiv = document.getElementById('daily-checkin-alert');
+        if (alertDiv) {
+            alertDiv.remove();
+        }
+        
+        // Calculate 7-day trend
+        const last7Days = last30Days.slice(-7);
+        const energyTrend = calculateTrend(last7Days.map(d => d.energy));
+        const workloadTrend = calculateWorkloadTrend(last7Days.map(d => d.workload));
+        
+        // Show trend notification
+        showTrendNotification(last7Days, energyTrend, workloadTrend);
+        
+        // Show trend in application
+        setShowTrendModal(true);
+        
+        // Here you would typically send this data to your backend
+        // await saveCheckInData(data);
+        
+        setShowDailyCheckIn(false);
+    };
+    
+    // Calculate energy trend
+    const calculateTrend = (energyData: string[]) => {
+        const values = energyData.map(e => e === 'high' ? 3 : e === 'medium' ? 2 : 1);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        
+        if (avg >= 2.5) return { status: 'improving', emoji: '📈', color: '#10b981' };
+        if (avg >= 1.8) return { status: 'stable', emoji: '➡️', color: '#f59e0b' };
+        return { status: 'declining', emoji: '📉', color: '#ef4444' };
+    };
+    
+    // Calculate workload trend
+    const calculateWorkloadTrend = (workloadData: string[]) => {
+        const yesCount = workloadData.filter(w => w === 'yes').length;
+        const percentage = (yesCount / workloadData.length) * 100;
+        
+        if (percentage >= 70) return { status: 'manageable', emoji: '✅', color: '#10b981' };
+        if (percentage >= 40) return { status: 'moderate', emoji: '⚠️', color: '#f59e0b' };
+        return { status: 'overwhelming', emoji: '🔴', color: '#ef4444' };
+    };
+    
+    // Show trend notification
+    const showTrendNotification = (last7Days: any[], energyTrend: any, workloadTrend: any) => {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const notification = new Notification('📊 Your 7-Day Wellness Trend', {
+                body: `Energy: ${energyTrend.emoji} ${energyTrend.status.toUpperCase()}\n` +
+                      `Workload: ${workloadTrend.emoji} ${workloadTrend.status.toUpperCase()}\n\n` +
+                      `Keep tracking your wellbeing! 💪`,
+                requireInteraction: false,
+                tag: 'trend-summary',
+                silent: true
+            });
+            
+            notification.onclick = () => {
+                window.focus();
+                setShowTrendModal(true);
+                notification.close();
+            };
+            
+            // Auto-close after 8 seconds
+            setTimeout(() => notification.close(), 8000);
+        }
     };
 
     // Add CSS animation for tab transitions
@@ -265,6 +705,15 @@ export default function TeamMemberView() {
         }
     }, []);
 
+
+    // Show loading screen on initial load
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowLoadingScreen(false);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+    }, []);
 
     // Mock data - Replace with actual API calls
     useEffect(() => {
@@ -758,6 +1207,11 @@ export default function TeamMemberView() {
         }
     };
 
+    // Show animated loading screen
+    if (showLoadingScreen) {
+        return <LoadingScreen />;
+    }
+
     if (loading) {
         return (
             <Box
@@ -925,6 +1379,202 @@ export default function TeamMemberView() {
                                     </VStack>
                                 </HStack>
                                 <HStack gap={2}>
+                                    {/* Ultra Simple Notification Test */}
+                                    <Button
+                                        size="sm"
+                                        bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+                                        color="white"
+                                        borderRadius="lg"
+                                        fontSize="xs"
+                                        px={3}
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            shadow: "lg"
+                                        }}
+                                        onClick={async () => {
+                                            console.log('🔴 Testing basic notification with popup...');
+                                            
+                                            // Request permission if needed
+                                            if (Notification.permission === 'default') {
+                                                const perm = await Notification.requestPermission();
+                                                console.log('Permission:', perm);
+                                            }
+                                            
+                                            // Create notification with click handler
+                                            if (Notification.permission === 'granted') {
+                                                try {
+                                                    const n = new Notification('🔔 DAILY CHECK-IN REQUIRED!', {
+                                                        body: '⚡ Action Needed: Share how you\'re feeling today!\n\n👆 Click here to complete your check-in now!',
+                                                        requireInteraction: true,
+                                                        tag: 'daily-checkin',
+                                                        silent: false,
+                                                        renotify: true
+                                                    });
+                                                    
+                                                    n.onclick = () => {
+                                                        console.log('✅ Notification clicked - opening popup');
+                                                        n.close();
+                                                        
+                                                        // Open popup
+                                                        const popupWidth = 750;
+                                                        const popupHeight = 700;
+                                                        const left = (screen.width - popupWidth) / 2;
+                                                        const top = (screen.height - popupHeight) / 2;
+                                                        
+                                                        const popup = window.open(
+                                                            '/team-member-view/checkin',
+                                                            'DailyCheckIn',
+                                                            `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=no,status=no,toolbar=no,menubar=no,location=no`
+                                                        );
+                                                        
+                                                        if (popup) {
+                                                            popup.focus();
+                                                        }
+                                                    };
+                                                    
+                                                    console.log('✅ Notification created! Click it to open popup.');
+                                                    alert('✅ Notification object created successfully!\n\n' +
+                                                        'If you DON\'T see a notification in bottom-right corner:\n\n' +
+                                                        '1. Windows is blocking notifications\n' +
+                                                        '2. Press Win+A to open Action Center\n' +
+                                                        '3. Check if notification is there\n\n' +
+                                                        'To fix:\n' +
+                                                        '• Win+I → System → Notifications\n' +
+                                                        '• Enable "Get notifications..."\n' +
+                                                        '• Enable your browser in the list\n' +
+                                                        '• Turn OFF Focus Assist (Win+A)\n\n' +
+                                                        'Or use PURPLE "Test Popup Window" button instead!');
+                                                } catch (e) {
+                                                    console.error('❌ Error:', e);
+                                                    alert('❌ Error creating notification:\n' + e);
+                                                }
+                                            } else {
+                                                alert('⚠️ Notification Permission: ' + Notification.permission + '\n\nPlease allow notifications in browser settings!');
+                                            }
+                                        }}
+                                    >
+                                        Basic Notify Test
+                                    </Button>
+                                    
+                                    {/* Test Daily Check-in Button */}
+                                    <Button
+                                        size="sm"
+                                        bg="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)"
+                                        color="white"
+                                        borderRadius="lg"
+                                        fontSize="xs"
+                                        px={3}
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            shadow: "lg"
+                                        }}
+                                        onClick={() => {
+                                            console.log('🟣 Test button clicked - clearing localStorage and showing modal');
+                                            localStorage.removeItem('lastDailyCheckIn');
+                                            setShowDailyCheckIn(true);
+                                            sendNotification();
+                                        }}
+                                    >
+                                        Test Check-In
+                                    </Button>
+                                    
+                                    {/* Check Permission Button */}
+                                    <Button
+                                        size="sm"
+                                        bg="linear-gradient(135deg, #10b981 0%, #059669 100%)"
+                                        color="white"
+                                        borderRadius="lg"
+                                        fontSize="xs"
+                                        px={3}
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            shadow: "lg"
+                                        }}
+                                        onClick={() => {
+                                            const permission = Notification?.permission || 'not supported';
+                                            const message = `Notification Status:\n\n` +
+                                                `Supported: ${'Notification' in window ? 'Yes ✓' : 'No ✗'}\n` +
+                                                `Permission: ${permission}\n\n` +
+                                                (permission === 'granted' ? '✓ Notifications are enabled!' :
+                                                 permission === 'denied' ? '✗ Notifications are blocked. Enable in browser settings.' :
+                                                 permission === 'default' ? '⚠ Click OK to grant permission' : 
+                                                 '✗ Notifications not supported');
+                                            
+                                            alert(message);
+                                            
+                                            if (permission === 'default') {
+                                                Notification.requestPermission().then(p => {
+                                                    alert(`Permission ${p === 'granted' ? 'granted ✓' : 'denied ✗'}`);
+                                                });
+                                            }
+                                        }}
+                                    >
+                                        Check Permission
+                                    </Button>
+                                    
+                                    {/* Test Popup Directly */}
+                                    <Button
+                                        size="sm"
+                                        bg="linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)"
+                                        color="white"
+                                        borderRadius="lg"
+                                        fontSize="xs"
+                                        px={3}
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            shadow: "lg"
+                                        }}
+                                        onClick={() => {
+                                            console.log('Opening check-in popup directly...');
+                                            
+                                            // Open check-in modal in a popup window
+                                            const popupWidth = 750;
+                                            const popupHeight = 700;
+                                            const left = (screen.width - popupWidth) / 2;
+                                            const top = (screen.height - popupHeight) / 2;
+                                            
+                                            const popup = window.open(
+                                                '/team-member-view/checkin',
+                                                'DailyCheckIn',
+                                                `width=${popupWidth},height=${popupHeight},left=${left},top=${top},resizable=yes,scrollbars=no,status=no,toolbar=no,menubar=no,location=no`
+                                            );
+                                            
+                                            if (popup) {
+                                                popup.focus();
+                                                console.log('✅ Popup opened successfully');
+                                            } else {
+                                                alert('Popup blocked! Please allow popups for this site.');
+                                                console.error('❌ Popup was blocked');
+                                            }
+                                        }}
+                                    >
+                                        Test Popup Window
+                                    </Button>
+                                    
+                                    {/* Test Notification with Delay */}
+                                    <Button
+                                        size="sm"
+                                        bg="linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
+                                        color="white"
+                                        borderRadius="lg"
+                                        fontSize="xs"
+                                        px={3}
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            shadow: "lg"
+                                        }}
+                                        onClick={() => {
+                                            console.log('Delayed notification test - you have 5 seconds to switch tabs!');
+                                            alert('Notification will appear in 5 seconds. Switch to another tab now!');
+                                            setTimeout(() => {
+                                                console.log('Sending delayed notification...');
+                                                sendNotification();
+                                            }, 5000);
+                                        }}
+                                    >
+                                        Test System Notify
+                                    </Button>
+                                    
                                     {/* My Concern Icon Button */}
                                     <IconButton
                                         aria-label="Raise Concern"
@@ -4431,6 +5081,19 @@ export default function TeamMemberView() {
                     </Box>
                 </Box>
             )}
+
+            {/* Daily Check-In Modal */}
+            <DailyCheckInModal
+                isOpen={showDailyCheckIn}
+                onClose={() => setShowDailyCheckIn(false)}
+                onComplete={handleCheckInComplete}
+            />
+
+            {/* Trend Modal */}
+            <TrendModal
+                isOpen={showTrendModal}
+                onClose={() => setShowTrendModal(false)}
+            />
         </Box>
     );
 }

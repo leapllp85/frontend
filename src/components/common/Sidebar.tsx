@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Box, Text, VStack, HStack, Button, Input, Badge, SimpleGrid, Heading, IconButton } from "@chakra-ui/react";
-import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network, ClipboardList, UserSearch, BookOpen, TrendingUp, Clock, BarChart3, Target, Heart, Brain, Sparkles, Video, MessageCircle } from "lucide-react";
+import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network, ClipboardList, UserSearch, BookOpen, TrendingUp, Clock, BarChart3, Target, Heart, Brain, Sparkles, Video, MessageCircle, UserCircle } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
@@ -53,12 +53,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const allNavigationItems = [
     { icon: Home, label: "Home", href: getHomeRoute(), roles: ['Manager', 'Associate'] },
-    { icon: Users, label: "Teams", href: "/teams", roles: ['Manager'] },
+    { icon: Users, label: "My Team", href: "/teams", roles: ['Manager'] },
     { icon: Network, label: "Organization", href: "/organization", roles: ['Manager'] },
     { icon: FolderOpen, label: "Projects", href: "/projects", roles: ['Manager', 'Associate'] },
-    { icon: FileText, label: "Surveys", href: "/surveys", roles: ['Manager', 'Associate'] },
-    { icon: ClipboardList, label: "Survey Responses", href: "/survey-responses", roles: ['Manager', 'Associate'] },
-    { icon: CheckCircle, label: "Action Items", href: "/action-items", roles: ['Manager', 'Associate'] },
+    { icon: BarChart3, label: "Survey", href: "/manager-dashboard", roles: ['Manager'] },
+    { icon: FileText, label: "Surveys", href: "/surveys", roles: ['Associate'] },
+    { icon: ClipboardList, label: "Survey Responses", href: "/survey-responses", roles: ['Associate'] },
+    { icon: CheckCircle, label: "Action Items", href: "/action-items", roles: ['Associate'] },
   ];
 
   // Filter navigation items based on user role
@@ -125,67 +126,139 @@ export const Sidebar: React.FC<SidebarProps> = ({
   
   return (
     <VStack 
-      w="5%"
+      w="230px"
       h="100vh" 
-      // bg="#2d6a75"
-      // bg= 'linear-gradient(135deg, #edede9   0%,#edede9 50%, #edede9 100%)'
-      bg= 'circular-gradient(150deg, #0077b6 0%, #0077b6 20%, #0077b6 100%);'
-
+      bg="linear-gradient(180deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%)"
+      backdropFilter="blur(10px)"
       overflow="hidden"
       flexDirection="column" 
       justify="space-between"
-      p={2}
-      gap={2}
+      p={4}
+      gap={4}
+      borderRight="1px solid"
+      borderColor="gray.300"
+      shadow="2xl"
+      position="relative"
+      zIndex={100}
+      css={{
+        boxShadow: '8px 0 30px rgba(0, 0, 0, 0.15), 4px 0 50px rgba(0, 0, 0, 0.1), 0 0 60px rgba(0, 0, 0, 0.08)',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,  
+          right: 0,
+          bottom: 0,
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%)',
+          pointerEvents: 'none',
+          zIndex: -1
+        }
+      }}
     >
       {/* Top Section */}
-      <VStack w="full" gap={2} p={2} align="stretch">
+      <VStack w="full" gap={2} align="center">
        
-        {/* User Profile */}
-        <VStack gap={2} align="center" py={0}>
+        {/* Manager Profile Picture */}
+        <VStack gap={1.5} align="center" w="full">
           <Box
-            w="60px"
-            h="50px"
-            borderRadius="full"
-            bg="gray.600"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            color="white"
-            fontSize="lg"
-            fontWeight="semi-bold"
-            title={profileData?.user?.username || "Manager User"}
+            w="150px"
+            h="150px"
+            borderRadius="xl"
+            overflow="hidden"
+            border="2px solid"
+            borderColor="white"
+            shadow="xl"
             cursor="pointer"
-            _hover={{ bg: "gray.500", transform: "scale(1.05)" }}
-            transition="all 0.2s"
+            _hover={{ transform: "scale(1.05)", shadow: "2xl" }}
+            transition="all 0.3s"
+            position="relative"
+            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
           >
-            {(profileData?.user?.username || "Manager User").charAt(0).toUpperCase()}
+            <img
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces"
+              alt="Manager Profile"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'top'
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <Box
+              position="absolute"
+              top="50%"
+              left="50%"
+              transform="translate(-50%, -50%)"
+              color="white"
+              fontSize="3xl"
+              fontWeight="bold"
+              display="none"
+              _groupHover={{ display: 'flex' }}
+            >
+              {profileData?.user?.first_name?.charAt(0).toUpperCase() || 'M'}
+              {profileData?.user?.last_name?.charAt(0).toUpperCase() || 'D'}
+            </Box>
           </Box>
-          
-          {/* My Space Toggle - Only for Managers */}
-          {user && getUserRole(user) === 'Manager' && (
-            <Link href="/my-space">
-              <IconButton
-                size="sm"
-                bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                color="white"
-                _hover={{
-                  bg: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
-                  transform: "scale(1.05)",
-                  shadow: "lg"
-                }}
-                borderRadius="lg"
-                aria-label="My Space"
-                boxShadow="0 4px 12px rgba(102, 126, 234, 0.3)"
-                transition="all 0.2s"
-              >
-                <Sparkles size={16} />
-              </IconButton>
-            </Link>
-          )}
+          <VStack gap={0} align="center" mb={4}>
+            <Text fontSize="sm" color="gray.800" fontWeight="bold" textAlign="center" lineHeight="1.2">
+              {profileData?.user?.first_name || 'Joe'}
+            </Text>
+            <Text fontSize="sm" color="gray.800" fontWeight="bold" textAlign="center" lineHeight="1.2">
+              {profileData?.user?.last_name || 'Right'}
+            </Text>
+          </VStack>
         </VStack>
 
         {/* Navigation */}
-        <VStack gap={2} align="stretch" mt={5}>
+        <VStack gap={1.5} align="center" w="full" flex={1} justify="center" py={4}>
+          {/* My Space - Only for Managers (First Option) */}
+          {user && getUserRole(user) === 'Manager' && (
+            <Link href="/my-space" style={{ width: '100%' }}>
+              <VStack gap={0.5} align="center" w="full">
+                <Box
+                  w="48px"
+                  h="48px"
+                  borderRadius="xl"
+                  bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                  _hover={{ 
+                    bg: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
+                    transform: "translateY(-2px)"
+                  }}
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  boxShadow="0 2px 8px rgba(102, 126, 234, 0.3)"
+                >
+                  <UserCircle 
+                    size={22} 
+                    color="white"
+                    strokeWidth={2}
+                  />
+                </Box>
+                <Text 
+                  fontSize="10px" 
+                  color="purple.600" 
+                  textAlign="center" 
+                  fontWeight="600"
+                  lineHeight="1.2"
+                  maxW="60px"
+                >
+                  My Space
+                </Text>
+              </VStack>
+            </Link>
+          )}
+          
+          {/* Divider after My Space for Managers */}
+          {user && getUserRole(user) === 'Manager' && (
+            <Box w="40px" h="1px" bg="gray.300" my={1} />
+          )}
+          
           {navigationItems.map((item) => {
             const Icon = item.icon;
             // Handle home route active state for both Manager and Associate
@@ -194,141 +267,148 @@ export const Sidebar: React.FC<SidebarProps> = ({
               : pathname === item.href;
             
             return (
-              <Link key={item.href} href={item.href} onClick={handleNavClick}>
-                <Box
-                  px={3}
-                  py={2.5}
-                  borderRadius="lg"
-                  bg={isActive ? "teal.500" : "transparent"}
-                  _hover={{ 
-                    bg: isActive ? "teal.600" : "whiteAlpha.200",
-                    transform: "scale(1.05)"
-                  }}
-                  cursor="pointer"
-                  transition="all 0.2s"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  title={item.label}
-                  boxShadow={isActive ? "0 4px 12px rgba(56, 178, 172, 0.4)" : "none"}
-                >
-                  <Icon 
-                    size={24} 
-                    color={isActive ? "white" : "#6B7280"} 
-                    style={{
-                      filter: isActive ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))" : "none"
+              <Link key={item.href} href={item.href} onClick={handleNavClick} style={{ width: '100%' }}>
+                <VStack gap={0.5} align="center" w="full">
+                  <Box
+                    w="48px"
+                    h="48px"
+                    borderRadius="xl"
+                    bg={isActive ? "blue.500" : "transparent"}
+                    _hover={{ 
+                      bg: isActive ? "blue.600" : "gray.200",
+                      transform: "translateY(-2px)"
                     }}
-                  />
-                </Box>
+                    cursor="pointer"
+                    transition="all 0.2s"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxShadow={isActive ? "0 2px 8px rgba(59, 130, 246, 0.3)" : "none"}
+                  >
+                    <Icon 
+                      size={22} 
+                      color={isActive ? "white" : "#6B7280"}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                  </Box>
+                  <Text 
+                    fontSize="10px" 
+                    color={isActive ? "blue.600" : "gray.600"} 
+                    textAlign="center" 
+                    fontWeight={isActive ? "700" : "500"}
+                    lineHeight="1.2"
+                    maxW="60px"
+                  >
+                    {item.label}
+                  </Text>
+                </VStack>
               </Link>
             );
           })}
           
-          {/* Associate Insights - Only for Managers */}
-          {user && getUserRole(user) === 'Manager' && (
+          {/* Logout */}
+          <VStack gap={0.5} align="center" w="full">
             <Box
-              px={3}
-              py={2.5}
-              borderRadius="lg"
+              w="48px"
+              h="48px"
+              borderRadius="xl"
               bg="transparent"
               _hover={{ 
-                bg: "purple.500",
-                transform: "scale(1.05)"
+                bg: "red.50",
+                transform: "translateY(-2px)"
               }}
               cursor="pointer"
               transition="all 0.2s"
               display="flex"
               alignItems="center"
               justifyContent="center"
-              onClick={() => setIsAssociateInsightsOpen(true)}
-              title="Associate Insights"
-              className="insights-icon-container"
+              onClick={handleLogout}
             >
-              <UserSearch 
-                size={24} 
-                color="#6B7280"
-                style={{
-                  transition: "all 0.2s"
-                }}
+              <LogOut 
+                size={22} 
+                color="#DC2626"
+                strokeWidth={2}
               />
             </Box>
-          )}
+            <Text 
+              fontSize="10px" 
+              color="red.600" 
+              textAlign="center" 
+              fontWeight="600"
+              lineHeight="1.2"
+              maxW="60px"
+            >
+              Logout
+            </Text>
+          </VStack>
+          
+          {/* Associate Insights - Only for Managers */}
+         {/*  {user && getUserRole(user) === 'Manager' && (
+            <VStack gap={1} align="center">
+              <Box
+                px={3}
+                py={2.5}
+                borderRadius="lg"
+                bg="transparent"
+                _hover={{ 
+                  bg: "gray.300",
+                  transform: "scale(1.05)"
+                }}
+                cursor="pointer"
+                transition="all 0.2s"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                onClick={() => setIsAssociateInsightsOpen(true)}
+              >
+                <UserSearch 
+                  size={22} 
+                  color="#4B5563"
+                />
+              </Box>
+              <Text fontSize="10px" color="gray.700" textAlign="center" fontWeight="medium">
+                Insights
+              </Text>
+            </VStack>
+          )} */}
           
           {/* Team Summary - Only for Managers */}
-          {user && getUserRole(user) === 'Manager' && (
-            <Box
-              px={3}
-              py={2.5}
-              borderRadius="lg"
-              bg="transparent"
-              _hover={{ 
-                bg: "blue.500",
-                transform: "scale(1.05)"
-              }}
-              cursor="pointer"
-              transition="all 0.2s"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              onClick={() => setIsTeamSummaryOpen(true)}
-              title="Team Summary"
-              className="team-summary-icon-container"
-            >
-              <BarChart3 
-                size={24} 
-                color="#6B7280"
-                style={{
-                  transition: "all 0.2s"
+        {/*   {user && getUserRole(user) === 'Manager' && (
+            <VStack gap={1} align="center">
+              <Box
+                px={3}
+                py={2.5}
+                borderRadius="lg"
+                bg="transparent"
+                _hover={{ 
+                  bg: "gray.300",
+                  transform: "scale(1.05)"
                 }}
-              />
-            </Box>
-          )}
-          
-          {/* Logout */}
-          <Box
-            px={3}
-            py={2.5}
-            borderRadius="lg"
-            bg="transparent"
-            _hover={{ 
-              bg: "red.500",
-              transform: "scale(1.05)"
-            }}
-            cursor="pointer"
-            transition="all 0.2s"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            onClick={handleLogout}
-            title="Logout"
-            className="logout-icon-container"
-          >
-            <LogOut 
-              size={24} 
-              color="#6B7280"
-              style={{
-                transition: "all 0.2s"
-              }}
-            />
-          </Box>
+                cursor="pointer"
+                transition="all 0.2s"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                onClick={() => setIsTeamSummaryOpen(true)}
+              >
+                <BarChart3 
+                  size={22} 
+                  color="#4B5563"
+                />
+              </Box>
+              <Text fontSize="10px" color="gray.700" textAlign="center" fontWeight="medium">
+                Summary
+              </Text>
+            </VStack>
+          )} */}
         </VStack>
       </VStack>
+
+      {/* Bottom Section - Empty for now */}
 
       {/* Global CSS for Animations */}
       <style dangerouslySetInnerHTML={{
         __html: `
-          .logout-icon-container:hover svg {
-            color: white !important;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-          }
-          .insights-icon-container:hover svg {
-            color: white !important;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-          }
-          .team-summary-icon-container:hover svg {
-            color: white !important;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-          }
           @keyframes fadeIn {
             from {
               opacity: 0;
