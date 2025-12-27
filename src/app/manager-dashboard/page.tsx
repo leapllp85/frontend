@@ -447,12 +447,12 @@ export default function ManagerDashboardPage() {
                             </HStack>
 
                             {/* Key Metrics Row */}
-                            <SimpleGrid columns={{ base: 2, md: 4 }} gap={4} mt={6}>
-                                <Card.Root bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg">
+                            <SimpleGrid columns={{ base: 2, md: 5 }} gap={4} mt={6}>
+                                <Card.Root bg="linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%)" border="1px solid" borderColor="blue.100" borderRadius="lg" shadow="sm">
                                     <Card.Body p={4}>
                                         <VStack align="start" gap={2}>
                                             <HStack justify="space-between" w="full">
-                                                <Box p={2} bg="blue.50" borderRadius="md">
+                                                <Box p={2} bg="blue.100" borderRadius="md">
                                                     <FileText size={16} color="#2563eb" />
                                                 </Box>
                                                 <HStack gap={1}>
@@ -470,11 +470,11 @@ export default function ManagerDashboardPage() {
                                     </Card.Body>
                                 </Card.Root>
 
-                                <Card.Root bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg">
+                                <Card.Root bg="linear-gradient(135deg, #f3e8ff 0%, #faf5ff 100%)" border="1px solid" borderColor="purple.100" borderRadius="lg" shadow="sm">
                                     <Card.Body p={4}>
                                         <VStack align="start" gap={2}>
                                             <HStack justify="space-between" w="full">
-                                                <Box p={2} bg="purple.50" borderRadius="md">
+                                                <Box p={2} bg="purple.100" borderRadius="md">
                                                     <MessageSquare size={16} color="#9333ea" />
                                                 </Box>
                                                 <HStack gap={1}>
@@ -492,11 +492,11 @@ export default function ManagerDashboardPage() {
                                     </Card.Body>
                                 </Card.Root>
 
-                                <Card.Root bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg">
+                                <Card.Root bg="linear-gradient(135deg, #ccfbf1 0%, #f0fdfa 100%)" border="1px solid" borderColor="teal.100" borderRadius="lg" shadow="sm">
                                     <Card.Body p={4}>
                                         <VStack align="start" gap={2}>
                                             <HStack justify="space-between" w="full">
-                                                <Box p={2} bg="teal.50" borderRadius="md">
+                                                <Box p={2} bg="teal.100" borderRadius="md">
                                                     <Target size={16} color="#14b8a6" />
                                                 </Box>
                                                 <HStack gap={1}>
@@ -514,11 +514,11 @@ export default function ManagerDashboardPage() {
                                     </Card.Body>
                                 </Card.Root>
 
-                                <Card.Root bg="white" border="1px solid" borderColor="gray.200" borderRadius="lg">
+                                <Card.Root bg="linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)" border="1px solid" borderColor="green.100" borderRadius="lg" shadow="sm">
                                     <Card.Body p={4}>
                                         <VStack align="start" gap={2}>
                                             <HStack justify="space-between" w="full">
-                                                <Box p={2} bg="green.50" borderRadius="md">
+                                                <Box p={2} bg="green.100" borderRadius="md">
                                                     <CheckCircle2 size={16} color="#16a34a" />
                                                 </Box>
                                                 <HStack gap={1}>
@@ -531,6 +531,29 @@ export default function ManagerDashboardPage() {
                                                     {Math.round((responses.filter(r => r.status === 'reviewed' || r.status === 'action_taken').length / Math.max(responses.length, 1)) * 100)}%
                                                 </Text>
                                                 <Text fontSize="xs" color="gray.600">Response Rate</Text>
+                                            </VStack>
+                                        </VStack>
+                                    </Card.Body>
+                                </Card.Root>
+
+                                {/* Manager Engagement Score Card */}
+                                <Card.Root bg="linear-gradient(135deg, #fef3c7 0%, #fefce8 100%)" border="1px solid" borderColor="yellow.200" borderRadius="lg" shadow="sm">
+                                    <Card.Body p={4}>
+                                        <VStack align="start" gap={2}>
+                                            <HStack justify="space-between" w="full">
+                                                <Box p={2} bg="yellow.100" borderRadius="md">
+                                                    <Award size={16} color="#ca8a04" />
+                                                </Box>
+                                                <HStack gap={1}>
+                                                    <TrendingUp size={14} color="#10b981" />
+                                                    <Text fontSize="xs" color="green.600" fontWeight="600">+5%</Text>
+                                                </HStack>
+                                            </HStack>
+                                            <VStack align="start" gap={0}>
+                                                <Text fontSize="2xl" fontWeight="700" color="gray.900">
+                                                    {engagementData.length > 0 ? engagementData[engagementData.length - 1].managerScore : 88}
+                                                </Text>
+                                                <Text fontSize="xs" color="gray.600">Manager Engagement</Text>
                                             </VStack>
                                         </VStack>
                                     </Card.Body>
