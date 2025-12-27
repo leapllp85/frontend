@@ -49,7 +49,10 @@ import {
     MessageCircle,
     BookOpen,
     Heart,
-    Users
+    Users,
+    AlertTriangle,
+    Target,
+    Zap
 } from 'lucide-react';
 import { Line, Pie, Scatter } from 'react-chartjs-2';
 import {
@@ -1956,7 +1959,7 @@ export default function TeamMemberView() {
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Quadrant 3: Testimonies */}
+                    {/* Quadrant 3: Immediate Focus */}
                     <Card.Root
                         bg="white"
                         border="1px solid"
@@ -1969,50 +1972,122 @@ export default function TeamMemberView() {
                     >
                         <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
                             <HStack gap={2}>
-                                <Box p={1} bg="yellow.100" borderRadius="md">
-                                    <Award size={16} color="#D97706" />
+                                <Box p={1} bg="red.100" borderRadius="md">
+                                    <AlertTriangle size={16} color="#DC2626" />
                                 </Box>
                                 <VStack align="start" gap={0}>
                                     <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        Testimonies
+                                        Immediate Focus
                                     </Heading>
                                     <Text fontSize="2xs" color="gray.600">
-                                        {testimonies.length} reviews
+                                        4 priority actions
                                     </Text>
                                 </VStack>
                             </HStack>
                         </Card.Header>
                         <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
-                            <VStack gap={1.5} align="stretch">
-                                {testimonies.map((testimony) => (
-                                    <Box
-                                        key={testimony.id}
-                                        p={{ base: 1.5, md: 2 }}
-                                        bg="yellow.50"
-                                        borderRadius="md"
-                                        border="1px solid"
-                                        borderColor="yellow.200"
-                                    >
-                                        <VStack align="stretch" gap={1}>
-                                            <HStack justify="space-between">
-                                                <VStack align="start" gap={0}>
-                                                    <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                        {testimony.author}
-                                                    </Text>
-                                                    <Text fontSize="2xs" color="gray.600">
-                                                        {testimony.role}
-                                                    </Text>
-                                                </VStack>
-                                                <Text fontSize="2xs" color="gray.500">
-                                                    {new Date(testimony.date).toLocaleDateString()}
-                                                </Text>
-                                            </HStack>
-                                            <Text fontSize={{ base: "2xs", md: "xs" }} color="gray.700" lineClamp={3}>
-                                                "{testimony.message}"
+                            <VStack gap={2} align="stretch">
+                                {/* Skills Priority Actions */}
+                                <Box
+                                    p={{ base: 2, md: 3 }}
+                                    bg="blue.50"
+                                    borderRadius="md"
+                                    border="1px solid"
+                                    borderColor="blue.200"
+                                    transition="all 0.2s"
+                                    _hover={{ bg: "blue.100", transform: "translateY(-2px)", shadow: "md" }}
+                                    cursor="pointer"
+                                >
+                                    <HStack gap={2} align="start">
+                                        <Box mt={0.5}>
+                                            <BookOpen size={14} color="#2563EB" />
+                                        </Box>
+                                        <VStack align="start" gap={0.5} flex={1}>
+                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
+                                                Complete React Advanced Course
+                                            </Text>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                Module 3: State Management - Due in 2 days
                                             </Text>
                                         </VStack>
-                                    </Box>
-                                ))}
+                                    </HStack>
+                                </Box>
+
+                                <Box
+                                    p={{ base: 2, md: 3 }}
+                                    bg="blue.50"
+                                    borderRadius="md"
+                                    border="1px solid"
+                                    borderColor="blue.200"
+                                    transition="all 0.2s"
+                                    _hover={{ bg: "blue.100", transform: "translateY(-2px)", shadow: "md" }}
+                                    cursor="pointer"
+                                >
+                                    <HStack gap={2} align="start">
+                                        <Box mt={0.5}>
+                                            <Target size={14} color="#2563EB" />
+                                        </Box>
+                                        <VStack align="start" gap={0.5} flex={1}>
+                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
+                                                Practice TypeScript Exercises
+                                            </Text>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                Complete 5 coding challenges this week
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Box>
+
+                                {/* Mental Health Priority Actions */}
+                                <Box
+                                    p={{ base: 2, md: 3 }}
+                                    bg="pink.50"
+                                    borderRadius="md"
+                                    border="1px solid"
+                                    borderColor="pink.200"
+                                    transition="all 0.2s"
+                                    _hover={{ bg: "pink.100", transform: "translateY(-2px)", shadow: "md" }}
+                                    cursor="pointer"
+                                >
+                                    <HStack gap={2} align="start">
+                                        <Box mt={0.5}>
+                                            <Heart size={14} color="#EC4899" />
+                                        </Box>
+                                        <VStack align="start" gap={0.5} flex={1}>
+                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
+                                                Schedule 1-on-1 with Manager
+                                            </Text>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                Discuss workload concerns - This week
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Box>
+
+                                <Box
+                                    p={{ base: 2, md: 3 }}
+                                    bg="pink.50"
+                                    borderRadius="md"
+                                    border="1px solid"
+                                    borderColor="pink.200"
+                                    transition="all 0.2s"
+                                    _hover={{ bg: "pink.100", transform: "translateY(-2px)", shadow: "md" }}
+                                    cursor="pointer"
+                                >
+                                    <HStack gap={2} align="start">
+                                        <Box mt={0.5}>
+                                            <Zap size={14} color="#EC4899" />
+                                        </Box>
+                                        <VStack align="start" gap={0.5} flex={1}>
+                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
+                                                Join Wellness Session
+                                            </Text>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                Stress Management Workshop - Tomorrow 2 PM
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Box>
                             </VStack>
                         </Card.Body>
                     </Card.Root>
