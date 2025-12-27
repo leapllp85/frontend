@@ -206,11 +206,28 @@ export const Profile = ({
       overflow="hidden"
     >
       {/* Main Dashboard */}
-      <Box h="full" w="full" p={3}>
-        <HStack h="full" gap={3} align="stretch">
+      <Box h="full" w="full" p={0}>
+        <HStack h="full" gap={0} align="stretch">
           {/* Left Sidebar - Team Health Metrics */}
-          <Box w="200px" flexShrink={0}>
-            <Box bg="white" borderRadius="xl" p={3} shadow="sm" border="1px solid" borderColor="gray.200" h="full">
+          <Box w="200px" flexShrink={0} ml={0} h="full">
+            <Box 
+              bg="#f4f6f7" 
+              borderRadius="0 xl xl 0" 
+              p={3} 
+              h="full"
+              display="flex"
+              flexDirection="column"
+              boxShadow="0 15px 40px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -3px 6px rgba(0, 0, 0, 0.08)"
+              borderRight="1px solid" 
+              borderTop="1px solid" 
+              borderBottom="1px solid" 
+              borderColor="gray.200"
+              transition="all 0.3s ease"
+              _hover={{ 
+                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.25), 0 12px 24px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.08)",
+                transform: "scale(1.02)"
+              }}
+            >
               <HealthMetrics 
                 metrics={metrics ? [
                   { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
@@ -223,19 +240,18 @@ export const Profile = ({
           </Box>
 
           {/* Main Content Area */}
-          <VStack flex={1} minW={0} h="full" gap={3} align="stretch" w="full" pt={0}>
+          <VStack flex={1} minW={0} h="full" gap={3} align="stretch" w="full" p={3} pt={3}>
             {/* Metric Cards Row */}
             <SimpleGrid columns={4} gap={3} w="full">
               {/* Team Members Card */}
               <Box 
-                bg="white" 
+                bg="linear-gradient(135deg, #ccfbf1 0%, #f0fdfa 100%)" 
                 borderRadius="xl" 
                 p={4} 
-                shadow="sm" 
-                border="1px solid" 
-                borderColor="gray.200"
-                transition="all 0.2s"
-                _hover={{ shadow: "md", transform: "translateY(-2px)" }}
+                transform="translateY(-4px)"
+                boxShadow="0 8px 20px rgba(20, 184, 166, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
+                transition="all 0.3s ease"
+                _hover={{ transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(20, 184, 166, 0.25), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
               >
                 <HStack justify="space-between" align="start">
                   <VStack align="start" gap={1}>
@@ -246,22 +262,21 @@ export const Profile = ({
                       {teamStats?.team_members_count || 0}
                     </Text>
                   </VStack>
-                  <Box p={2} bg="blue.50" borderRadius="lg">
-                    <UsersRound size={20} color="#3B82F6" />
+                  <Box p={2} bg="teal.100" borderRadius="lg">
+                    <UsersRound size={20} color="#14b8a6" />
                   </Box>
                 </HStack>
               </Box>
 
               {/* Total Projects Card */}
               <Box 
-                bg="white" 
+                bg="linear-gradient(135deg, #e0e7ff 0%, #eef2ff 100%)" 
                 borderRadius="xl" 
                 p={4} 
-                shadow="sm" 
-                border="1px solid" 
-                borderColor="gray.200"
-                transition="all 0.2s"
-                _hover={{ shadow: "md", transform: "translateY(-2px)" }}
+                transform="translateY(-4px)"
+                boxShadow="0 8px 20px rgba(99, 102, 241, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
+                transition="all 0.3s ease"
+                _hover={{ transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(99, 102, 241, 0.25), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
               >
                 <HStack justify="space-between" align="start">
                   <VStack align="start" gap={1}>
@@ -272,22 +287,21 @@ export const Profile = ({
                       {projectStats?.total_projects || 0}
                     </Text>
                   </VStack>
-                  <Box p={2} bg="purple.50" borderRadius="lg">
-                    <FolderKanban size={20} color="#8B5CF6" />
+                  <Box p={2} bg="indigo.100" borderRadius="lg">
+                    <FolderKanban size={20} color="#6366f1" />
                   </Box>
                 </HStack>
               </Box>
 
               {/* Attrition Risk Card */}
               <Box 
-                bg="white" 
+                bg="linear-gradient(135deg, #fef3c7 0%, #fefce8 100%)" 
                 borderRadius="xl" 
                 p={4} 
-                shadow="sm" 
-                border="1px solid" 
-                borderColor="gray.200"
-                transition="all 0.2s"
-                _hover={{ shadow: "md", transform: "translateY(-2px)" }}
+                transform="translateY(-4px)"
+                boxShadow="0 8px 20px rgba(245, 158, 11, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
+                transition="all 0.3s ease"
+                _hover={{ transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(245, 158, 11, 0.25), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
               >
                 <HStack justify="space-between" align="start">
                   <VStack align="start" gap={1}>
@@ -298,22 +312,21 @@ export const Profile = ({
                       {metrics?.data?.attrition_risk || 0}%
                     </Text>
                   </VStack>
-                  <Box p={2} bg="orange.50" borderRadius="lg">
-                    <TrendingUp size={20} color="#F97316" />
+                  <Box p={2} bg="amber.100" borderRadius="lg">
+                    <TrendingUp size={20} color="#f59e0b" />
                   </Box>
                 </HStack>
               </Box>
 
               {/* Projects at Risk Card */}
               <Box 
-                bg="white" 
+                bg="linear-gradient(135deg, #ffe4e6 0%, #fff1f2 100%)" 
                 borderRadius="xl" 
                 p={4} 
-                shadow="sm" 
-                border="1px solid" 
-                borderColor="gray.200"
-                transition="all 0.2s"
-                _hover={{ shadow: "md", transform: "translateY(-2px)" }}
+                transform="translateY(-4px)"
+                boxShadow="0 8px 20px rgba(244, 63, 94, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
+                transition="all 0.3s ease"
+                _hover={{ transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(244, 63, 94, 0.25), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
               >
                 <HStack justify="space-between" align="start">
                   <VStack align="start" gap={1}>
@@ -324,15 +337,15 @@ export const Profile = ({
                       {projectRisks?.projects?.filter(p => p.risk_level === 'high' || p.risk_level === 'critical').length || 0}
                     </Text>
                   </VStack>
-                  <Box p={2} bg="red.50" borderRadius="lg">
-                    <AlertTriangle size={20} color="#EF4444" />
+                  <Box p={2} bg="rose.100" borderRadius="lg">
+                    <AlertTriangle size={20} color="#f43f5e" />
                   </Box>
                 </HStack>
               </Box>
             </SimpleGrid>
 
             {/* Attrition Risk Analysis (with integrated Trends) */}
-            <Box h="400px" flexShrink={0} overflow="auto" w="full">
+            <Box h="350px" flexShrink={0} overflow="hidden" w="full">
               <AttritionAnalysis userId={user?.id?.toString()} />
             </Box>
 
@@ -340,12 +353,12 @@ export const Profile = ({
             <Box flex={1} minH="0" w="full" position="relative">
               <HStack flex={1} h="full" gap={3} w="full">
                 {/* Critical Team Members */}
-                <Box flex={1} h="full" bg="white" borderRadius="xl" p={4} shadow="sm" border="1px solid" borderColor="gray.200" overflow="auto">
+                <Box flex={1} h="full" bg="white" borderRadius="xl" p={4} shadow="sm" border="1px solid" borderColor="gray.200" overflow="hidden">
                   <CriticalTeamMembers userId={user?.id?.toString()} />
                 </Box>
                 
                 {/* Project Risks */}
-                <Box flex={1} h="full" bg="white" borderRadius="xl" p={4} shadow="sm" border="1px solid" borderColor="gray.200" overflow="auto">
+                <Box flex={1} h="full" bg="white" borderRadius="xl" p={4} shadow="sm" border="1px solid" borderColor="gray.200" overflow="hidden">
                   <ProjectRisks 
                     projects={projectRisks?.projects}
                   />
