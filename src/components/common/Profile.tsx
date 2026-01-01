@@ -211,7 +211,7 @@ export const Profile = ({
           {/* Left Sidebar - Team Health Metrics */}
           <Box w="200px" flexShrink={0} ml={0} h="full">
             <Box 
-              bg="#f4f6f7" 
+              bg="#ecf3f9" 
               borderRadius="0 xl xl 0" 
               p={3} 
               h="full"
@@ -345,7 +345,7 @@ export const Profile = ({
             </SimpleGrid>
 
             {/* Attrition Risk Analysis (with integrated Trends) */}
-            <Box h="350px" flexShrink={0} overflow="hidden" w="full">
+            <Box h="450px" flexShrink={0} overflow="hidden" w="full">
               <AttritionAnalysis userId={user?.id?.toString()} />
             </Box>
 

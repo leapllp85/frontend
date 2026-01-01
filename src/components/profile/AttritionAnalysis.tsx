@@ -77,14 +77,15 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
     }
   };
 
-  // Distribution pie chart data
+  // Distribution pie chart data - colors matching the attached image
   const distributionData = [
-    { label: 'High Risk', value: 25, color: '#EF4444', percentage: 17.2 },
-    { label: 'Medium Risk', value: 45, color: '#F59E0B', percentage: 31.0 },
-    { label: 'Low Risk', value: 75, color: '#22C55E', percentage: 51.7 }
+    { label: 'High', value: 25, color: '#FF6B6B', percentage: 17.2 },
+    { label: 'Weak Performer', value: 30, color: '#FFB088', percentage: 20.7 },
+    { label: 'Current Opportunity', value: 35, color: '#87CEEB', percentage: 24.1 },
+    { label: 'Managed Expectations', value: 55, color: '#7EC8E3', percentage: 37.9 }
   ];
 
-  // Analysis donut chart data
+  // Analysis donut chart data - colors matching the attached image (purple/lavender outer, teal/cyan inner)
   const analysisDonutData = {
     labels: [
       'Concerns with Manager', 'Concerns with peers', 'Unrealistic Expectations',
@@ -93,21 +94,21 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
       'Health Issues', 'Higher Education'
     ],
     datasets: [
-      // Outer ring - Sub-categories (detailed triggers)
+      // Outer ring - Sub-categories (purple/lavender gradient)
       {
         label: 'Top Triggers',
         data: [66, 61, 68, 69, 64, 61, 61, 63, 58, 63],
         backgroundColor: [
-          '#E53E3E', '#F56565', '#FC8181', // Mental Health - red gradient
-          '#2B6CB0', '#4299E1', // Motivation - blue gradient
-          '#D69E2E', '#ECC94B', '#F6E05E', // Career - yellow gradient
-          '#38A169', '#48BB78' // Personal - green gradient
+          '#9B8FD9', '#A89EDD', '#B5ADE1', // Mental Health - purple gradient
+          '#7EC8E3', '#87CEEB', // Motivation - cyan gradient
+          '#FFD89C', '#FFE4B3', '#FFF0CC', // Career - soft yellow gradient
+          '#A8D5BA', '#B8DFC8' // Personal - soft green gradient
         ],
         borderWidth: 0,
         cutout: '40%',
         hoverOffset: 6
       },
-      // Inner ring - Main categories
+      // Inner ring - Main categories (teal/cyan)
       {
         label: 'Main Categories',
         data: [
@@ -117,10 +118,10 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
           Object.values(riskData["Personal"]).reduce((a, b) => a + b, 0)
         ],
         backgroundColor: [
-          '#F56565', // Mental Health
-          '#4299E1', // Motivation  
-          '#ECC94B', // Career Opportunities
-          '#48BB78'  // Personal
+          '#7EC8E3', // Mental Health - teal
+          '#87CEEB', // Motivation - cyan
+          '#9DD9D2', // Career Opportunities - mint
+          '#A8E6CF'  // Personal - light green
         ],
         borderWidth: 2,
         borderColor: '#FFFFFF',
@@ -563,19 +564,19 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             <VStack align="center" gap={1} w="full" maxW="200px">
               <Grid templateColumns="repeat(2, 1fr)" gap={1} w="full">
                 <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#F56565" flexShrink={0} />
+                  <Box w="6px" h="6px" borderRadius="full" bg="#7EC8E3" flexShrink={0} />
                   <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Mental Health</Text>
                 </Flex>
                 <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#4299E1" flexShrink={0} />
+                  <Box w="6px" h="6px" borderRadius="full" bg="#87CEEB" flexShrink={0} />
                   <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Motivation</Text>
                 </Flex>
                 <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#ECC94B" flexShrink={0} />
+                  <Box w="6px" h="6px" borderRadius="full" bg="#9DD9D2" flexShrink={0} />
                   <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Career Opp.</Text>
                 </Flex>
                 <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#48BB78" flexShrink={0} />
+                  <Box w="6px" h="6px" borderRadius="full" bg="#A8E6CF" flexShrink={0} />
                   <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Personal</Text>
                 </Flex>
               </Grid>

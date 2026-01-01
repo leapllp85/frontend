@@ -176,28 +176,28 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
     return gradient;
   };
 
-  // Prepare chart data with single straight line
+  // Prepare chart data with teal/cyan gradient matching the attached image
   const chartData = {
     labels: attritionData.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`),
     datasets: [
       {
-        label: 'High Risk',
+        label: 'Attrition Risk',
         data: attritionData.map(item => item.high),
-        borderColor: '#EF4444',
+        borderColor: '#7EC8E3',
         backgroundColor: (context: any) => {
           const chart = context.chart;
           const { ctx } = chart;
-          return createGradient(ctx, 'rgba(239, 68, 68, 0.001)', 'rgba(239, 68, 68, 0.9)');
+          return createGradient(ctx, 'rgba(126, 200, 227, 0.1)', 'rgba(126, 200, 227, 0.6)');
         },
         borderWidth: 3,
-        pointBackgroundColor: '#EF4444',
+        pointBackgroundColor: '#FF6B6B',
         pointBorderColor: '#FFFFFF',
         pointBorderWidth: 3,
-        pointRadius: 4,
+        pointRadius: 6,
         pointHoverRadius: 12,
         pointHoverBorderWidth: 4,
         fill: true,
-        tension: 0,
+        tension: 0.4,
         borderCapStyle: 'round' as const,
         borderJoinStyle: 'round' as const
       }
@@ -231,7 +231,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         titleColor: '#FFFFFF',
         bodyColor: '#FFFFFF',
-        borderColor: '#FF4757',
+        borderColor: '#7EC8E3',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,
