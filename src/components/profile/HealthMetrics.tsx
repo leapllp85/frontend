@@ -201,17 +201,6 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
 }) => {
   return (
     <Card.Root 
-    //  bg="#ffffff"
-    //   shadow="xs" 
-    //   borderRadius="3xl" 
-    //   h="full" 
-    //   w="full"
-    //   display="flex" 
-    //   flexDirection="column" 
-    //   border="1px solid" 
-    //   borderColor="gray.200"
-    //   maxW="300px"
-
       maxW="900px"
       boxShadow="sm"
       bg="#ffffff"
@@ -222,10 +211,9 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
       flexDirection="column"  
       borderColor="gray.100"
       p={2}
-      // transition="all 0.2s ease"
       py={3}
     >
-      <Card.Header p={0} pb={0}  borderColor="gray.200">
+      <Card.Header p={0} pb={0} borderColor="gray.200">
         <VStack gap={1}>
         <Heading 
           size="md" 

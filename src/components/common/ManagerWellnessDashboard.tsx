@@ -7,13 +7,11 @@ import {
     HStack,
     Text,
     Heading,
-    Button,
-    SimpleGrid,
+    Grid,
     Badge,
-    Card,
     Spinner
 } from '@chakra-ui/react';
-import { X, TrendingUp, TrendingDown, Minus, Users, AlertTriangle, CheckCircle, Battery, Briefcase } from 'lucide-react';
+import { X, TrendingUp, Users, AlertTriangle, CheckCircle, ExternalLink, Check } from 'lucide-react';
 
 interface EmployeeCheckIn {
     employeeId: string;
@@ -36,14 +34,11 @@ interface AggregatedData {
         manageable: number;
         overwhelming: number;
     };
-    trends: {
-        energyTrend: 'improving' | 'stable' | 'declining';
-        workloadTrend: 'improving' | 'stable' | 'worsening';
-    };
     atRiskEmployees: Array<{
         id: string;
         name: string;
         reason: string;
+        daysAffected: number;
     }>;
 }
 
@@ -58,26 +53,20 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        console.log('ManagerWellnessDashboard isOpen:', isOpen);
         if (isOpen) {
             loadTeamWellnessData();
         }
     }, [isOpen]);
 
     const loadTeamWellnessData = () => {
-        console.log('Loading team wellness data...');
         setIsLoading(true);
         
         try {
-            // Load actual check-in data from localStorage
             const historyStr = localStorage.getItem('checkInHistory');
             let actualData: EmployeeCheckIn[] = [];
             
             if (historyStr) {
                 const history = JSON.parse(historyStr);
-                console.log('Found check-in history:', history);
-                
-                // Convert to EmployeeCheckIn format
                 actualData = history.map((entry: any) => ({
                     employeeId: entry.employeeId || 'current-user',
                     employeeName: entry.employeeName || 'Current User',
@@ -88,19 +77,15 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                 }));
             }
             
-            // If no data, use mock data
             if (actualData.length === 0) {
-                console.log('No check-in data found, using mock data');
                 actualData = generateMockTeamData();
             }
             
             const aggregated = calculateAggregatedData(actualData);
-            console.log('Aggregated data:', aggregated);
             setAggregatedData(aggregated);
             setLast7DaysData(actualData);
         } catch (error) {
             console.error('Error loading wellness data:', error);
-            // Fallback to mock data on error
             const mockData = generateMockTeamData();
             const aggregated = calculateAggregatedData(mockData);
             setAggregatedData(aggregated);
@@ -111,7 +96,6 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
     };
 
     const generateMockTeamData = (): EmployeeCheckIn[] => {
-        // Mock data - in production, fetch from API
         const employees = [
             { id: '1', name: 'John Doe' },
             { id: '2', name: 'Jane Smith' },
@@ -156,16 +140,13 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
         const totalEmployees = uniqueEmployees.size;
         const respondedToday = new Set(todayData.map(d => d.employeeId)).size;
 
-        // Energy distribution (today)
         const energyHigh = todayData.filter(d => d.energy === 'high').length;
         const energyMedium = todayData.filter(d => d.energy === 'medium').length;
         const energyLow = todayData.filter(d => d.energy === 'low').length;
 
-        // Workload distribution (today)
         const workloadManageable = todayData.filter(d => d.workload === 'yes').length;
         const workloadOverwhelming = todayData.filter(d => d.workload === 'no').length;
 
-        // Calculate trends (last 7 days)
         const last7Days = data.filter(d => {
             const date = new Date(d.date);
             const weekAgo = new Date();
@@ -173,14 +154,7 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
             return date >= weekAgo;
         });
 
-        const energyValues = last7Days.map(d => d.energy === 'high' ? 3 : d.energy === 'medium' ? 2 : 1);
-        const avgEnergy = energyValues.reduce((a, b) => a + b, 0) / energyValues.length;
-        
-        const workloadYes = last7Days.filter(d => d.workload === 'yes').length;
-        const workloadPercentage = (workloadYes / last7Days.length) * 100;
-
-        // Identify at-risk employees (low energy or overwhelming workload for 3+ days)
-        const atRiskEmployees: Array<{ id: string; name: string; reason: string }> = [];
+        const atRiskEmployees: Array<{ id: string; name: string; reason: string; daysAffected: number }> = [];
         uniqueEmployees.forEach(empId => {
             const empData = last7Days.filter(d => d.employeeId === empId).slice(0, 5);
             const lowEnergyCount = empData.filter(d => d.energy === 'low').length;
@@ -192,13 +166,15 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                 atRiskEmployees.push({
                     id: empId,
                     name: empName,
-                    reason: `Low energy for ${lowEnergyCount} days`
+                    reason: 'Low energy',
+                    daysAffected: lowEnergyCount
                 });
             } else if (overwhelmedCount >= 3) {
                 atRiskEmployees.push({
                     id: empId,
                     name: empName,
-                    reason: `Overwhelmed for ${overwhelmedCount} days`
+                    reason: 'Overwhelmed',
+                    daysAffected: overwhelmedCount
                 });
             }
         });
@@ -215,17 +191,44 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                 manageable: workloadManageable,
                 overwhelming: workloadOverwhelming
             },
-            trends: {
-                energyTrend: avgEnergy >= 2.5 ? 'improving' : avgEnergy >= 1.8 ? 'stable' : 'declining',
-                workloadTrend: workloadPercentage >= 70 ? 'improving' : workloadPercentage >= 40 ? 'stable' : 'worsening'
-            },
             atRiskEmployees
         };
+    };
+
+    const getLast7DaysChartData = () => {
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            
+            const dayData = last7DaysData.filter(d => d.date === dateStr);
+            
+            let avgEnergyValue = 0;
+            if (dayData.length > 0) {
+                const energyValues = dayData.map(d => 
+                    d.energy === 'high' ? 5 : d.energy === 'medium' ? 3 : 1
+                );
+                avgEnergyValue = energyValues.reduce((a, b) => a + b, 0) / energyValues.length;
+            }
+            
+            const manageableCount = dayData.filter(d => d.workload === 'yes').length;
+            const isManageable = dayData.length > 0 && (manageableCount / dayData.length) >= 0.5;
+            
+            last7Days.push({
+                date: dateStr,
+                dayLabel: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                energyValue: avgEnergyValue,
+                isManageable
+            });
+        }
+        return last7Days;
     };
 
     if (!isOpen) return null;
 
     const responseRate = aggregatedData ? ((aggregatedData.respondedToday / aggregatedData.totalEmployees) * 100).toFixed(0) : '0';
+    const chartData = getLast7DaysChartData();
 
     return (
         <Box
@@ -250,12 +253,11 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                 bg="white"
                 borderRadius="xl"
                 shadow="xl"
-                maxW="1200px"
+                maxW="1000px"
                 w="95%"
                 maxH="90vh"
-                p={3}
+                p={6}
                 position="relative"
-                m={2}
                 overflow="auto"
             >
                 {/* Action Buttons */}
@@ -266,534 +268,398 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                     gap={2}
                     zIndex={10}
                 >
-                    {/* Open Application Button */}
                     <Box
                         cursor="pointer"
                         onClick={() => {
-                            console.log('Open Application clicked - opening new browser window');
-                            // Always open main application in a new browser window/tab
                             const baseUrl = window.location.origin;
                             window.open(baseUrl + '/', '_blank');
                         }}
                         p={2}
-                        borderRadius="full"
-                        bg="blue.100"
-                        _hover={{ bg: 'blue.200', transform: 'scale(1.1)' }}
+                        borderRadius="md"
+                        _hover={{ bg: 'gray.100' }}
                         transition="all 0.2s"
                         title="Open Application"
                     >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
+                        <ExternalLink size={20} color="#6b7280" />
                     </Box>
                     
-                    {/* Close Button */}
                     <Box
                         cursor="pointer"
                         onClick={onClose}
                         p={2}
-                        borderRadius="full"
-                        bg="gray.100"
-                        _hover={{ bg: 'gray.200', transform: 'scale(1.1)' }}
+                        borderRadius="md"
+                        _hover={{ bg: 'gray.100' }}
                         transition="all 0.2s"
                         title="Close Dashboard"
                     >
-                        <X size={24} color="#64748b" />
+                        <X size={20} color="#6b7280" />
                     </Box>
                 </HStack>
 
                 {/* Header */}
-                <VStack gap={1} mb={2} align="start">
-                    <HStack gap={3}>
-                        <Box
-                            p={2}
-                            bg="blue.50"
-                            borderRadius="lg"
-                            border="1px solid"
-                            borderColor="blue.200"
-                        >
-                            <Users size={22} color="#3b82f6" />
-                        </Box>
-                        <VStack align="start" gap={0}>
-                            <Heading size="md" color="gray.700" fontWeight="500">
-                                Team Wellness Dashboard
-                            </Heading>
-                            <Text color="gray.600" fontSize="xs">
-                                Real-time insights into your team's wellbeing
-                            </Text>
-                        </VStack>
-                    </HStack>
+                <VStack gap={0} mb={5} align="start">
+                    <Heading size="lg" color="gray.800" fontWeight="600">
+                        Team Wellness Dashboard
+                    </Heading>
+                    <Text color="gray.500" fontSize="sm">
+                        Real-time insights into your team's wellbeing
+                    </Text>
                 </VStack>
 
                 {/* Loading State */}
                 {(isLoading || !aggregatedData) && (
                     <Box textAlign="center" py={20}>
-                        <Spinner size="xl" color="purple.500" />
-                        <Text mt={4} color="gray.600" fontSize="lg">Loading team wellness data...</Text>
+                        <Spinner size="xl" color="blue.500" />
+                        <Text mt={4} color="gray.600">Loading team wellness data...</Text>
                     </Box>
                 )}
 
-                {/* Content - Only show when data is loaded */}
+                {/* Content */}
                 {!isLoading && aggregatedData && (
-                <>
-                {/* Key Metrics */}
-                <SimpleGrid columns={{ base: 2, md: 4 }} gap={2} mb={2}>
-                    {/* Total Employees */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={1}>
-                                <HStack justify="space-between" w="full">
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">Total Team</Text>
-                                    <Users size={16} color="#3b82f6" />
+                    <VStack gap={4} align="stretch">
+                        {/* Top Metrics */}
+                        <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                            {/* Total Team */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack justify="space-between" mb={2}>
+                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Total Team</Text>
+                                    <Users size={18} color="#6b7280" />
                                 </HStack>
-                                <Text fontSize="xl" fontWeight="600" color="blue.600">
+                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
                                     {aggregatedData.totalEmployees}
                                 </Text>
-                                <Text fontSize="2xs" color="gray.500">employees</Text>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
+                                <Text fontSize="xs" color="gray.500">employees</Text>
+                            </Box>
 
-                    {/* Response Rate */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={1}>
-                                <HStack justify="space-between" w="full">
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">Response</Text>
-                                    <CheckCircle size={16} color="#10b981" />
+                            {/* Response */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack justify="space-between" mb={2}>
+                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Response</Text>
+                                    <CheckCircle size={18} color="#10b981" />
                                 </HStack>
-                                <Text fontSize="xl" fontWeight="600" color="green.600">
+                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
                                     {responseRate}%
                                 </Text>
-                                <Text fontSize="2xs" color="gray.500">
+                                <Text fontSize="xs" color="gray.500">
                                     {aggregatedData.respondedToday} of {aggregatedData.totalEmployees} responded
                                 </Text>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
+                            </Box>
 
-                    {/* Energy Trend */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                        </Card.Body>
-                    </Card.Root>
-
-                    {/* At Risk */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={1}>
-                                <HStack justify="space-between" w="full">
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">At Risk</Text>
-                                    <AlertTriangle size={16} color="#ef4444" />
+                            {/* At Risk */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack justify="space-between" mb={2}>
+                                    <Text fontSize="sm" color="gray.600" fontWeight="500">At Risk</Text>
+                                    <AlertTriangle size={18} color="#ef4444" />
                                 </HStack>
-                                <Text fontSize="xl" fontWeight="600" color="red.600">
+                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
                                     {aggregatedData.atRiskEmployees.length}
                                 </Text>
-                                <Text fontSize="2xs" color="gray.500">need attention</Text>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-                </SimpleGrid>
+                                <Text fontSize="xs" color="gray.500">need attention</Text>
+                            </Box>
+                        </Grid>
 
-                {/* 7-Day Trend Graphs */}
-                <SimpleGrid columns={{ base: 1, lg: 2 }} gap={2} mb={2}>
-                    {/* Energy Level Trend Graph */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={2}>
-                                <HStack gap={1.5}>
-                                    <Battery size={16} color="#6366f1" />
-                                    <Heading size="xs" color="gray.700" fontWeight="500">Energy Levels (7 Days)</Heading>
+                        {/* Charts Row */}
+                        <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                            {/* Energy Trend (7 Days) */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack gap={2} mb={4}>
+                                    <TrendingUp size={16} color="#6b7280" />
+                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Energy Trend (7 Days)</Text>
                                 </HStack>
                                 
-                                <Box position="relative" h="80px" w="full">
-                                    {/* Energy Line Graph */}
-                                    {(() => {
-                                        // Get last 7 days of data grouped by date
-                                        const last7Days = [];
-                                        for (let i = 6; i >= 0; i--) {
-                                            const date = new Date();
-                                            date.setDate(date.getDate() - i);
-                                            const dateStr = date.toISOString().split('T')[0];
-                                            
-                                            // Get all check-ins for this date
-                                            const dayData = last7DaysData.filter(d => d.date === dateStr);
-                                            
-                                            // Calculate average energy for the day
-                                            let avgEnergy = 'medium';
-                                            if (dayData.length > 0) {
-                                                const energyValues = dayData.map(d => 
-                                                    d.energy === 'high' ? 3 : d.energy === 'medium' ? 2 : 1
-                                                );
-                                                const avg = energyValues.reduce((a, b) => a + b, 0) / energyValues.length;
-                                                avgEnergy = avg >= 2.5 ? 'high' : avg >= 1.5 ? 'medium' : 'low';
-                                            }
-                                            
-                                            last7Days.push({
-                                                date: dateStr,
-                                                energy: avgEnergy,
-                                                dayLabel: date.toLocaleDateString('en-US', { weekday: 'short' })
-                                            });
-                                        }
+                                <Box position="relative" h="120px" w="full">
+                                    {/* Chart area with y-axis labels */}
+                                    <HStack gap={2} h="90px" align="stretch">
+                                        {/* Y-axis labels */}
+                                        <VStack justify="space-between" h="full" py={1}>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">High</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Medium</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Low</Text>
+                                        </VStack>
                                         
-                                        return (
-                                            <>
-                                                {/* Data Points with Emojis */}
-                                                <HStack gap={1} h="80px" justify="space-between" position="relative">
-                                                    {last7Days.map((day, index) => {
-                                                        const topPosition = day.energy === 'high' ? '8px' : day.energy === 'medium' ? '32px' : '56px';
-                                                        const emoji = day.energy === 'high' ? '🚀' : day.energy === 'medium' ? '😊' : '😴';
-                                                        const color = day.energy === 'high' ? '#10b981' : day.energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                                        
-                                                        return (
-                                                            <Box key={index} flex={1} position="relative" h="full">
-                                                                <Box
-                                                                    position="absolute"
-                                                                    top={topPosition}
-                                                                    left="50%"
-                                                                    transform="translateX(-50%)"
-                                                                >
-                                                                    <Box
-                                                                        bg={color}
-                                                                        borderRadius="full"
-                                                                        p={1}
-                                                                        boxShadow="0 1px 3px rgba(0,0,0,0.08)"
-                                                                        border="2px solid white"
-                                                                    >
-                                                                        <Text fontSize="14px">{emoji}</Text>
-                                                                    </Box>
-                                                                </Box>
-                                                            </Box>
-                                                        );
-                                                    })}
-                                                </HStack>
+                                        {/* Chart */}
+                                        <Box flex={1} h="full">
+                                            <svg width="100%" height="100%" viewBox="0 0 100 90" preserveAspectRatio="none">
+                                                {/* Grid lines */}
+                                                <line x1="0" y1="10" x2="100" y2="10" stroke="#e5e7eb" strokeWidth="0.5" />
+                                                <line x1="0" y1="40" x2="100" y2="40" stroke="#e5e7eb" strokeWidth="0.5" />
+                                                <line x1="0" y1="70" x2="100" y2="70" stroke="#e5e7eb" strokeWidth="0.5" />
+                                                <line x1="0" y1="85" x2="100" y2="85" stroke="#e5e7eb" strokeWidth="1" />
                                                 
-                                                {/* Connecting Lines */}
-                                                <svg width="100%" height="80" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-                                                    {last7Days.map((day, index) => {
-                                                        if (index === last7Days.length - 1) return null;
-                                                        
-                                                        const getYPosition = (energy: string) => {
-                                                            if (energy === 'high') return 18;
-                                                            if (energy === 'medium') return 42;
-                                                            return 66;
-                                                        };
-                                                        
-                                                        const currentY = getYPosition(day.energy);
-                                                        const nextY = getYPosition(last7Days[index + 1].energy);
-                                                        
-                                                        const currentColor = day.energy === 'high' ? '#6ee7b7' : day.energy === 'medium' ? '#fbbf24' : '#fca5a5';
-                                                        const nextColor = last7Days[index + 1].energy === 'high' ? '#6ee7b7' : last7Days[index + 1].energy === 'medium' ? '#fbbf24' : '#fca5a5';
-                                                        
-                                                        const columnWidth = 100 / last7Days.length;
-                                                        const x1 = `${(index * columnWidth) + (columnWidth / 2)}%`;
-                                                        const x2 = `${((index + 1) * columnWidth) + (columnWidth / 2)}%`;
-                                                        
-                                                        const strokeColor = currentY === nextY ? currentColor : `url(#energy-gradient-${index})`;
-                                                        
-                                                        return (
-                                                            <line
-                                                                key={index}
-                                                                x1={x1}
-                                                                y1={currentY}
-                                                                x2={x2}
-                                                                y2={nextY}
-                                                                stroke={strokeColor}
-                                                                strokeWidth="2.5"
-                                                                strokeLinecap="round"
+                                                {/* Line chart */}
+                                                <polyline
+                                                    points={chartData.map((d, i) => {
+                                                        const x = (i / (chartData.length - 1)) * 100;
+                                                        const y = 85 - (d.energyValue / 5) * 70;
+                                                        return `${x},${y}`;
+                                                    }).join(' ')}
+                                                    fill="none"
+                                                    stroke="#3b82f6"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    vectorEffect="non-scaling-stroke"
+                                                />
+                                                
+                                                {/* Data points */}
+                                                {chartData.map((d, i) => {
+                                                    const x = (i / (chartData.length - 1)) * 100;
+                                                    const y = 85 - (d.energyValue / 5) * 70;
+                                                    return (
+                                                        <circle
+                                                            key={i}
+                                                            cx={x}
+                                                            cy={y}
+                                                            r="1.5"
+                                                            fill="#3b82f6"
+                                                            stroke="white"
+                                                            strokeWidth="1"
+                                                            vectorEffect="non-scaling-stroke"
+                                                        />
+                                                    );
+                                                })}
+                                            </svg>
+                                        </Box>
+                                    </HStack>
+                                    
+                                    {/* Day labels */}
+                                    <HStack gap={0} justify="space-between" w="full" mt={1}>
+                                        {chartData.map((d, i) => (
+                                            <Text key={i} fontSize="xs" color="gray.600" fontWeight="500" flex={1} textAlign="center">
+                                                {d.dayLabel}
+                                            </Text>
+                                        ))}
+                                    </HStack>
+                                </Box>
+                            </Box>
+
+                            {/* Workload Status (7 Days) */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack gap={2} mb={4}>
+                                    <Box w="16px" h="16px" borderRadius="sm" bg="teal.500" display="flex" alignItems="center" justifyContent="center">
+                                        <Check size={12} color="white" />
+                                    </Box>
+                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Workload Status (7 Days)</Text>
+                                </HStack>
+                                
+                                <Box position="relative" h="120px" w="full">
+                                    {/* Chart area with y-axis labels */}
+                                    <HStack gap={2} h="90px" align="stretch">
+                                        {/* Y-axis labels */}
+                                        <VStack justify="space-between" h="full" py={1}>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Good</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Fair</Text>
+                                            <Text fontSize="2xs" color="gray.500" fontWeight="500">Poor</Text>
+                                        </VStack>
+                                        
+                                        {/* Bar Chart */}
+                                        <Box flex={1} h="full" position="relative">
+                                            <HStack gap={0} justify="space-between" h="full" align="end" position="relative">
+                                                {/* Grid lines */}
+                                                <Box position="absolute" top={0} left={0} right={0} bottom={0} pointerEvents="none">
+                                                    <Box position="absolute" top="10%" left={0} right={0} h="1px" bg="gray.200" />
+                                                    <Box position="absolute" top="40%" left={0} right={0} h="1px" bg="gray.200" />
+                                                    <Box position="absolute" top="70%" left={0} right={0} h="1px" bg="gray.200" />
+                                                    <Box position="absolute" bottom="5%" left={0} right={0} h="1px" bg="gray.300" />
+                                                </Box>
+                                                
+                                                {chartData.map((d, i) => {
+                                                    const height = d.isManageable ? '70%' : '30%';
+                                                    const color = d.isManageable ? 'teal.500' : 'red.500';
+                                                    
+                                                    return (
+                                                        <Box key={i} flex={1} h="full" display="flex" alignItems="end" justifyContent="center" pb="5%">
+                                                            <Box
+                                                                w="60%"
+                                                                h={height}
+                                                                bg={color}
+                                                                borderRadius="sm"
+                                                                transition="all 0.3s ease"
                                                             />
-                                                        );
-                                                    })}
-                                                    <defs>
-                                                        {last7Days.map((day, index) => {
-                                                            if (index === last7Days.length - 1) return null;
-                                                            const currentColor = day.energy === 'high' ? '#10b981' : day.energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                                            const nextColor = last7Days[index + 1].energy === 'high' ? '#10b981' : last7Days[index + 1].energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                                            return (
-                                                                <linearGradient key={index} id={`energy-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                                                    <stop offset="0%" stopColor={currentColor} />
-                                                                    <stop offset="100%" stopColor={nextColor} />
-                                                                </linearGradient>
-                                                            );
-                                                        })}
-                                                    </defs>
-                                                </svg>
-                                                
-                                                {/* Date Labels */}
-                                                <HStack gap={0} justify="space-between" mt={1}>
-                                                    {last7Days.map((day, index) => (
-                                                        <Box key={index} flex={1} textAlign="center">
-                                                            <Text fontSize="2xs" color="gray.700" fontWeight="700">
-                                                                {day.dayLabel}
-                                                            </Text>
                                                         </Box>
-                                                    ))}
-                                                </HStack>
-                                            </>
-                                        );
-                                    })()}
+                                                    );
+                                                })}
+                                            </HStack>
+                                        </Box>
+                                    </HStack>
+                                    
+                                    {/* Day labels */}
+                                    <HStack gap={0} justify="space-between" w="full" mt={1}>
+                                        {chartData.map((d, i) => (
+                                            <Text key={i} fontSize="xs" color="gray.600" fontWeight="500" flex={1} textAlign="center">
+                                                {d.dayLabel}
+                                            </Text>
+                                        ))}
+                                    </HStack>
                                 </Box>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
+                            </Box>
+                        </Grid>
 
-                    {/* Workload Status Trend Graph */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={2}>
-                                <HStack gap={1.5}>
-                                    <Briefcase size={16} color="#6366f1" />
-                                    <Heading size="xs" color="gray.700" fontWeight="500">Workload Status (7 Days)</Heading>
+                        {/* Today's Status Row */}
+                        <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                            {/* Energy Levels (Today) */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack gap={2} mb={4}>
+                                    <TrendingUp size={16} color="#6b7280" />
+                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Energy Levels (Today)</Text>
                                 </HStack>
                                 
-                                <Box w="full">
-                                    {(() => {
-                                        // Get last 7 days of data grouped by date
-                                        const last7Days = [];
-                                        for (let i = 6; i >= 0; i--) {
-                                            const date = new Date();
-                                            date.setDate(date.getDate() - i);
-                                            const dateStr = date.toISOString().split('T')[0];
-                                            
-                                            // Get all check-ins for this date
-                                            const dayData = last7DaysData.filter(d => d.date === dateStr);
-                                            
-                                            // Calculate percentage manageable
-                                            let manageablePercentage = 0;
-                                            if (dayData.length > 0) {
-                                                const manageableCount = dayData.filter(d => d.workload === 'yes').length;
-                                                manageablePercentage = (manageableCount / dayData.length) * 100;
-                                            }
-                                            
-                                            last7Days.push({
-                                                date: dateStr,
-                                                manageablePercentage,
-                                                dayLabel: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                                                isManageable: manageablePercentage >= 50
-                                            });
-                                        }
-                                        
-                                        return (
-                                            <>
-                                                <HStack gap={2} align="end" h="100px">
-                                                    {last7Days.map((day, index) => {
-                                                        const height = day.manageablePercentage > 0 ? `${day.manageablePercentage}%` : '5%';
-                                                        const emoji = day.isManageable ? '✅' : '😰';
-                                                        const color = day.isManageable ? '#10b981' : '#ef4444';
-                                                        
-                                                        return (
-                                                            <VStack key={index} flex={1} h="full" justify="end" gap={1}>
-                                                                <Box
-                                                                    w="full"
-                                                                    h={height}
-                                                                    bg={color}
-                                                                    borderRadius="md"
-                                                                    position="relative"
-                                                                    minH="20px"
-                                                                >
-                                                                    <Box
-                                                                        position="absolute"
-                                                                        top="-25px"
-                                                                        left="50%"
-                                                                        transform="translateX(-50%)"
-                                                                        bg="white"
-                                                                        borderRadius="full"
-                                                                        p={1}
-                                                                        boxShadow="sm"
-                                                                    >
-                                                                        <Text fontSize="14px">{emoji}</Text>
-                                                                    </Box>
-                                                                </Box>
-                                                                <Text fontSize="2xs" color="gray.600" fontWeight="500">
-                                                                    {day.dayLabel}
-                                                                </Text>
-                                                            </VStack>
-                                                        );
-                                                    })}
-                                                </HStack>
-                                            </>
-                                        );
-                                    })()}
-                                </Box>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-                </SimpleGrid>
-
-                {/* Detailed Breakdown */}
-                <SimpleGrid columns={{ base: 1, lg: 2 }} gap={2} mb={2}>
-                    {/* Energy Distribution */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={2}>
-                                <HStack gap={1.5}>
-                                    <Battery size={16} color="#6366f1" />
-                                    <Heading size="xs" color="gray.700" fontWeight="500">Energy Levels (Today)</Heading>
-                                </HStack>
-                                
-                                <VStack w="full" gap={3}>
+                                <VStack gap={3} align="stretch">
                                     {/* High Energy */}
-                                    <Box w="full">
+                                    <Box>
                                         <HStack justify="space-between" mb={2}>
                                             <HStack gap={2}>
-                                                <Text fontSize="lg">🚀</Text>
-                                                <Text fontWeight="500" color="gray.600">High Energy</Text>
+                                                <Box w="8px" h="8px" borderRadius="full" bg="green.500" />
+                                                <Text fontSize="sm" color="gray.700">High Energy</Text>
                                             </HStack>
-                                            <Badge colorScheme="green" fontSize="sm" px={2} py={0.5}>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900">
                                                 {aggregatedData.energyDistribution.high}
-                                            </Badge>
+                                            </Text>
                                         </HStack>
-<Box w="full" h="5px" bg="gray.100" borderRadius="full" overflow="hidden">
+                                        <Box w="full" h="6px" bg="gray.200" borderRadius="full">
                                             <Box
-                                                w={`${aggregatedData.respondedToday > 0 ? ((aggregatedData.energyDistribution.high / aggregatedData.respondedToday) * 100) : 0}%`}
+                                                w={`${aggregatedData.respondedToday > 0 ? (aggregatedData.energyDistribution.high / aggregatedData.respondedToday) * 100 : 0}%`}
                                                 h="full"
-                                                bg="#6ee7b7"
+                                                bg="green.500"
+                                                borderRadius="full"
                                             />
                                         </Box>
                                     </Box>
 
                                     {/* Medium Energy */}
-                                    <Box w="full">
+                                    <Box>
                                         <HStack justify="space-between" mb={2}>
                                             <HStack gap={2}>
-                                                <Text fontSize="lg">😊</Text>
-                                                <Text fontWeight="500" color="gray.600">Medium Energy</Text>
+                                                <Box w="8px" h="8px" borderRadius="full" bg="orange.400" />
+                                                <Text fontSize="sm" color="gray.700">Medium Energy</Text>
                                             </HStack>
-                                            <Badge colorScheme="orange" fontSize="sm" px={2} py={0.5}>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900">
                                                 {aggregatedData.energyDistribution.medium}
-                                            </Badge>
+                                            </Text>
                                         </HStack>
-<Box w="full" h="5px" bg="gray.100" borderRadius="full" overflow="hidden">
+                                        <Box w="full" h="6px" bg="gray.200" borderRadius="full">
                                             <Box
-                                                w={`${aggregatedData.respondedToday > 0 ? ((aggregatedData.energyDistribution.medium / aggregatedData.respondedToday) * 100) : 0}%`}
+                                                w={`${aggregatedData.respondedToday > 0 ? (aggregatedData.energyDistribution.medium / aggregatedData.respondedToday) * 100 : 0}%`}
                                                 h="full"
-                                                bg="#fbbf24"
+                                                bg="orange.400"
+                                                borderRadius="full"
                                             />
                                         </Box>
                                     </Box>
 
                                     {/* Low Energy */}
-                                    <Box w="full">
+                                    <Box>
                                         <HStack justify="space-between" mb={2}>
                                             <HStack gap={2}>
-                                                <Text fontSize="lg">😴</Text>
-                                                <Text fontWeight="500" color="gray.600">Low Energy</Text>
+                                                <Box w="8px" h="8px" borderRadius="full" bg="red.500" />
+                                                <Text fontSize="sm" color="gray.700">Low Energy</Text>
                                             </HStack>
-                                            <Badge colorScheme="red" fontSize="sm" px={2} py={0.5}>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900">
                                                 {aggregatedData.energyDistribution.low}
-                                            </Badge>
+                                            </Text>
                                         </HStack>
-<Box w="full" h="5px" bg="gray.100" borderRadius="full" overflow="hidden">
+                                        <Box w="full" h="6px" bg="gray.200" borderRadius="full">
                                             <Box
-                                                w={`${aggregatedData.respondedToday > 0 ? ((aggregatedData.energyDistribution.low / aggregatedData.respondedToday) * 100) : 0}%`}
+                                                w={`${aggregatedData.respondedToday > 0 ? (aggregatedData.energyDistribution.low / aggregatedData.respondedToday) * 100 : 0}%`}
                                                 h="full"
-                                                bg="#fca5a5"
+                                                bg="red.500"
+                                                borderRadius="full"
                                             />
                                         </Box>
                                     </Box>
                                 </VStack>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
+                            </Box>
 
-                    {/* Workload Distribution */}
-                    <Card.Root bg="white" border="1px solid" borderColor="gray.200" shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={2}>
-                                <HStack gap={1.5}>
-                                    <Briefcase size={16} color="#6366f1" />
-                                    <Heading size="xs" color="gray.700" fontWeight="500">Workload Status (Today)</Heading>
+                            {/* Workload Status (Today) */}
+                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200">
+                                <HStack gap={2} mb={4}>
+                                    <Box w="16px" h="16px" borderRadius="sm" bg="teal.500" display="flex" alignItems="center" justifyContent="center">
+                                        <Check size={12} color="white" />
+                                    </Box>
+                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Workload Status (Today)</Text>
                                 </HStack>
                                 
-                                <VStack w="full" gap={3}>
+                                <VStack gap={4} align="stretch">
                                     {/* Manageable */}
-                                    <Box w="full">
+                                    <Box>
                                         <HStack justify="space-between" mb={2}>
                                             <HStack gap={2}>
-                                                <Text fontSize="lg">✅</Text>
-                                                <Text fontWeight="500" color="gray.600">Manageable</Text>
+                                                <Box w="8px" h="8px" borderRadius="full" bg="teal.500" />
+                                                <Text fontSize="sm" color="gray.700">Manageable</Text>
                                             </HStack>
-                                            <Badge colorScheme="green" fontSize="sm" px={2} py={0.5}>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900">
                                                 {aggregatedData.workloadDistribution.manageable}
-                                            </Badge>
+                                            </Text>
                                         </HStack>
-<Box w="full" h="5px" bg="gray.100" borderRadius="full" overflow="hidden">
+                                        <Box w="full" h="6px" bg="gray.200" borderRadius="full">
                                             <Box
-                                                w={`${aggregatedData.respondedToday > 0 ? ((aggregatedData.workloadDistribution.manageable / aggregatedData.respondedToday) * 100) : 0}%`}
+                                                w={`${aggregatedData.respondedToday > 0 ? (aggregatedData.workloadDistribution.manageable / aggregatedData.respondedToday) * 100 : 0}%`}
                                                 h="full"
-                                                bg="#6ee7b7"
+                                                bg="teal.500"
+                                                borderRadius="full"
                                             />
                                         </Box>
                                     </Box>
 
                                     {/* Overwhelming */}
-                                    <Box w="full">
+                                    <Box>
                                         <HStack justify="space-between" mb={2}>
                                             <HStack gap={2}>
-                                                <Text fontSize="lg">⚠️</Text>
-                                                <Text fontWeight="500" color="gray.600">Overwhelming</Text>
+                                                <Box w="8px" h="8px" borderRadius="full" bg="red.500" />
+                                                <Text fontSize="sm" color="gray.700">Overwhelming</Text>
                                             </HStack>
-                                            <Badge colorScheme="red" fontSize="sm" px={2} py={0.5}>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900">
                                                 {aggregatedData.workloadDistribution.overwhelming}
-                                            </Badge>
+                                            </Text>
                                         </HStack>
-<Box w="full" h="5px" bg="gray.100" borderRadius="full" overflow="hidden">
+                                        <Box w="full" h="6px" bg="gray.200" borderRadius="full">
                                             <Box
-                                                w={`${aggregatedData.respondedToday > 0 ? ((aggregatedData.workloadDistribution.overwhelming / aggregatedData.respondedToday) * 100) : 0}%`}
+                                                w={`${aggregatedData.respondedToday > 0 ? (aggregatedData.workloadDistribution.overwhelming / aggregatedData.respondedToday) * 100 : 0}%`}
                                                 h="full"
-                                                bg="#fca5a5"
+                                                bg="red.500"
+                                                borderRadius="full"
                                             />
                                         </Box>
                                     </Box>
                                 </VStack>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-                </SimpleGrid>
+                            </Box>
+                        </Grid>
 
-                {/* At-Risk Employees */}
-                {aggregatedData.atRiskEmployees.length > 0 && (
-                    <Card.Root bg="white" border="1px solid" borderColor="red.300" mb={2} shadow="sm">
-                        <Card.Body p={2}>
-                            <VStack align="start" gap={2}>
-                                <HStack gap={1.5}>
+                        {/* Employees Requiring Attention */}
+                        {aggregatedData.atRiskEmployees.length > 0 && (
+                            <Box>
+                                <HStack gap={2} mb={3}>
                                     <AlertTriangle size={16} color="#ef4444" />
-                                    <Heading size="xs" color="red.600" fontWeight="500">Employees Needing Attention</Heading>
+                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Employees Requiring Attention</Text>
                                 </HStack>
                                 
-                                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={2} w="full">
-                                    {aggregatedData.atRiskEmployees.map((emp) => (
+                                <Grid templateColumns="repeat(3, 1fr)" gap={3}>
+                                    {aggregatedData.atRiskEmployees.map((emp, index) => (
                                         <Box
-                                            key={emp.id}
-                                            p={3}
+                                            key={index}
                                             bg="white"
                                             borderRadius="lg"
+                                            p={4}
                                             border="1px solid"
-                                            borderColor="red.200"
+                                            borderColor="gray.200"
                                         >
-                                            <VStack align="start" gap={1}>
-                                                <Text fontWeight="bold" color="gray.800">{emp.name}</Text>
-                                                <Text fontSize="sm" color="red.600">{emp.reason}</Text>
-                                            </VStack>
+                                            <Text fontSize="sm" fontWeight="600" color="gray.900" mb={1}>
+                                                {emp.name}
+                                            </Text>
+                                            <Text fontSize="xs" color="gray.600" mb={2}>
+                                                {emp.reason} for {emp.daysAffected} days
+                                            </Text>
+                                            <Text fontSize="xs" color="blue.600" fontWeight="500">
+                                                Recommend: {emp.reason === 'Low energy' ? 'recovery' : 'assist with workload'}
+                                            </Text>
                                         </Box>
                                     ))}
-                                </SimpleGrid>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-                )}
-                </>
+                                </Grid>
+                            </Box>
+                        )}
+                    </VStack>
                 )}
             </Box>
-
-            <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-            `}</style>
         </Box>
     );
 };

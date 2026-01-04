@@ -24,6 +24,7 @@ import {
   Legend,
 } from 'chart.js';
 import { AttritionTrendsPanel } from './AttritionTrendsPanel';
+import { TeamHealthCompact } from './TeamHealthCompact';
 
 // Register Chart.js components
 ChartJS.register(
@@ -409,20 +410,51 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
           justify="space-between" 
           h="full" 
           w="100%"
-          gap={3}
+          gap={2}
           flex="1"
           minH="0"
         >
-          {/* Left Side - Risk Distribution */}
+          {/* Team Health Dashboard */}
           <VStack 
-            align="center" 
-            justify="center" 
+            align="stretch" 
+            justify="flex-start" 
             h="full" 
             flex="1"
-            gap={3}
+            minW="0"
+            maxW="25%"
+            gap={2}
             minH="0"
-            px={4}
-            py={3}
+            px={2}
+            py={2}
+            bg="white"
+            borderRadius="xl"
+            border="1px solid"
+            borderColor="gray.200"
+            shadow="lg"
+            transition="all 0.3s ease"
+            cursor="pointer"
+            _hover={{
+              shadow: "lg",
+              transform: "scale(1.05)",
+              borderColor: "teal.300",
+              zIndex: 10
+            }}
+          >
+            <TeamHealthCompact />
+          </VStack>
+
+          {/* Risk Distribution */}
+          <VStack 
+            align="stretch" 
+            justify="flex-start" 
+            h="full" 
+            flex="1"
+            minW="0"
+            maxW="25%"
+            gap={2}
+            minH="0"
+            px={2}
+            py={2}
             bg="white"
             borderRadius="xl"
             border="1px solid"
@@ -437,23 +469,24 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
               zIndex: 10
             }}
           >
-            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">
+            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
               Risk Distribution
             </Text>
             
+            <VStack flex={1} justify="center" align="center" w="full">
             {/* Distribution Pie Chart */}
             <Box 
               position="relative" 
-              w="200px"
-              h="200px"
+              w="150px"
+              h="150px"
               flex="none"
               display="flex"
               alignItems="center"
               justifyContent="center"
             >
               <svg
-                width="200px"
-                height="200px"
+                width="150px"
+                height="150px"
                 viewBox="-70 -70 140 140"
                 style={{
                   filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
@@ -502,37 +535,39 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             </Box>
 
             {/* Distribution Legend */}
-            <HStack justify="center" gap={2} w="full" flexWrap="nowrap">
-              {distributionData.map((item, index) => (
-                <Flex key={index} align="center" gap={1} minH="20px">
-                  <Box
-                    w="6px"
-                    h="6px"
-                    borderRadius="full"
-                    bg={item.color}
-                    flexShrink={0}
-                  />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" whiteSpace="nowrap">
-                    {item.label}
-                  </Text>
-                  <Text fontSize="xs" fontWeight="700" color="gray.700" flexShrink={0}>
-                    {item.value}
-                  </Text>
-                </Flex>
-              ))}
-            </HStack>
+            <VStack align="center" gap={1} w="full" maxW="200px">
+              <Grid templateColumns="repeat(2, 1fr)" gap={1} w="full">
+                {distributionData.map((item, index) => (
+                  <Flex key={index} align="center" gap={1} minH="18px">
+                    <Box
+                      w="6px"
+                      h="6px"
+                      borderRadius="full"
+                      bg={item.color}
+                      flexShrink={0}
+                    />
+                    <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>
+                      {item.label}
+                    </Text>
+                  </Flex>
+                ))}
+              </Grid>
+            </VStack>
+            </VStack>
           </VStack>
 
-          {/* Right Side - Risk Analysis */}
+          {/* Risk Analysis */}
           <VStack 
-            align="center" 
-            justify="center" 
+            align="stretch" 
+            justify="flex-start" 
             h="full" 
             flex="1"
-            gap={3}
+            minW="0"
+            maxW="25%"
+            gap={2}
             minH="0"
-            px={4}
-            py={3}
+            px={2}
+            py={2}
             bg="white"
             borderRadius="xl"
             border="1px solid"
@@ -547,14 +582,15 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
               zIndex: 10
             }}
           >
-            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">
+            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
               Risk Analysis
             </Text>
             
+            <VStack flex={1} justify="center" align="center" w="full">
             {/* Analysis Donut Chart */}
             <Box
-              w="200px"
-              h="200px"
+              w="150px"
+              h="150px"
               transition="all 0.2s ease"
             >
               <Doughnut data={analysisDonutData} options={donutOptions} />
@@ -581,15 +617,21 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
                 </Flex>
               </Grid>
             </VStack>
+            </VStack>
           </VStack>
 
-          {/* Attrition Trends Section */}
+          {/* Attrition Trends */}
           <VStack 
-            flex="1" 
+            align="stretch" 
+            justify="flex-start" 
             h="full" 
-            minW="0" 
-            px={4}
-            py={3}
+            flex="1"
+            minW="0"
+            maxW="25%"
+            gap={2}
+            minH="0"
+            px={2}
+            py={2}
             bg="white"
             borderRadius="xl"
             border="1px solid"
@@ -597,7 +639,6 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             shadow="lg"
             transition="all 0.3s ease"
             cursor="pointer"
-            align="stretch"
             _hover={{
               shadow: "lg",
               transform: "scale(1.05)",

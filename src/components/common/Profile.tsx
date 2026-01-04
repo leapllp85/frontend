@@ -207,40 +207,7 @@ export const Profile = ({
     >
       {/* Main Dashboard */}
       <Box h="full" w="full" p={0}>
-        <HStack h="full" gap={0} align="stretch">
-          {/* Left Sidebar - Team Health Metrics */}
-          <Box w="200px" flexShrink={0} ml={0} h="full">
-            <Box 
-              bg="#ecf3f9" 
-              borderRadius="0 xl xl 0" 
-              p={3} 
-              h="full"
-              display="flex"
-              flexDirection="column"
-              boxShadow="0 15px 40px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -3px 6px rgba(0, 0, 0, 0.08)"
-              borderRight="1px solid" 
-              borderTop="1px solid" 
-              borderBottom="1px solid" 
-              borderColor="gray.200"
-              transition="all 0.3s ease"
-              _hover={{ 
-                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.25), 0 12px 24px rgba(0, 0, 0, 0.2), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -3px 6px rgba(0, 0, 0, 0.08)",
-                transform: "scale(1.02)"
-              }}
-            >
-              <HealthMetrics 
-                metrics={metrics ? [
-                  { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
-                  { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                  { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                  { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                ] : []}
-              />
-            </Box>
-          </Box>
-
-          {/* Main Content Area */}
-          <VStack flex={1} minW={0} h="full" gap={3} align="stretch" w="full" p={3} pt={3}>
+        <VStack flex={1} minW={0} h="full" gap={3} align="stretch" w="full" p={3} pt={3}>
             {/* Metric Cards Row */}
             <SimpleGrid columns={4} gap={3} w="full">
               {/* Team Members Card */}
@@ -616,7 +583,6 @@ export const Profile = ({
               </Dialog.Positioner>
             </Dialog.Root>
           </VStack>
-        </HStack>
       </Box>
     </Box>
   );
