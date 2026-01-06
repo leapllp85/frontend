@@ -128,8 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <VStack 
       w="230px"
       h="100vh" 
-      bg="linear-gradient(180deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.95) 100%)"
-      backdropFilter="blur(10px)"
+      bg="#e8e8ed"
       overflow="hidden"
       flexDirection="column" 
       justify="space-between"
@@ -137,128 +136,88 @@ export const Sidebar: React.FC<SidebarProps> = ({
       gap={4}
       borderRight="1px solid"
       borderColor="gray.300"
-      shadow="2xl"
       position="relative"
       zIndex={100}
-      css={{
-        boxShadow: '8px 0 30px rgba(0, 0, 0, 0.15), 4px 0 50px rgba(0, 0, 0, 0.1), 0 0 60px rgba(0, 0, 0, 0.08)',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,  
-          right: 0,
-          bottom: 0,
-          background: 'aliceblue',
-            //background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.1) 100%)',
-          pointerEvents: 'none',
-          zIndex: -1
-        }
-      }}
     >
-      {/* Top Section */}
-      <VStack w="full" gap={2} align="center">
-       
-        {/* Manager Profile Picture */}
-        <VStack gap={1.5} align="center" w="full">
-          <Box
-            w="150px"
-            h="150px"
-            borderRadius="xl"
-            overflow="hidden"
-            border="2px solid"
-            borderColor="white"
-            shadow="xl"
-            cursor="pointer"
-            _hover={{ transform: "scale(1.05)", shadow: "2xl" }}
-            transition="all 0.3s"
-            position="relative"
-            bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-          >
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces"
-              alt="Manager Profile"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'top'
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-            <Box
-              position="absolute"
-              top="50%"
-              left="50%"
-              transform="translate(-50%, -50%)"
-              color="white"
-              fontSize="3xl"
-              fontWeight="bold"
-              display="none"
-              _groupHover={{ display: 'flex' }}
-            >
-              {profileData?.user?.first_name?.charAt(0).toUpperCase() || 'M'}
-              {profileData?.user?.last_name?.charAt(0).toUpperCase() || 'D'}
-            </Box>
-          </Box>
-          <VStack gap={0} align="center" mb={4}>
-            <Text fontSize="sm" color="gray.800" fontWeight="bold" textAlign="center" lineHeight="1.2">
-              {profileData?.user?.first_name || 'Joe'}
-            </Text>
-            <Text fontSize="sm" color="gray.800" fontWeight="bold" textAlign="center" lineHeight="1.2">
-              {profileData?.user?.last_name || 'Right'}
-            </Text>
-          </VStack>
+      {/* Profile Section - Top */}
+      <VStack w="full" gap={3} align="center">
+        {/* Profile Picture */}
+        <Box
+          w="120px"
+          h="120px"
+          borderRadius="xl"
+          overflow="hidden"
+          border="2px solid"
+          borderColor="white"
+          shadow="md"
+          bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+        >
+          <img
+            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=faces"
+            alt="Profile"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'top'
+            }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </Box>
+
+        {/* Manager Name and Welcome Message */}
+        <VStack gap={0.5} align="center" w="full">
+          <Text fontSize="md" fontWeight="700" color="gray.800" textAlign="center">
+            {profileData?.user?.first_name || 'Joe'} {profileData?.user?.last_name || 'Right'}
+          </Text>
+          <Text fontSize="xs" color="gray.600" textAlign="center">
+            Welcome back!
+          </Text>
         </VStack>
 
-        {/* Navigation */}
-        <VStack gap={1.5} align="center" w="full" flex={1} justify="center" py={4}>
+        {/* Separator Line */}
+        <Box w="80%" h="1px" bg="gray.400" />
+      </VStack>
+
+      {/* Navigation - Centered in sidebar */}
+      <VStack w="full" gap={1.5} align="center" flex={1} justify="center">
           {/* My Space - Only for Managers (First Option) */}
           {user && getUserRole(user) === 'Manager' && (
             <Link href="/my-space" style={{ width: '100%' }}>
-              <VStack gap={0.5} align="center" w="full">
-                <Box
-                  w="48px"
-                  h="48px"
-                  borderRadius="xl"
-                  bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-                  _hover={{ 
-                    bg: "linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)",
-                    transform: "translateY(-2px)"
-                  }}
-                  cursor="pointer"
-                  transition="all 0.2s"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  boxShadow="0 2px 8px rgba(102, 126, 234, 0.3)"
-                >
-                  <UserCircle 
-                    size={22} 
-                    color="white"
-                    strokeWidth={2}
-                  />
-                </Box>
+              <HStack 
+                gap={2} 
+                w="full" 
+                px={3}
+                py={2}
+                borderRadius="md"
+                bg={pathname === '/my-space' ? "#e3f2fd" : "transparent"}
+                borderLeft={pathname === '/my-space' ? "3px solid" : "3px solid transparent"}
+                borderColor={pathname === '/my-space' ? "#2196f3" : "transparent"}
+                _hover={{ 
+                  bg: pathname === '/my-space' ? "#e3f2fd" : "#d0d0d5"
+                }}
+                cursor="pointer"
+                transition="all 0.2s"
+                justify="center"
+              >
+                <UserCircle 
+                  size={20} 
+                  color={pathname === '/my-space' ? "#2196f3" : "#6B7280"}
+                  strokeWidth={2}
+                />
                 <Text 
-                  fontSize="10px" 
-                  color="purple.600" 
-                  textAlign="center" 
-                  fontWeight="600"
-                  lineHeight="1.2"
-                  maxW="60px"
+                  fontSize="sm" 
+                  color={pathname === '/my-space' ? "#2196f3" : "gray.700"} 
+                  fontWeight={pathname === '/my-space' ? "600" : "500"}
                 >
                   My Space
                 </Text>
-              </VStack>
+              </HStack>
             </Link>
           )}
           
-          {/* Divider after My Space for Managers */}
-          {user && getUserRole(user) === 'Manager' && (
-            <Box w="40px" h="1px" bg="gray.300" my={1} />
-          )}
           
           {navigationItems.map((item) => {
             const Icon = item.icon;
@@ -269,143 +228,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
             
             return (
               <Link key={item.href} href={item.href} onClick={handleNavClick} style={{ width: '100%' }}>
-                <VStack gap={0.5} align="center" w="full">
-                  <Box
-                    w="48px"
-                    h="48px"
-                    borderRadius="xl"
-                    bg={isActive ? "blue.500" : "transparent"}
-                    _hover={{ 
-                      bg: isActive ? "blue.600" : "gray.200",
-                      transform: "translateY(-2px)"
-                    }}
-                    cursor="pointer"
-                    transition="all 0.2s"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    boxShadow={isActive ? "0 2px 8px rgba(59, 130, 246, 0.3)" : "none"}
-                  >
-                    <Icon 
-                      size={22} 
-                      color={isActive ? "white" : "#6B7280"}
-                      strokeWidth={isActive ? 2.5 : 2}
-                    />
-                  </Box>
+                <HStack 
+                  gap={2} 
+                  w="full" 
+                  px={3}
+                  py={2}
+                  borderRadius="md"
+                  bg={isActive ? "#e3f2fd" : "transparent"}
+                  borderLeft={isActive ? "3px solid" : "3px solid transparent"}
+                  borderColor={isActive ? "#2196f3" : "transparent"}
+                  _hover={{ 
+                    bg: isActive ? "#e3f2fd" : "#d0d0d5"
+                  }}
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  justify="center"
+                >
+                  <Icon 
+                    size={20} 
+                    color={isActive ? "#2196f3" : "#6B7280"}
+                    strokeWidth={2}
+                  />
                   <Text 
-                    fontSize="10px" 
-                    color={isActive ? "blue.600" : "gray.600"} 
-                    textAlign="center" 
-                    fontWeight={isActive ? "700" : "500"}
-                    lineHeight="1.2"
-                    maxW="60px"
+                    fontSize="sm" 
+                    color={isActive ? "#2196f3" : "gray.700"} 
+                    fontWeight={isActive ? "600" : "500"}
                   >
                     {item.label}
                   </Text>
-                </VStack>
+                </HStack>
               </Link>
             );
           })}
           
           {/* Logout */}
-          <VStack gap={0.5} align="center" w="full">
-            <Box
-              w="48px"
-              h="48px"
-              borderRadius="xl"
-              bg="transparent"
-              _hover={{ 
-                bg: "red.50",
-                transform: "translateY(-2px)"
-              }}
-              cursor="pointer"
-              transition="all 0.2s"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              onClick={handleLogout}
-            >
-              <LogOut 
-                size={22} 
-                color="#DC2626"
-                strokeWidth={2}
-              />
-            </Box>
+          <HStack 
+            gap={2} 
+            w="full" 
+            px={3}
+            py={2}
+            borderRadius="md"
+            bg="transparent"
+            borderLeft="3px solid transparent"
+            _hover={{ 
+              bg: "#d0d0d5"
+            }}
+            cursor="pointer"
+            transition="all 0.2s"
+            onClick={handleLogout}
+            justify="center"
+          >
+            <LogOut size={20} color="#EF4444" strokeWidth={2} />
             <Text 
-              fontSize="10px" 
-              color="red.600" 
-              textAlign="center" 
-              fontWeight="600"
-              lineHeight="1.2"
-              maxW="60px"
+              fontSize="sm" 
+              color="red.500" 
+              fontWeight="500"
             >
               Logout
             </Text>
-          </VStack>
-          
-          {/* Associate Insights - Only for Managers */}
-         {/*  {user && getUserRole(user) === 'Manager' && (
-            <VStack gap={1} align="center">
-              <Box
-                px={3}
-                py={2.5}
-                borderRadius="lg"
-                bg="transparent"
-                _hover={{ 
-                  bg: "gray.300",
-                  transform: "scale(1.05)"
-                }}
-                cursor="pointer"
-                transition="all 0.2s"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                onClick={() => setIsAssociateInsightsOpen(true)}
-              >
-                <UserSearch 
-                  size={22} 
-                  color="#4B5563"
-                />
-              </Box>
-              <Text fontSize="10px" color="gray.700" textAlign="center" fontWeight="medium">
-                Insights
-              </Text>
-            </VStack>
-          )} */}
-          
-          {/* Team Summary - Only for Managers */}
-        {/*   {user && getUserRole(user) === 'Manager' && (
-            <VStack gap={1} align="center">
-              <Box
-                px={3}
-                py={2.5}
-                borderRadius="lg"
-                bg="transparent"
-                _hover={{ 
-                  bg: "gray.300",
-                  transform: "scale(1.05)"
-                }}
-                cursor="pointer"
-                transition="all 0.2s"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                onClick={() => setIsTeamSummaryOpen(true)}
-              >
-                <BarChart3 
-                  size={22} 
-                  color="#4B5563"
-                />
-              </Box>
-              <Text fontSize="10px" color="gray.700" textAlign="center" fontWeight="medium">
-                Summary
-              </Text>
-            </VStack>
-          )} */}
+          </HStack>
         </VStack>
-      </VStack>
 
       {/* Bottom Section - Empty for now */}
+      <Box />
 
       {/* Global CSS for Animations */}
       <style dangerouslySetInnerHTML={{

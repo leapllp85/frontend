@@ -470,7 +470,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             }}
           >
             <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
-              Risk Distribution
+              Risk BreakDown
             </Text>
             
             <VStack flex={1} justify="center" align="center" w="full">
@@ -583,7 +583,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             }}
           >
             <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
-              Risk Analysis
+              Attrition Drivers
             </Text>
             
             <VStack flex={1} justify="center" align="center" w="full">
@@ -653,29 +653,71 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
 
         {/* Tab 1: Summary */}
         {activeTab === 1 && (
-          <Grid templateColumns="repeat(2, 1fr)" gap={2} h="full" p={2}>
-            {/* Left Column - Key Insights */}
-            <VStack gap={2} align="stretch">
+          <VStack gap={2} h="full" p={2} align="stretch">
+            {/* Top Row - Skill Gap, Mental Health, and Quick Stats */}
+            <Grid templateColumns="1fr 1fr 0.8fr" gap={2}>
               {/* Skill Gap Summary */}
-              <Box p={2} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200" flex="1">
-                <HStack gap={1.5} mb={1}>
-                  <Box w="2px" h="2px" borderRadius="full" bg="blue.600" />
-                  <Heading size="xs" color="gray.800" fontWeight="600">Skill Gap</Heading>
+              <Box p={2} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Skill Gap</Text>
+                
+                <HStack gap={3} mb={1.5} flexWrap="wrap">
+                  <HStack gap={1}>
+                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
+                    <Text fontSize="2xs" color="gray.700">Members need development: 3</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
+                    <Text fontSize="2xs" color="gray.700">Gap: 35%</Text>
+                  </HStack>
                 </HStack>
-                <Text fontSize="2xs" color="gray.700" lineHeight="1.3">
-                  3 members need development. Focus: React, System Design, Cloud. Gap: 35%.
-                </Text>
+                
+                <Text fontSize="2xs" color="gray.800" fontWeight="600" mb={0.5}>Focus Areas</Text>
+                <VStack align="stretch" gap={0.5}>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">React</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">System Design</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">Cloud</Text>
+                  </HStack>
+                </VStack>
               </Box>
 
               {/* Mental Health Summary */}
-              <Box p={2} bg="pink.50" borderRadius="md" border="1px solid" borderColor="pink.200" flex="1">
-                <HStack gap={1.5} mb={1}>
-                  <Box w="2px" h="2px" borderRadius="full" bg="pink.600" />
-                  <Heading size="xs" color="gray.800" fontWeight="600">Mental Health</Heading>
+              <Box p={2} bg="pink.50" borderRadius="md" border="1px solid" borderColor="pink.200">
+                <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Mental Health — Action Required</Text>
+                
+                <HStack gap={3} mb={1.5} flexWrap="wrap">
+                  <HStack gap={1}>
+                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
+                    <Text fontSize="2xs" color="gray.700">High-risk members: 2</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
+                    <Text fontSize="2xs" color="gray.700">Avg duration: 4 days</Text>
+                  </HStack>
                 </HStack>
-                <Text fontSize="2xs" color="gray.700" lineHeight="1.3">
-                  2 high-risk members. Action: 1-on-1s, workload review, wellness enrollment.
-                </Text>
+                
+                <Text fontSize="2xs" color="gray.800" fontWeight="600" mb={0.5}>Recommended Actions</Text>
+                <VStack align="stretch" gap={0.5}>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">1:1 check-ins</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">Workload redistribution</Text>
+                  </HStack>
+                  <HStack gap={1}>
+                    <Text fontSize="2xs" color="gray.700">•</Text>
+                    <Text fontSize="2xs" color="gray.700">Wellness program enrollment</Text>
+                  </HStack>
+                </VStack>
               </Box>
 
               {/* Quick Stats Grid */}
@@ -697,53 +739,86 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
                   <Text fontSize="2xs" color="gray.600">Personal Reasons</Text>
                 </Box>
               </Grid>
-            </VStack>
+            </Grid>
 
-            {/* Right Column - Survey Sentiment & Engagement */}
-            <VStack gap={2} align="stretch">
-              {/* Survey Sentiment */}
-              <Box p={2} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200" flex="1">
-                <HStack gap={1.5} mb={1}>
+            {/* Bottom Row - Survey Sentiment & Engagement */}
+            <Grid templateColumns="repeat(2, 1fr)" gap={2} flex={1}>
+              <VStack gap={2} align="stretch">
+              {/* Survey Sentiment - Horizontal Bars with Dots */}
+              <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200" display="flex" flexDirection="column" h="full">
+                <HStack gap={1.5} mb={2}>
                   <Box w="2px" h="2px" borderRadius="full" bg="blue.600" />
                   <Heading size="xs" color="gray.800" fontWeight="600">Survey Sentiment</Heading>
                 </HStack>
-                <VStack align="stretch" gap={1}>
-                  <HStack gap={1}>
-                    <Text fontSize="xs">•</Text>
-                    <Text fontSize="2xs" color="gray.700">68% employees report increased workload stress</Text>
+                <VStack align="stretch" gap={2} flex="1" justify="center">
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={2} flex="0 0 100px">
+                      <Box w="8px" h="8px" borderRadius="full" bg="#ef4444" />
+                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Workload Stress</Text>
+                    </HStack>
+                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
+                      <Box w="68%" h="full" bg="#ef4444" borderRadius="full" />
+                    </Box>
+                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">68%</Text>
                   </HStack>
-                  <HStack gap={1}>
-                    <Text fontSize="xs">•</Text>
-                    <Text fontSize="2xs" color="gray.700">45% seeking better work-life balance options</Text>
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={2} flex="0 0 100px">
+                      <Box w="8px" h="8px" borderRadius="full" bg="#f97316" />
+                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Work-Life Balance</Text>
+                    </HStack>
+                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
+                      <Box w="45%" h="full" bg="#f97316" borderRadius="full" />
+                    </Box>
+                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">45%</Text>
                   </HStack>
                 </VStack>
               </Box>
 
-              {/* Overall Engagement */}
-              <Box p={2} bg="green.50" borderRadius="md" border="1px solid" borderColor="green.200" flex="1" display="flex" flexDirection="column">
-                <HStack gap={1.5} mb={1}>
+              </VStack>
+
+              <VStack gap={2} align="stretch">
+              {/* Overall Engagement - Horizontal Bars with Dots */}
+              <Box p={3} bg="green.50" borderRadius="md" border="1px solid" borderColor="green.200" display="flex" flexDirection="column" h="full">
+                <HStack gap={1.5} mb={2}>
                   <Box w="2px" h="2px" borderRadius="full" bg="green.600" />
-                  <Heading size="xs" color="gray.800" fontWeight="600">Overall Content Engagement </Heading>
+                  <Heading size="xs" color="gray.800" fontWeight="600">Content Consumption</Heading>
                 </HStack>
-                <Box flex="1" display="flex" alignItems="center" justifyContent="center">
-                  <HStack gap={'24'}>
-                    <VStack gap={0}>
-                      <Text fontSize="xx-large" fontWeight="bold" color="green.600">78%</Text>
-                      <Text fontSize="2xs" color="gray.600" textAlign="center">Articles</Text>
-                    </VStack>
-                    <VStack gap={0}>
-                      <Text fontSize="xx-large" fontWeight="bold" color="blue.600">65%</Text>
-                      <Text fontSize="2xs" color="gray.600" textAlign="center">Videos</Text>
-                    </VStack>
-                    <VStack gap={0}>
-                      <Text fontSize="xx-large" fontWeight="bold" color="purple.600">82%</Text>
-                      <Text fontSize="2xs" color="gray.600" textAlign="center">Chat</Text>
-                    </VStack>
+                <VStack align="stretch" gap={2} flex="1" justify="center">
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={2} flex="0 0 60px">
+                      <Box w="8px" h="8px" borderRadius="full" bg="#3b82f6" />
+                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Articles</Text>
+                    </HStack>
+                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
+                      <Box w="78%" h="full" bg="#3b82f6" borderRadius="full" />
+                    </Box>
+                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">78%</Text>
                   </HStack>
-                </Box>
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={2} flex="0 0 60px">
+                      <Box w="8px" h="8px" borderRadius="full" bg="#10b981" />
+                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Videos</Text>
+                    </HStack>
+                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
+                      <Box w="65%" h="full" bg="#10b981" borderRadius="full" />
+                    </Box>
+                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">65%</Text>
+                  </HStack>
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={2} flex="0 0 60px">
+                      <Box w="8px" h="8px" borderRadius="full" bg="#8b5cf6" />
+                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Chat</Text>
+                    </HStack>
+                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
+                      <Box w="82%" h="full" bg="#8b5cf6" borderRadius="full" />
+                    </Box>
+                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">82%</Text>
+                  </HStack>
+                </VStack>
               </Box>
-            </VStack>
-          </Grid>
+              </VStack>
+            </Grid>
+          </VStack>
         )}
 
         {/* Tab 2: Recommendations */}
