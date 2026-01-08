@@ -823,158 +823,128 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
 
         {/* Tab 2: Recommendations */}
         {activeTab === 2 && (
-          <HStack h="full" p={4} gap={6} align="center" justify="center" bg="white">
-            {/* Sticky Note 1 - Action Items */}
-            <VStack 
-              flex="1" 
-              bg="linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)" 
-              p={5} 
-              pt={7}
-              borderRadius="3px" 
-              boxShadow="8px 8px 20px rgba(0,0,0,0.35), 4px 4px 10px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(0,0,0,0.1)" 
-              align="stretch"
-              position="relative"
-              top="-10px"
-              left="-8px"
-              transition="all 0.3s"
-              _hover={{ top: "-14px", boxShadow: "10px 12px 25px rgba(0,0,0,0.4)" }}
-              _before={{
-                content: '""',
-                position: 'absolute',
-                top: '-8px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '16px',
-                height: '16px',
-                bg: 'radial-gradient(circle, #ef4444 0%, #dc2626 100%)',
-                borderRadius: '50%',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.3)',
-                border: '2px solid #b91c1c',
-              }}
-              _after={{
-                content: '""',
-                position: 'absolute',
-                top: '0',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '2px',
-                height: '8px',
-                bg: 'linear-gradient(to bottom, #6b7280, transparent)',
-              }}
+          <HStack h="full" p={4} gap={4} align="stretch" justify="center" bg="white">
+            <Card.Root
+              flex="1"
+              bg="white"
+              borderRadius="xl"
+              border="1px solid"
+              borderColor="gray.200"
+              shadow="sm"
+              overflow="hidden"
             >
-              {/* Sticky Note Header */}
-              <HStack justify="center" mb={2}>
-                <Text fontSize="lg" fontWeight="700" color="gray.900">🎯 Action Items</Text>
-              </HStack>
+              <Card.Body p={5}>
+                <VStack align="stretch" gap={4}>
+                  <HStack gap={3} align="center" justify="center">
+                    <Box
+                      w="28px"
+                      h="28px"
+                      borderRadius="full"
+                      bg="cyan.50"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      flexShrink={0}
+                    >
+                      <Text fontSize="sm" lineHeight="1">🎯</Text>
+                    </Box>
+                    <Text fontSize="sm" fontWeight="700" color="gray.800">
+                      Action Items
+                    </Text>
+                  </HStack>
 
-              <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                {/* Survey Sentiment Actions */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>📋 Survey Sentiment</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Conduct immediate 1-on-1 meetings with high-stress employees</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Review and redistribute workload across team members</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Implement flexible work arrangements and remote options</Text>
-                  </VStack>
-                </Box>
+                  <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4} mt={3}>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📋 Survey Sentiment</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Conduct immediate 1-on-1 meetings with high-stress employees</Text>
+                        <Text fontSize="xs" color="gray.700">• Review and redistribute workload across team members</Text>
+                        <Text fontSize="xs" color="gray.700">• Implement flexible work arrangements and remote options</Text>
+                      </VStack>
+                    </Box>
 
-                {/* Mental Health Actions */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>💚 Mental Health</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Schedule wellness check-ins with at-risk team members</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Enroll team in mental health support programs</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Promote work-life balance initiatives and time-off policies</Text>
-                  </VStack>
-                </Box>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>💚 Mental Health</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Schedule wellness check-ins with at-risk team members</Text>
+                        <Text fontSize="xs" color="gray.700">• Enroll team in mental health support programs</Text>
+                        <Text fontSize="xs" color="gray.700">• Promote work-life balance initiatives and time-off policies</Text>
+                      </VStack>
+                    </Box>
 
-                {/* Skill Gap Actions */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>📚 Skill Gap</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Create personalized learning paths for each team member</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Allocate budget for technical training and certifications</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Pair junior developers with senior mentors for knowledge transfer</Text>
-                  </VStack>
-                </Box>
-              </Grid>
-            </VStack>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📚 Skill Gap</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Create personalized learning paths for each team member</Text>
+                        <Text fontSize="xs" color="gray.700">• Allocate budget for technical training and certifications</Text>
+                        <Text fontSize="xs" color="gray.700">• Pair junior developers with senior mentors for knowledge transfer</Text>
+                      </VStack>
+                    </Box>
+                  </Grid>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
 
-            {/* Sticky Note 2 - Recommendations */}
-            <VStack 
-              flex="1" 
-              bg="linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)" 
-              p={5} 
-              pt={7}
-              borderRadius="3px" 
-              boxShadow="8px 8px 20px rgba(0,0,0,0.35), 4px 4px 10px rgba(0,0,0,0.2), inset -2px -2px 4px rgba(0,0,0,0.1)" 
-              align="stretch"
-              position="relative"
-              top="10px"
-              right="-8px"
-              transition="all 0.3s"
-              _hover={{ top: "6px", boxShadow: "10px 12px 25px rgba(0,0,0,0.4)" }}
-              _before={{
-                content: '""',
-                position: 'absolute',
-                top: '-8px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '16px',
-                height: '16px',
-                bg: 'radial-gradient(circle, #3b82f6 0%, #2563eb 100%)',
-                borderRadius: '50%',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.3)',
-                border: '2px solid #1d4ed8',
-              }}
-              _after={{
-                content: '""',
-                position: 'absolute',
-                top: '0',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '2px',
-                height: '8px',
-                bg: 'linear-gradient(to bottom, #6b7280, transparent)',
-              }}
+            <Card.Root
+              flex="1"
+              bg="white"
+              borderRadius="xl"
+              border="1px solid"
+              borderColor="gray.200"
+              shadow="sm"
+              overflow="hidden"
             >
-              {/* Sticky Note Header */}
-              <HStack justify="center" mb={2}>
-                <Text fontSize="lg" fontWeight="700" color="gray.900">💡 Recommendations</Text>
-              </HStack>
+              <Card.Body p={5}>
+                <VStack align="stretch" gap={4}>
+                  <HStack gap={3} align="center" justify="center">
+                    <Box
+                      w="28px"
+                      h="28px"
+                      borderRadius="full"
+                      bg="cyan.50"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      flexShrink={0}
+                    >
+                      <Text fontSize="sm" lineHeight="1">💡</Text>
+                    </Box>
+                    <Text fontSize="sm" fontWeight="700" color="gray.800">
+                      Recommendations
+                    </Text>
+                  </HStack>
 
-              <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-                {/* Project Management */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>📅 Project Management</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Reassess project timelines and reduce unrealistic deadlines</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Implement agile methodologies for better sprint planning</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Prioritize critical projects and defer non-essential tasks</Text>
-                  </VStack>
-                </Box>
+                  <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4} mt={3}>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📅 Project Management</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Reassess project timelines and reduce unrealistic deadlines</Text>
+                        <Text fontSize="xs" color="gray.700">• Implement agile methodologies for better sprint planning</Text>
+                        <Text fontSize="xs" color="gray.700">• Prioritize critical projects and defer non-essential tasks</Text>
+                      </VStack>
+                    </Box>
 
-                {/* Resource Allocation */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>👨‍💼 Resource Allocation</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Balance workload distribution based on skill levels</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Hire additional resources for high-priority initiatives</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Cross-train team members to improve resource flexibility</Text>
-                  </VStack>
-                </Box>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>👨‍💼 Resource Allocation</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Balance workload distribution based on skill levels</Text>
+                        <Text fontSize="xs" color="gray.700">• Hire additional resources for high-priority initiatives</Text>
+                        <Text fontSize="xs" color="gray.700">• Cross-train team members to improve resource flexibility</Text>
+                      </VStack>
+                    </Box>
 
-                {/* Impact Management */}
-                <Box>
-                  <Text fontSize="xs" fontWeight="700" color="gray.900" mb={1}>📊 Impact Management</Text>
-                  <VStack align="stretch" gap={1} pl={3}>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Monitor team morale through regular pulse surveys</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Establish clear communication channels for feedback</Text>
-                    <Text fontSize="2xs" color="gray.800" fontWeight="500">• Track retention metrics and adjust strategies accordingly</Text>
-                  </VStack>
-                </Box>
-              </Grid>
-            </VStack>
+                    <Box>
+                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📊 Impact Management</Text>
+                      <VStack align="stretch" gap={1}>
+                        <Text fontSize="xs" color="gray.700">• Monitor team morale through regular pulse surveys</Text>
+                        <Text fontSize="xs" color="gray.700">• Establish clear communication channels for feedback</Text>
+                        <Text fontSize="xs" color="gray.700">• Track retention metrics and adjust strategies accordingly</Text>
+                      </VStack>
+                    </Box>
+                  </Grid>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
           </HStack>
         )}
       </Card.Body>
