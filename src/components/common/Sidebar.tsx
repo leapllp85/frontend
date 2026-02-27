@@ -56,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { icon: Users, label: "My Team", href: "/teams", roles: ['Manager'] },
     { icon: Network, label: "Organization", href: "/organization", roles: ['Manager'] },
     { icon: FolderOpen, label: "Projects", href: "/projects", roles: ['Manager', 'Associate'] },
+    { icon: TrendingUp, label: "Talent Analytics", href: "/talent-analytics", roles: ['Manager'] },
     { icon: BarChart3, label: "Survey", href: "/manager-dashboard", roles: ['Manager'] },
     { icon: FileText, label: "Surveys", href: "/surveys", roles: ['Associate'] },
     { icon: ClipboardList, label: "Survey Responses", href: "/survey-responses", roles: ['Associate'] },

@@ -10,8 +10,11 @@ import {
   Badge,
   SimpleGrid,
   Flex,
+  Button,
+  IconButton,
 } from '@chakra-ui/react';
-import { AlertCircle, TrendingUp } from 'lucide-react';
+import { AlertCircle, TrendingUp, Calendar } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 
 interface CriticalityVsRiskProps {
   userId?: string;
@@ -199,6 +202,11 @@ const totalMembersCount = 50;
 const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: { name: string; criticality: string; attritionRisk: string; avatarImage: string }) => {
   const [isHovered, setIsHovered] = useState(false);
   
+  const handleScheduleMeeting = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log(`Schedule meeting with ${name}`);
+  };
+  
   const getCriticalityColor = (level: string) => {
     switch(level) {
       case 'High': return { bg: 'red.50', border: 'red.300', text: 'red.600', icon: '#EF4444' };
@@ -224,7 +232,30 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      position="relative"
     >
+      {/* Schedule Meeting Button - Top Right */}
+      <Tooltip content="Schedule 1:1" showArrow>
+        <IconButton
+          aria-label="Schedule meeting"
+          size="xs"
+          variant="ghost"
+          colorScheme="blue"
+          position="absolute"
+          top={2}
+          right={2}
+          onClick={handleScheduleMeeting}
+          bg="transparent"
+          _hover={{
+            transform: 'scale(1.1)',
+            bg: 'blue.50'
+          }}
+          transition="all 0.2s"
+        >
+          <Calendar size={14} />
+        </IconButton>
+      </Tooltip>
+      
       <VStack gap={2} align="stretch">
         {/* Avatar and Name */}
         <HStack gap={3}>
