@@ -1,4 +1,6 @@
 import { apiService, Project } from './api';
+import { isDemoMode, simulateAsync } from '@/config/demo';
+import { MOCK_PROJECTS, MOCK_PROJECT_STATS, MOCK_PROJECT_RISKS, MOCK_CURRENT_USER } from '@/constants/mockData';
 
 // Re-export types for external use
 export type { Project };
@@ -59,6 +61,42 @@ export interface ProjectsQueryParams {
 export class ProjectApiService {
   // Get all projects with pagination
   async getProjects(params?: ProjectsQueryParams): Promise<ProjectsPaginatedResponse> {
+    if (isDemoMode()) {
+      const page = params?.page || 1;
+      const pageSize = params?.page_size || 20;
+      const search = params?.search?.toLowerCase() || '';
+      
+      let filteredProjects = MOCK_PROJECTS;
+      if (search) {
+        filteredProjects = MOCK_PROJECTS.filter(p => 
+          p.title.toLowerCase().includes(search) ||
+          p.description.toLowerCase().includes(search) ||
+          p.business_unit?.toLowerCase().includes(search)
+        );
+      }
+      
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+      
+      return simulateAsync({
+        count: filteredProjects.length,
+        next: endIndex < filteredProjects.length ? 'next' : null,
+        previous: page > 1 ? 'prev' : null,
+        results: {
+          projects: paginatedProjects,
+          summary: MOCK_PROJECT_STATS,
+          user_info: {
+            name: MOCK_CURRENT_USER.name || 'Demo Manager',
+            role: 'Manager',
+            manager: null,
+          },
+          total_results: filteredProjects.length,
+          search_query: search,
+        },
+      });
+    }
+    
     const queryParams = new URLSearchParams();
     
     if (params?.page) {
@@ -132,6 +170,13 @@ export class ProjectApiService {
 
   // Get project by ID
   async getProject(id: number): Promise<Project> {
+    if (isDemoMode()) {
+      const project = MOCK_PROJECTS.find(p => p.id === id);
+      if (!project) {
+        throw new Error(`Project with ID ${id} not found`);
+      }
+      return simulateAsync(project, 200);
+    }
     return await apiService.get<Project>(`/project-team/${id}/`);
   }
 
@@ -173,11 +218,17 @@ export class ProjectApiService {
 
   // Get project statistics for Profile component
   async getProjectStats(): Promise<ProjectStats> {
+    if (isDemoMode()) {
+      return simulateAsync(MOCK_PROJECT_STATS, 300);
+    }
     return await apiService.get<ProjectStats>('/project-stats/');
   }
 
   // Get project risks for Profile component
   async getProjectRisks(): Promise<ProjectRisksResponse> {
+    if (isDemoMode()) {
+      return simulateAsync(MOCK_PROJECT_RISKS, 400);
+    }
     return await apiService.get<ProjectRisksResponse>('/project-risks/');
   }
 }

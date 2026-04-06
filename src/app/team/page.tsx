@@ -66,18 +66,8 @@ export default function Teams() {
     const [hoveredMember, setHoveredMember] = useState<TeamMember | null>(null);
     const [activeTab, setActiveTab] = useState<'work' | 'mental'>('work');
     
-    // Dashboard visibility state - show only on first load
-    const [showDashboard, setShowDashboard] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const hasSeenDashboard = localStorage.getItem('teamDashboardSeen');
-            if (!hasSeenDashboard) {
-                localStorage.setItem('teamDashboardSeen', 'true');
-                return true;
-            }
-            return false;
-        }
-        return true;
-    });
+    // Dashboard is always visible
+    const showDashboard = true;
 
     // Fetch quick data first for immediate dashboard display
     useEffect(() => {

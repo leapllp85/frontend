@@ -1,4 +1,6 @@
 import { apiService } from './api';
+import { isDemoMode, simulateAsync } from '@/config/demo';
+import { MOCK_SURVEYS, MOCK_SURVEY_STATISTICS, MOCK_QUESTION_STATS, MOCK_PENDING_MEMBERS } from '@/constants/mockData';
 
 // Note: Survey and SurveyQuestion are defined in this file, not imported from api.ts
 
@@ -67,6 +69,47 @@ class SurveyApiService {
 
     // Get surveys with pagination
     async getSurveys(params?: SurveysQueryParams): Promise<SurveysPaginatedResponse> {
+        if (isDemoMode()) {
+            const page = params?.page || 1;
+            const pageSize = params?.page_size || 20;
+            const search = params?.search?.toLowerCase() || '';
+            
+            let filteredSurveys = MOCK_SURVEYS.map(s => ({
+                id: s.id,
+                title: s.title,
+                description: s.description,
+                survey_type: s.survey_type,
+                is_anonymous: true,
+                end_date: s.end_date,
+                created_at: s.created_at,
+                updated_at: s.created_at,
+                status: s.ui_status as any,
+                responses_count: MOCK_SURVEY_STATISTICS[s.id as keyof typeof MOCK_SURVEY_STATISTICS]?.completed_responses || 0,
+            }));
+            
+            if (search) {
+                filteredSurveys = filteredSurveys.filter(s => 
+                    s.title.toLowerCase().includes(search) ||
+                    s.description.toLowerCase().includes(search)
+                );
+            }
+            
+            const startIndex = (page - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const paginatedSurveys = filteredSurveys.slice(startIndex, endIndex);
+            
+            return simulateAsync({
+                count: filteredSurveys.length,
+                next: endIndex < filteredSurveys.length ? 'next' : null,
+                previous: page > 1 ? 'prev' : null,
+                results: {
+                    surveys: paginatedSurveys,
+                    total_results: filteredSurveys.length,
+                    search_query: search,
+                },
+            });
+        }
+        
         const queryParams = new URLSearchParams();
         
         if (params?.page) {

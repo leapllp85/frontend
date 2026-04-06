@@ -16,7 +16,8 @@ import {
 } from '@chakra-ui/react';
 import { Send, Bot, User, ArrowLeft, Trash2, Copy, RefreshCw, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useChatContext } from '@/contexts/ChatContext';
+import { asyncChatApi } from '@/services/asyncChatApi';
+import { RAGApiResponse } from '@/types/ragApi';
 import { toaster } from '@/components/ui/toaster';
 
 interface Message {
@@ -25,6 +26,7 @@ interface Message {
   sender: 'user' | 'assistant';
   timestamp: Date;
   isLoading?: boolean;
+  ragResponse?: RAGApiResponse;
 }
 
 export default function ChatPage() {
@@ -38,11 +40,10 @@ export default function ChatPage() {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
-  
-  const { sendMessageAsync, isLoading } = useChatContext();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,29 +72,97 @@ export default function ChatPage() {
     };
 
     setMessages(prev => [...prev, userMessage, loadingMessage]);
+    const userPrompt = inputMessage.trim();
     setInputMessage('');
+    setIsLoading(true);
     setIsTyping(true);
 
     try {
-      // Use the existing chat context to send message
-      await sendMessageAsync(inputMessage.trim());
+      // Call asyncChatApi directly to get the full RAG response
+      const chatResponse = await asyncChatApi.sendMessageAsync(userPrompt, undefined, {
+        onProgress: (progress, message) => {
+          console.log(`Progress: ${progress}% - ${message}`);
+        },
+        onComplete: (ragResponse) => {
+          console.log('RAG Response received:', ragResponse);
+        }
+      });
       
-      // Simulate AI response (replace with actual API call)
-      setTimeout(() => {
-        const aiResponse: Message = {
-          id: (Date.now() + 2).toString(),
-          content: "I understand your question. Let me help you with that. This is a sample response that demonstrates the chat functionality. In a real implementation, this would be connected to your AI backend service.",
-          sender: 'assistant',
-          timestamp: new Date()
-        };
+      // Format the response based on what we got back
+      let responseContent = '';
+      let ragResponse: RAGApiResponse | undefined;
+      
+      if (chatResponse && chatResponse.response) {
+        ragResponse = chatResponse.response;
+        const insights = ragResponse.insights;
+        
+        if (insights) {
+          if (insights.key_findings && insights.key_findings.length > 0) {
+            responseContent += '**Key Findings:**\n';
+            insights.key_findings.forEach((finding: string) => {
+              responseContent += `• ${finding}\n`;
+            });
+            responseContent += '\n';
+          }
+          
+          if (insights.recommendations && insights.recommendations.length > 0) {
+            responseContent += '**Recommendations:**\n';
+            insights.recommendations.forEach((rec: string) => {
+              responseContent += `• ${rec}\n`;
+            });
+            responseContent += '\n';
+          }
+          
+          if (insights.alerts && insights.alerts.length > 0) {
+            responseContent += '**⚠️ Alerts:**\n';
+            insights.alerts.forEach((alert: string) => {
+              responseContent += `• ${alert}\n`;
+            });
+            responseContent += '\n';
+          }
+          
+          if (insights.next_steps && insights.next_steps.length > 0) {
+            responseContent += '**Next Steps:**\n';
+            insights.next_steps.forEach((step: string) => {
+              responseContent += `• ${step}\n`;
+            });
+          }
+        }
+      }
+      
+      if (!responseContent) {
+        // Generate a contextual response based on the query
+        const query = userPrompt.toLowerCase();
+        
+        if (query.includes('employee') || query.includes('team member') || query.includes('staff')) {
+          responseContent = "**Team Analysis:**\n\nBased on current data, I can provide insights on:\n\n• Employee risk assessments and attrition predictions\n• Performance metrics and utilization rates\n• Mental health and wellness indicators\n• Career development and growth opportunities\n\nFor detailed analysis, try asking:\n• 'Show me all high-risk employees'\n• 'Who are my top performers?'\n• 'List employees with mental health concerns'";
+        } else if (query.includes('project')) {
+          responseContent = "**Project Insights:**\n\nI can help you analyze:\n\n• Project risk levels and health metrics\n• Resource allocation and team assignments\n• Timeline and milestone tracking\n• Critical dependencies and blockers\n\nFor detailed analysis, try asking:\n• 'Which projects are at risk?'\n• 'Show project allocation by team'\n• 'List projects with critical members'";
+        } else if (query.includes('mental') || query.includes('wellness') || query.includes('health')) {
+          responseContent = "**Mental Health & Wellness:**\n\nI can provide insights on:\n\n• Team mental health score trends\n• Employees requiring support\n• Wellness program effectiveness\n• Stress and burnout indicators\n\nFor detailed analysis, try asking:\n• 'Team mental health trends'\n• 'Employees needing mental health support'\n• 'Mental health distribution by department'";
+        } else if (query.includes('attrition') || query.includes('turnover') || query.includes('retention')) {
+          responseContent = "**Attrition & Retention Analysis:**\n\nI can help you understand:\n\n• Attrition risk factors and predictions\n• Top reasons for employee turnover\n• Retention strategies and effectiveness\n• Department-wise attrition trends\n\nFor detailed analysis, try asking:\n• 'Attrition risk analysis'\n• 'Top reasons for employee attrition'\n• 'Predict which employees might leave'";
+        } else {
+          responseContent = "**How can I help you today?**\n\nI can provide insights on:\n\n**Team Analytics:**\n• Employee risk and performance analysis\n• Mental health and wellness tracking\n• Attrition predictions and retention strategies\n\n**Project Management:**\n• Project risk assessment\n• Resource allocation optimization\n• Timeline and milestone tracking\n\n**Quick Suggestions:**\n• 'Show me all high-risk employees'\n• 'Which projects are at risk?'\n• 'Team mental health trends'\n• 'Attrition risk analysis'\n• 'Team utilization report'";
+        }
+      }
+      
+      const aiResponse: Message = {
+        id: (Date.now() + 2).toString(),
+        content: responseContent,
+        sender: 'assistant',
+        timestamp: new Date(),
+        ragResponse: ragResponse
+      };
 
-        setMessages(prev => prev.slice(0, -1).concat([aiResponse]));
-        setIsTyping(false);
-      }, 2000);
+      setMessages(prev => prev.slice(0, -1).concat([aiResponse]));
+      setIsTyping(false);
+      setIsLoading(false);
     } catch (error) {
       console.error('Failed to send message:', error);
       setMessages(prev => prev.slice(0, -1));
       setIsTyping(false);
+      setIsLoading(false);
       toaster.error({
         title: 'Error',
         description: 'Failed to send message. Please try again.',

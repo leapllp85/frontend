@@ -394,7 +394,7 @@ export default function ManagerDashboardPage() {
     return (
         <AppLayout>
             <ManagerOnly>
-                <Box w="full" h="100vh" bg="gray.50" overflow="hidden" display="flex" flexDirection="column">
+                <Box w="full" minH="100vh" bg="gray.50" display="flex" flexDirection="column">
                     {/* Professional Header with Stats */}
                     <Box bg="white" borderBottom="1px solid" borderColor="gray.200" shadow="sm" flexShrink={0}>
                         <Box px={8} py={6}>
@@ -566,10 +566,10 @@ export default function ManagerDashboardPage() {
                     </Box>
 
                     {/* Main Content Area */}
-                    <Box px={8} py={4} flex={1} overflow="hidden">
-                        <VStack gap={4} align="stretch" w="full" h="full">
+                    <Box px={8} py={4} flex={1}>
+                        <VStack gap={4} align="stretch" w="full">
                             {/* Tabs Navigation and Content */}
-                            <Card.Root bg="white" shadow="sm" borderRadius="lg" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" h="full" overflow="hidden">
+                            <Card.Root bg="white" shadow="sm" borderRadius="lg" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column">
                                 <Tabs.Root value={activeTab} onValueChange={(e) => setActiveTab(e.value as any)}>
                                     {/* Tabs List */}
                                     <Tabs.List px={6} borderBottom="1px solid" borderColor="gray.200">

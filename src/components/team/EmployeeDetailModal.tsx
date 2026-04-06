@@ -203,16 +203,6 @@ export const EmployeeDetailModal: React.FC<EmployeeDetailModalProps> = ({
               }}
             >
               <VStack gap={6} align="stretch" w="full" maxW="1920px" mx="auto">
-                {/* Test Box - Remove after debugging */}
-                <Box bg="blue.100" p={4} borderRadius="md" border="2px solid" borderColor="blue.500">
-                  <Text fontSize="md" fontWeight="bold" color="blue.800">
-                    ✅ Modal Content Area is Rendering
-                  </Text>
-                  <Text fontSize="sm" color="blue.700">
-                    Employee: {employee.name} | ID: {employee.id} | Loading: {loading ? 'Yes' : 'No'}
-                  </Text>
-                </Box>
-
                 {loading && (
                   <Box 
                     position="absolute"
