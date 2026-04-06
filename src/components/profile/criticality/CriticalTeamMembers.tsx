@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   VStack, 
   HStack, 
@@ -9,192 +10,37 @@ import {
   Heading,
   SimpleGrid,
   Flex,
+  Spinner,
 } from '@chakra-ui/react';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, TrendingUp } from 'lucide-react';
+import { MOCK_EMPLOYEES } from '@/constants/mockData';
 
 interface CriticalityVsRiskProps {
   userId?: string;
 }
 
-// Removed getAvatarColor function - colors are now directly assigned in data
-
-// Pre-sorted data by priority with reliable avatar images
-const CriticalTeamMembersData = [
-  // High Criticality + High Attrition Risk (Priority 1)
-  {
-    name: 'Alice Brown',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/1.jpg'
-  },
-  {
-    name: 'David Martinez',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/1.jpg'
-  },
-  {
-    name: 'Maya Patel',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/2.jpg'
-  },
-  {
-    name: 'Marcus Thompson',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/2.jpg'
-  },
-  // High Criticality + Medium Attrition Risk (Priority 2)
-  {
-    name: 'Jane Smith',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/3.jpg'
-  },
-  {
-    name: 'Lisa Chen',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/4.jpg'
-  },
-  // High Criticality + Low Attrition Risk (Priority 3)
-  {
-    name: 'Sarah Davis',
-    criticality: 'High',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/5.jpg'
-  },
-  {
-    name: 'Olivia Taylor',
-    criticality: 'High',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/6.jpg'
-  },
-  // Medium Criticality + High Attrition Risk (Priority 4)
-  {
-    name: 'John Doe',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/3.jpg'
-  },
-  {
-    name: 'Tom Garcia',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/4.jpg'
-  },
-  // Medium Criticality + Medium Attrition Risk (Priority 5)
-  {
-    name: 'Mike Wilson',
-    criticality: 'Medium',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/5.jpg'
-  },
-  {
-    name: 'Alex Johnson',
-    criticality: 'Medium',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/6.jpg'
-  },
-  // Medium Criticality + Low Attrition Risk (Priority 6)
-  {
-    name: 'Emma Thompson',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/7.jpg'
-  },
-  {
-    name: 'Amy Foster',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/8.jpg'
-  },
-  {
-    name: 'Tyler Brooks',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/men/7.jpg'
-  },
-  // Low Criticality + High Attrition Risk (Priority 7)
-  {
-    name: 'James Rodriguez',
-    criticality: 'Low',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/8.jpg'
-  },
-  {
-    name: 'Ian Mitchell',
-    criticality: 'Low',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/9.jpg'
-  },
-  {
-    name: 'Kevin White',
-    criticality: 'Low',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/10.jpg'
-  },
-  // Low Criticality + Medium Attrition Risk (Priority 8)
-  {
-    name: 'Nina Williams',
-    criticality: 'Low',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/9.jpg'
-  },
-  {
-    name: 'Bob Johnson',
-    criticality: 'Low',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/men/11.jpg'
-  },
-  {
-    name: 'Rachel Green',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/10.jpg'
-  },
-  {
-    name: 'Daniel Park',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/12.jpg'
-  },
-  {
-    name: 'Lisa Chen',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/11.jpg'
-  },
-  {
-    name: 'Mark Taylor',
-    criticality: 'High',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/men/13.jpg'
-  },
-  {
-    name: 'Sophie Wilson',
-    criticality: 'Medium',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/12.jpg'
-  },
-  {
-    name: 'Ryan Adams',
-    criticality: 'Low',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/14.jpg'
-  },
-  {
-    name: 'Grace Lee',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/13.jpg'
-  }
-];
-
-// Total members count for "view more" display
-const totalMembersCount = 50;  
+// Map mock employees to critical team members format and sort by priority
+const CriticalTeamMembersData = MOCK_EMPLOYEES.map((employee, index) => ({
+  name: employee.name || `${employee.first_name} ${employee.last_name}`,
+  criticality: employee.project_criticality,
+  attritionRisk: employee.manager_assessment_risk,
+  avatarImage: `https://randomuser.me/api/portraits/${index % 2 === 0 ? 'women' : 'men'}/${(index % 50) + 1}.jpg`
+})).sort((a, b) => {
+  // Priority sorting: High criticality + High risk first
+  const getPriority = (member: typeof CriticalTeamMembersData[0]) => {
+    if (member.criticality === 'High' && member.attritionRisk === 'High') return 1;
+    if (member.criticality === 'High' && member.attritionRisk === 'Medium') return 2;
+    if (member.criticality === 'High' && member.attritionRisk === 'Low') return 3;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'High') return 4;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'Medium') return 5;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'Low') return 6;
+    if (member.criticality === 'Low' && member.attritionRisk === 'High') return 7;
+    if (member.criticality === 'Low' && member.attritionRisk === 'Medium') return 8;
+    return 9;
+  };
+  return getPriority(a) - getPriority(b);
+});  
 
 const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: { name: string; criticality: string; attritionRisk: string; avatarImage: string }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -315,6 +161,14 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
 };
 
 export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleViewAllMembers = () => {
+    setIsNavigating(true);
+    router.push('/team');
+  };
+
   return (
     <VStack h="full" align="stretch" gap={4}>
       {/* Header */}
@@ -357,17 +211,27 @@ export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
         borderColor="gray.200"
         textAlign="center"
       >
-        <Text 
-          fontSize="sm" 
-          color="blue.600" 
-          cursor="pointer" 
-          fontWeight="600"
-          _hover={{ color: "blue.700", textDecoration: "underline" }}
-          transition="all 0.2s"
-          letterSpacing="-0.01em"
-        >
-          View All {CriticalTeamMembersData.length} Members →
-        </Text>
+        {isNavigating ? (
+          <HStack justify="center" gap={2}>
+            <Spinner size="sm" color="blue.600" />
+            <Text fontSize="sm" color="blue.600" fontWeight="600">
+              Loading...
+            </Text>
+          </HStack>
+        ) : (
+          <Text 
+            fontSize="sm" 
+            color="blue.600" 
+            cursor="pointer" 
+            fontWeight="600"
+            _hover={{ color: "blue.700", textDecoration: "underline" }}
+            transition="all 0.2s"
+            letterSpacing="-0.01em"
+            onClick={handleViewAllMembers}
+          >
+            View All {CriticalTeamMembersData.length} Members →
+          </Text>
+        )}
       </Box>
     </VStack>
   );

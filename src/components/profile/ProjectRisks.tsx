@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from "react";
-import { Box, Text, HStack, VStack, Heading, Flex, SimpleGrid } from "@chakra-ui/react";
+import { useRouter } from 'next/navigation';
+import { Box, Text, HStack, VStack, Heading, Flex, SimpleGrid, Spinner } from "@chakra-ui/react";
 import { Badge, BadgeColorScheme } from '@/components/ui/badge';
 import { AlertTriangle, Calendar, Users } from 'lucide-react';
 import { useResponsive } from '../../hooks/useResponsive';
@@ -192,8 +193,15 @@ const ProjectCard = ({ project }: { project: ProjectRisk }) => {
 export const ProjectRisks: React.FC<ProjectRisksProps> = ({
   projects = defaultProjects
 }) => {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
   const { itemsToShow } = useResponsive(3, 5);
   const displayProjects = projects.slice(0, itemsToShow);
+
+  const handleViewAllProjects = () => {
+    setIsNavigating(true);
+    router.push('/projects');
+  };
 
   return (
     <VStack h="full" align="stretch" gap={4}>
@@ -258,17 +266,27 @@ export const ProjectRisks: React.FC<ProjectRisksProps> = ({
           borderColor="gray.200"
           textAlign="center"
         >
-          <Text 
-            fontSize="sm" 
-            color="blue.600" 
-            cursor="pointer" 
-            fontWeight="600"
-            _hover={{ color: "blue.700", textDecoration: "underline" }}
-            transition="all 0.2s"
-            letterSpacing="-0.01em"
-          >
-            View All {projects.length} Projects →
-          </Text>
+          {isNavigating ? (
+            <HStack justify="center" gap={2}>
+              <Spinner size="sm" color="blue.600" />
+              <Text fontSize="sm" color="blue.600" fontWeight="600">
+                Loading...
+              </Text>
+            </HStack>
+          ) : (
+            <Text 
+              fontSize="sm" 
+              color="blue.600" 
+              cursor="pointer" 
+              fontWeight="600"
+              _hover={{ color: "blue.700", textDecoration: "underline" }}
+              transition="all 0.2s"
+              letterSpacing="-0.01em"
+              onClick={handleViewAllProjects}
+            >
+              View All {projects.length} Projects →
+            </Text>
+          )}
         </Box>
       )}
 

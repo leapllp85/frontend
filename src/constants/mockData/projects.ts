@@ -296,6 +296,7 @@ export const MOCK_PROJECT_STATS = {
   total_projects: 20,
   active_projects: 20,
   high_risk_projects: 8,
+  high_priority_projects: 5,
   completed_projects: 0,
   completion_rate: 0,
 };

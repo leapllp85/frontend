@@ -29,7 +29,8 @@ import {
     Video,
     MessageCircle,
     BarChart3,
-    Calendar
+    Calendar,
+    CheckCircle
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';

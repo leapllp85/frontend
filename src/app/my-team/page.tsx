@@ -47,7 +47,7 @@ export default function MyTeam() {
             const profilesArray = response.results.team_members || [];
             const transformedMembers: TeamMember[] = profilesArray.map((profile: EmployeeProfile) => ({
                 id: profile.id.toString(),
-                name: `${profile.first_name} ${profile.last_name}` || profile.username,
+                name: `${profile.first_name} ${profile.last_name}`,
                 email: profile.email || `${profile.first_name?.toLowerCase()}.${profile.last_name?.toLowerCase()}@company.com`,
                 mentalHealth: profile.mental_health as 'High' | 'Medium' | 'Low',
                 motivationFactor: profile.motivation_factor as 'High' | 'Medium' | 'Low',

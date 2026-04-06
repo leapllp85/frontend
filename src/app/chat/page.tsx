@@ -93,8 +93,12 @@ export default function ChatPage() {
       let ragResponse: RAGApiResponse | undefined;
       
       if (chatResponse && chatResponse.response) {
-        ragResponse = chatResponse.response;
-        const insights = ragResponse.insights;
+        // Handle both string and RAGApiResponse types
+        if (typeof chatResponse.response === 'string') {
+          responseContent = chatResponse.response;
+        } else {
+          ragResponse = chatResponse.response;
+          const insights = ragResponse.insights;
         
         if (insights) {
           if (insights.key_findings && insights.key_findings.length > 0) {
@@ -127,6 +131,7 @@ export default function ChatPage() {
               responseContent += `• ${step}\n`;
             });
           }
+        }
         }
       }
       

@@ -26,7 +26,6 @@ import { projectApi, Project as ApiProject, ProjectsPaginatedResponse, ProjectsQ
 import { RequireProjectCreate, RequireProjectEdit } from '@/components/RoleGuard';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { getRiskColor } from '@/utils/riskColors';
 
 // Local getRiskColor function to ensure reliability
 const getRiskColor = (risk: string) => {

@@ -597,7 +597,7 @@ export default function ManagerDashboardPage() {
                                     </Tabs.List>
 
                                     {/* Tab Content */}
-                                    <Box flex={1} overflow="hidden" p={4} display="flex" flexDirection="column">
+                                    <Box flex={1} p={4} display="flex" flexDirection="column">
                                 {/* Surveys Tab */}
                                 {activeTab === 'surveys' && (
                                     <VStack gap={3} align="stretch" h="full" display="flex" flexDirection="column">
