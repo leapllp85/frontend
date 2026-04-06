@@ -24,6 +24,7 @@ export interface Project {
   source: string;
   created_at: string;
   assigned_to: User[];
+  business_unit?: string;
 }
 
 export interface EmployeeProfile {
@@ -111,12 +112,53 @@ export interface DistributionGraphData {
   primary_triggers: { MH: number; MT: number; CO: number; PR: number };
 }
 
+// Simple in-memory cache
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 // Base API class
 class ApiService {
   private baseURL: string;
+  private cache: Map<string, CacheEntry<any>> = new Map();
+  private pendingRequests: Map<string, Promise<any>> = new Map();
+  private cacheTTL: number = 5 * 60 * 1000; // 5 minutes default
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
+  }
+
+  // Clear cache entry
+  private clearCache(key: string) {
+    this.cache.delete(key);
+  }
+
+  // Clear all cache
+  clearAllCache() {
+    this.cache.clear();
+  }
+
+  // Get from cache if valid
+  private getFromCache<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+    
+    const now = Date.now();
+    if (now - entry.timestamp > this.cacheTTL) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return entry.data as T;
+  }
+
+  // Set cache
+  private setCache<T>(key: string, data: T) {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+    });
   }
 
   private async request<T>(
@@ -137,13 +179,48 @@ class ApiService {
     return response;
   }
 
-  // GET request
-  async get<T>(endpoint: string): Promise<T> {
-    return await this.request<T>(endpoint, { method: 'GET' });
+  // GET request with caching and deduplication
+  async get<T>(endpoint: string, useCache: boolean = true): Promise<T> {
+    const cacheKey = `GET:${endpoint}`;
+    
+    // Check cache first
+    if (useCache) {
+      const cached = this.getFromCache<T>(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+    }
+    
+    // Check if request is already pending (deduplication)
+    const pending = this.pendingRequests.get(cacheKey);
+    if (pending) {
+      return pending as Promise<T>;
+    }
+    
+    // Make new request
+    const requestPromise = this.request<T>(endpoint, { method: 'GET' })
+      .then(data => {
+        if (useCache) {
+          this.setCache(cacheKey, data);
+        }
+        this.pendingRequests.delete(cacheKey);
+        return data;
+      })
+      .catch(error => {
+        this.pendingRequests.delete(cacheKey);
+        throw error;
+      });
+    
+    this.pendingRequests.set(cacheKey, requestPromise);
+    return requestPromise;
   }
 
-  // POST request
+  // POST request (clears related cache)
   async post<T>(endpoint: string, data: any): Promise<T> {
+    // Clear cache for this endpoint on POST
+    const cacheKey = `GET:${endpoint}`;
+    this.clearCache(cacheKey);
+    
     return await this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -201,16 +278,24 @@ class ApiService {
     }
   }
 
-  // PUT request
+  // PUT request (clears related cache)
   async put<T>(endpoint: string, data: any): Promise<T> {
+    // Clear cache for this endpoint on PUT
+    const cacheKey = `GET:${endpoint}`;
+    this.clearCache(cacheKey);
+    
     return await this.request<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
   }
 
-  // DELETE request
+  // DELETE request (clears related cache)
   async delete<T>(endpoint: string, data?: any): Promise<T> {
+    // Clear cache for this endpoint on DELETE
+    const cacheKey = `GET:${endpoint}`;
+    this.clearCache(cacheKey);
+    
     return await this.request<T>(endpoint, { method: 'DELETE', body: JSON.stringify(data) });
   }
 

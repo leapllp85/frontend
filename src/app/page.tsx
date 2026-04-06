@@ -1,14 +1,24 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { Profile } from '@/components/common/Profile';
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserRole } from '@/utils/rbac';
 import { Box, Spinner, Text, Button } from '@chakra-ui/react';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
-import { ManagerWellnessDashboard } from '@/components/common/ManagerWellnessDashboard';
+
+// Lazy load heavy components
+const Profile = dynamic(() => import('@/components/common/Profile').then(mod => ({ default: mod.Profile })), {
+  loading: () => <LoadingScreen />,
+  ssr: false,
+});
+
+const ManagerWellnessDashboard = dynamic(() => import('@/components/common/ManagerWellnessDashboard').then(mod => ({ default: mod.ManagerWellnessDashboard })), {
+  loading: () => <Box p={4}><Spinner size="lg" /></Box>,
+  ssr: false,
+});
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState('employee1');
@@ -264,7 +274,7 @@ export default function Home() {
       <AppLayout>
           <Box position="relative">
             {/* Test Buttons - Remove after testing */}
-            <Box position="fixed" bottom={4} right={4} zIndex={1000} display="flex" flexDirection="column" gap={2}>
+            {/* <Box position="fixed" bottom={4} right={4} zIndex={1000} display="flex" flexDirection="column" gap={2}>
               <Button
                 onClick={() => {
                   console.log('Manual trigger - showWellnessDashboard:', !showWellnessDashboard);
@@ -287,7 +297,7 @@ export default function Home() {
               >
                 🔔 Test Notification
               </Button>
-            </Box>
+            </Box> */}
             
             <Profile width="full" />
           </Box>

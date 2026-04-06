@@ -13,10 +13,16 @@ import {
   Flex,
   Card,
   Tabs,
-  Badge
+  Badge,
+  SimpleGrid,
+  IconButton,
+  Popover,
+  Dialog,
+  Portal
 } from '@chakra-ui/react';
 import { ProgressBar } from '../ui/progress';
 import { Doughnut } from 'react-chartjs-2';
+import { Info } from 'lucide-react';
 import {
   Chart as ChartJS,
   ArcElement,
@@ -25,6 +31,8 @@ import {
 } from 'chart.js';
 import { AttritionTrendsPanel } from './AttritionTrendsPanel';
 import { TeamHealthCompact } from './TeamHealthCompact';
+import { TabNavigation, Tab1Content, Tab2Content, AnalysisCard } from './attrition';
+import { ATTRITION_TAB_LABELS } from '@/constants';
 
 // Register Chart.js components
 ChartJS.register(
@@ -41,12 +49,9 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
-  const [animationKey, setAnimationKey] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const [selectedSlice, setSelectedSlice] = useState<{ label: string; value: number; color: string; percentage: number } | null>(null);
+  const [hoveredSlice, setHoveredSlice] = useState<{ label: string; value: number; color: string; percentage: number; x: number; y: number } | null>(null);
+  const [selectedDriver, setSelectedDriver] = useState<{ label: string; value: number; color: string; percentage: number } | null>(null);
 
   useEffect(() => {
     // Simulate loading
@@ -175,6 +180,14 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
   // Calculate total for percentage calculation
   const total = distributionData.reduce((sum, item) => sum + item.value, 0);
 
+  // Drivers data with percentages
+  const driversData = [
+    { label: 'Mental Health', value: 66, color: '#7EC8E3', percentage: 28.8 },
+    { label: 'Motivation', value: 64, color: '#87CEEB', percentage: 27.9 },
+    { label: 'Career Opportunities', value: 61, color: '#9DD9D2', percentage: 26.6 },
+    { label: 'Personal', value: 38, color: '#A8E6CF', percentage: 16.6 }
+  ];
+
   // Team member data for Summary and Insights tabs
   const teamMembers = [
     { 
@@ -282,127 +295,30 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
     );
   }
 
-  const tabs = ['Attrition Analysis', 'Your Attention', 'Recommendations'];
+  const tabs = [...ATTRITION_TAB_LABELS];
 
   return (
     <Card.Root
       w="100%"
       bg="#ffffff"
-      shadow="xs" 
-      borderRadius="3xl" 
+      shadow="0 2px 12px rgba(0,0,0,0.06)" 
+      borderRadius="2xl" 
       h="full"
       display="flex" 
       flexDirection="column"  
+      border="1px solid"
       borderColor="gray.100"
-      p={2}
+      p={3}
     >
-      <Card.Header px={4} pt={2} pb={4} borderBottom="none">
-        <VStack gap={0} w="full" align="stretch" position="relative">
-          {/* Tabs - Overlapping Parallelogram Shape */}
-          <Box w="full" position="relative" mb={0} display="flex">
-            {tabs.map((tab, index) => (
-              <Box
-                key={index}
-                flex={1}
-                px={6}
-                py={2.5}
-                ml={index > 0 ? "-30px" : "0"}
-                bg={activeTab === index ? "rgba(224, 255, 255, 0.5)" : "rgba(245, 245, 245, 0.3)"}
-                color={activeTab === index ? "cyan.700" : "gray.500"}
-                cursor="pointer"
-                fontSize="sm"
-                fontWeight={activeTab === index ? "bold" : "medium"}
-                textAlign="center"
-                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-                position="relative"
-                overflow="visible"
-                borderRadius="12px"
-                border="none"
-                zIndex={activeTab === index ? 10 : index}
-                onMouseEnter={() => setActiveTab(index)}
-                _hover={{
-                  bg: activeTab === index ? "rgba(224, 255, 255, 0.6)" : "rgba(245, 245, 245, 0.5)",
-                  zIndex: activeTab === index ? 10 : 5
-                }}
-_before={{
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: "calc(100% - 2px)",
-                  borderTop: "2px solid",
-                  borderLeft: (activeTab === index && (index === 1 || index === 2)) ? "2px solid" : "none",
-                  borderRight: (activeTab === index && (index === 0 || index === 1)) ? "2px solid" : "none",
-                  borderColor: activeTab === index ? "cyan.400" : "gray.300",
-                  borderTopLeftRadius: (activeTab === index && (index === 1 || index === 2)) ? "12px" : "0px",
-                  borderTopRightRadius: (activeTab === index && (index === 0 || index === 1)) ? "12px" : "0px",
-                  pointerEvents: "none",
-                  zIndex: 1
-                }}
-              >
-                <Text position="relative" zIndex={3}>
-                  {tab}
-                </Text>
-              </Box>
-            ))}
-          </Box>
-          
-          {/* Extended Border Lines Based on Active Tab */}
-          {isMounted && (
-            <>
-              <style jsx global>{`
-                @keyframes expandRight {
-                  0% { transform: scaleX(0); }
-                  100% { transform: scaleX(1); }
-                }
-                @keyframes expandLeft {
-                  0% { transform: scaleX(0); }
-                  100% { transform: scaleX(1); }
-                }
-              `}</style>
-              
-              {/* Right side line for tab 0 and 1 */}
-              {(activeTab === 0 || activeTab === 1) && (
-                <Box
-                  key={`right-${animationKey}`}
-                  position="absolute"
-left={`calc(${(activeTab + 1) * (100 / tabs.length)}% - 2px)`}
-                  bottom={0}
-                  right={0}
-                  h="2px"
-                  bg="cyan.400"
-                  zIndex={4}
-                  style={{
-                    transformOrigin: 'left',
-                    animation: 'expandRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-                  }}
-                />
-              )}
-              
-              {/* Left side line for tab 1 and 2 */}
-              {(activeTab === 1 || activeTab === 2) && (
-                <Box
-                  key={`left-${animationKey}`}
-                  position="absolute"
-                  left={0}
-right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
-                  bottom={0}
-                  h="2px"
-                  bg="cyan.400"
-                  zIndex={4}
-                  style={{
-                    transformOrigin: 'right',
-                    animation: 'expandLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-                  }}
-                />
-              )}
-            </>
-          )}
-        </VStack>
+      <Card.Header px={0} pt={0} pb={0} borderBottom="none">
+        <TabNavigation 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
       </Card.Header>
       
-      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={2} overflow="hidden" bg="rgba(224, 255, 255, 0.5)">
+      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={3} overflow="hidden" bg="white" borderRadius="xl" mt={3}>
         {/* Tab 0: Attrition Analysis */}
         {activeTab === 0 && (
         <HStack 
@@ -410,543 +326,311 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
           justify="space-between" 
           h="full" 
           w="100%"
-          gap={2}
+          gap={4}
           flex="1"
           minH="0"
         >
           {/* Team Health Dashboard */}
-          <VStack 
-            align="stretch" 
-            justify="flex-start" 
-            h="full" 
-            flex="1"
-            minW="0"
-            maxW="25%"
-            gap={2}
-            minH="0"
-            px={2}
-            py={2}
-            bg="white"
-            borderRadius="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
-            cursor="pointer"
-            _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "teal.300",
-              zIndex: 10
-            }}
-          >
+          <AnalysisCard title="Team Health" hoverBorderColor="teal.200">
             <TeamHealthCompact />
-          </VStack>
+          </AnalysisCard>
 
           {/* Risk Distribution */}
-          <VStack 
-            align="stretch" 
-            justify="flex-start" 
-            h="full" 
-            flex="1"
-            minW="0"
-            maxW="25%"
-            gap={2}
-            minH="0"
-            px={2}
-            py={2}
-            bg="white"
-            borderRadius="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
-            cursor="pointer"
-            _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "blue.300",
-              zIndex: 10
-            }}
-          >
-            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
-              Risk BreakDown
-            </Text>
-            
-            <VStack flex={1} justify="center" align="center" w="full">
-            {/* Distribution Pie Chart */}
-            <Box 
-              position="relative" 
-              w="150px"
-              h="150px"
-              flex="none"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
-              <svg
-                width="150px"
-                height="150px"
-                viewBox="-70 -70 140 140"
-                style={{
-                  filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
-                  maxWidth: "240px",
-                  maxHeight: "240px"
+          <AnalysisCard title="Risk Breakdown" hoverBorderColor="blue.200">
+            <VStack gap={4} justify="center" align="center" w="full" h="full" position="relative">
+              {/* Distribution Pie Chart */}
+              <Box 
+                w="70%"
+                h="70%"
+                flex="none"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <svg
+                  width="100%"
+                  height="100%"
+                  viewBox="-70 -70 140 140"
+                  style={{
+                    filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))"
+                  }}
+                >
+                  {/* Pie slices */}
+                  {(() => {
+                    let currentAngle = -Math.PI / 2; // Start from top
+                    return distributionData.map((item, index) => {
+                      const sliceAngle = (item.value / total) * 2 * Math.PI;
+                      const endAngle = currentAngle + sliceAngle;
+                      const path = createPieSlice(currentAngle, endAngle, 70, 45);
+                      const isMajor = item.percentage >= 20; // Major if >= 20%
+                      
+                      const slice = (
+                        <g key={index}>
+                          <path
+                            d={path}
+                            fill={item.color}
+                            stroke="white"
+                            strokeWidth="3"
+                            style={{
+                              transition: "all 0.2s ease",
+                              cursor: "pointer",
+                              opacity: hoveredSlice?.label === item.label ? 0.8 : 1
+                            }}
+                            onClick={() => isMajor && setSelectedSlice(item)}
+                            onMouseMove={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const svgRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                              if (svgRect) {
+                                setHoveredSlice({ 
+                                  ...item, 
+                                  x: svgRect.left + svgRect.width / 2, 
+                                  y: svgRect.top 
+                                });
+                              }
+                            }}
+                            onMouseLeave={() => setHoveredSlice(null)}
+                          />
+                        </g>
+                      );
+                      
+                      currentAngle = endAngle;
+                      return slice;
+                    });
+                  })()}
+                  
+                  {/* Center circle */}
+                  <circle
+                    cx="0"
+                    cy="0"
+                    r="20"
+                    fill="white"
+                    stroke="#f1f5f9"
+                    strokeWidth="1"
+                  />
+                </svg>
+              </Box>
+
+              {/* Legend for Major Partitions */}
+              <SimpleGrid columns={2} gap={2} w="full" px={4}>
+                {distributionData
+                  .filter(item => item.percentage >= 20)
+                  .slice(0, 4)
+                  .map((item, index) => (
+                    <Flex 
+                      key={index} 
+                      align="center" 
+                      gap={2}
+                      borderRadius="md"
+                      transition="all 0.2s"
+                      cursor="pointer"
+                      _hover={{ bg: "gray.50" }}
+                    >
+                      <Box
+                        w="12px"
+                        h="12px"
+                        borderRadius="full"
+                        bg={item.color}
+                        flexShrink={0}
+                        shadow="sm"
+                      />
+                      <Text 
+                        fontSize="0.75rem"
+                        fontWeight="500" 
+                        color="gray.700"
+                        letterSpacing="0.01em"
+                        lineClamp={1}
+                      >
+                        {item.label}
+                      </Text>
+                    </Flex>
+                  ))}
+              </SimpleGrid>
+            </VStack>
+          </AnalysisCard>
+
+          
+          {/* Hover Tooltip for Small Slices */}
+          {hoveredSlice && (
+            <Portal>
+              <Box
+                position="fixed"
+                left={`${hoveredSlice.x}px`}
+                top={`${hoveredSlice.y - 80}px`}
+                transform="translateX(-50%)"
+                bg="gray.800"
+                color="white"
+                px={3}
+                py={2}
+                borderRadius="md"
+                shadow="lg"
+                zIndex={9999}
+                pointerEvents="none"
+                _after={{
+                  content: '""',
+                  position: "absolute",
+                  bottom: "-6px",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: 0,
+                  height: 0,
+                  borderLeft: "6px solid transparent",
+                  borderRight: "6px solid transparent",
+                  borderTop: "6px solid",
+                  borderTopColor: "gray.800"
                 }}
               >
-                {/* Pie slices */}
-                {(() => {
-                  let currentAngle = -Math.PI / 2; // Start from top
-                  return distributionData.map((item, index) => {
-                    const sliceAngle = (item.value / total) * 2 * Math.PI;
-                    const endAngle = currentAngle + sliceAngle;
-                    const path = createPieSlice(currentAngle, endAngle, 70, 45);
-                    
-                    const slice = (
-                      <g key={index}>
-                        <path
-                          d={path}
-                          fill={item.color}
-                          stroke="white"
-                          strokeWidth="3"
-                          style={{
-                            transition: "all 0.2s ease",
-                            cursor: "pointer"
-                          }}
-                        />
-                      </g>
-                    );
-                    
-                    currentAngle = endAngle;
-                    return slice;
-                  });
-                })()}
-                
-                {/* Center circle */}
-                <circle
-                  cx="0"
-                  cy="0"
-                  r="20"
-                  fill="white"
-                  stroke="#f1f5f9"
-                  strokeWidth="1"
-                />
-              </svg>
-            </Box>
-
-            {/* Distribution Legend */}
-            <VStack align="center" gap={1} w="full" maxW="200px">
-              <Grid templateColumns="repeat(2, 1fr)" gap={1} w="full">
-                {distributionData.map((item, index) => (
-                  <Flex key={index} align="center" gap={1} minH="18px">
+                <VStack align="stretch" gap={1}>
+                  <Flex align="center" gap={2}>
                     <Box
-                      w="6px"
-                      h="6px"
+                      w="10px"
+                      h="10px"
                       borderRadius="full"
-                      bg={item.color}
+                      bg={hoveredSlice.color}
                       flexShrink={0}
                     />
-                    <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>
-                      {item.label}
+                    <Text fontSize="0.75rem" fontWeight="600">
+                      {hoveredSlice.label}
                     </Text>
                   </Flex>
-                ))}
-              </Grid>
-            </VStack>
-            </VStack>
-          </VStack>
+                  <Text fontSize="0.6875rem" opacity={0.9}>
+                    {hoveredSlice.value} ({hoveredSlice.percentage}%)
+                  </Text>
+                </VStack>
+              </Box>
+            </Portal>
+          )}
 
           {/* Risk Analysis */}
-          <VStack 
-            align="stretch" 
-            justify="flex-start" 
-            h="full" 
-            flex="1"
-            minW="0"
-            maxW="25%"
-            gap={2}
-            minH="0"
-            px={2}
-            py={2}
-            bg="white"
-            borderRadius="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
-            cursor="pointer"
-            _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "purple.300",
-              zIndex: 10
-            }}
-          >
-            <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
-              Attrition Drivers
-            </Text>
-            
-            <VStack flex={1} justify="center" align="center" w="full">
-            {/* Analysis Donut Chart */}
-            <Box
-              w="150px"
-              h="150px"
-              transition="all 0.2s ease"
-            >
-              <Doughnut data={analysisDonutData} options={donutOptions} />
-            </Box>
+          <AnalysisCard title="Attrition Drivers" hoverBorderColor="purple.200">
+            <VStack gap={4} justify="center" align="center" w="full" h="full" position="relative">
+              {/* Analysis Donut Chart */}
+              <Box
+                w="75%"
+                h="75%"
+                flex="none"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Doughnut 
+                  data={analysisDonutData} 
+                  options={{
+                    ...donutOptions
+                  }} 
+                />
+              </Box>
 
-            {/* Analysis Legend */}
-            <VStack align="center" gap={1} w="full" maxW="200px">
-              <Grid templateColumns="repeat(2, 1fr)" gap={1} w="full">
-                <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#7EC8E3" flexShrink={0} />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Mental Health</Text>
-                </Flex>
-                <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#87CEEB" flexShrink={0} />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Motivation</Text>
-                </Flex>
-                <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#9DD9D2" flexShrink={0} />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Career Opp.</Text>
-                </Flex>
-                <Flex align="center" gap={1} minH="18px">
-                  <Box w="6px" h="6px" borderRadius="full" bg="#A8E6CF" flexShrink={0} />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>Personal</Text>
-                </Flex>
-              </Grid>
+              {/* Legend for Major Drivers */}
+              <SimpleGrid columns={2} gap={2} w="full" px={4}>
+                {driversData
+                  .filter(item => item.percentage >= 20)
+                  .slice(0, 4)
+                  .map((item, index) => (
+                    <Flex 
+                      key={index} 
+                      align="center" 
+                      gap={2}
+                      borderRadius="md"
+                      transition="all 0.2s"
+                      _hover={{ bg: "gray.50" }}
+                    >
+                      <Box
+                        w="12px"
+                        h="12px"
+                        borderRadius="full"
+                        bg={item.color}
+                        flexShrink={0}
+                        shadow="sm"
+                      />
+                      <Text 
+                        fontSize="0.75rem"
+                        fontWeight="500" 
+                        color="gray.700"
+                        letterSpacing="0.01em"
+                        lineClamp={1}
+                      >
+                        {item.label}
+                      </Text>
+                    </Flex>
+                  ))}
+              </SimpleGrid>
             </VStack>
-            </VStack>
-          </VStack>
+          </AnalysisCard>
+
+          {/* Dialog for Major Drivers */}
+          <Dialog.Root open={!!selectedDriver} onOpenChange={(e) => !e.open && setSelectedDriver(null)}>
+            <Dialog.Backdrop />
+            <Dialog.Positioner>
+              <Dialog.Content maxW="400px">
+                <Dialog.Header>
+                  <Dialog.Title fontSize="1rem" fontWeight="700" color="gray.800">
+                    {selectedDriver?.label}
+                  </Dialog.Title>
+                  <Dialog.CloseTrigger />
+                </Dialog.Header>
+                <Dialog.Body>
+                  <VStack align="stretch" gap={3}>
+                    <Flex align="center" gap={3}>
+                      <Box
+                        w="24px"
+                        h="24px"
+                        borderRadius="full"
+                        bg={selectedDriver?.color}
+                        flexShrink={0}
+                        shadow="md"
+                      />
+                      <VStack align="start" gap={0.5}>
+                        <Text fontSize="0.875rem" fontWeight="600" color="gray.700">
+                          Attrition Driver
+                        </Text>
+                        <Text fontSize="0.75rem" color="gray.500">
+                          {selectedDriver?.label}
+                        </Text>
+                      </VStack>
+                    </Flex>
+                    
+                    <Box p={3} bg="gray.50" borderRadius="md">
+                      <Grid templateColumns="repeat(2, 1fr)" gap={3}>
+                        <VStack align="start" gap={1}>
+                          <Text fontSize="0.6875rem" color="gray.500" fontWeight="600" textTransform="uppercase">
+                            Count
+                          </Text>
+                          <Text fontSize="1.25rem" fontWeight="700" color="gray.800">
+                            {selectedDriver?.value}
+                          </Text>
+                        </VStack>
+                        <VStack align="start" gap={1}>
+                          <Text fontSize="0.6875rem" color="gray.500" fontWeight="600" textTransform="uppercase">
+                            Percentage
+                          </Text>
+                          <Text fontSize="1.25rem" fontWeight="700" color="gray.800">
+                            {selectedDriver?.percentage}%
+                          </Text>
+                        </VStack>
+                      </Grid>
+                    </Box>
+
+                    <Text fontSize="0.75rem" color="gray.600" lineHeight="1.6">
+                      This driver represents {selectedDriver?.percentage}% of the total attrition factors with {selectedDriver?.value} identified cases.
+                    </Text>
+                  </VStack>
+                </Dialog.Body>
+              </Dialog.Content>
+            </Dialog.Positioner>
+          </Dialog.Root>
 
           {/* Attrition Trends */}
-          <VStack 
-            align="stretch" 
-            justify="flex-start" 
-            h="full" 
-            flex="1"
-            minW="0"
-            maxW="25%"
-            gap={2}
-            minH="0"
-            px={2}
-            py={2}
-            bg="white"
-            borderRadius="xl"
-            border="1px solid"
-            borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
-            cursor="pointer"
-            _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "orange.300",
-              zIndex: 10
-            }}
-          >
+          <AnalysisCard title="Attrition Trends" hoverBorderColor="orange.200">
             <AttritionTrendsPanel trends={undefined} />
-          </VStack>
+          </AnalysisCard>
         </HStack>
         )}
 
-        {/* Tab 1: Summary */}
-        {activeTab === 1 && (
-          <VStack gap={2} h="full" p={2} align="stretch">
-            {/* Top Row - Skill Gap, Mental Health, and Quick Stats */}
-            <Grid templateColumns="1fr 1fr 0.8fr" gap={2}>
-              {/* Skill Gap Summary */}
-              <Box p={2} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
-                <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Skill Gap</Text>
-                
-                <HStack gap={3} mb={1.5} flexWrap="wrap">
-                  <HStack gap={1}>
-                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
-                    <Text fontSize="2xs" color="gray.700">Members need development: 3</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
-                    <Text fontSize="2xs" color="gray.700">Gap: 35%</Text>
-                  </HStack>
-                </HStack>
-                
-                <Text fontSize="2xs" color="gray.800" fontWeight="600" mb={0.5}>Focus Areas</Text>
-                <VStack align="stretch" gap={0.5}>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">React</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">System Design</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">Cloud</Text>
-                  </HStack>
-                </VStack>
-              </Box>
-
-              {/* Mental Health Summary */}
-              <Box p={2} bg="pink.50" borderRadius="md" border="1px solid" borderColor="pink.200">
-                <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Mental Health — Action Required</Text>
-                
-                <HStack gap={3} mb={1.5} flexWrap="wrap">
-                  <HStack gap={1}>
-                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
-                    <Text fontSize="2xs" color="gray.700">High-risk members: 2</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Box w="6px" h="6px" borderRadius="full" bg="#ef4444" />
-                    <Text fontSize="2xs" color="gray.700">Avg duration: 4 days</Text>
-                  </HStack>
-                </HStack>
-                
-                <Text fontSize="2xs" color="gray.800" fontWeight="600" mb={0.5}>Recommended Actions</Text>
-                <VStack align="stretch" gap={0.5}>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">1:1 check-ins</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">Workload redistribution</Text>
-                  </HStack>
-                  <HStack gap={1}>
-                    <Text fontSize="2xs" color="gray.700">•</Text>
-                    <Text fontSize="2xs" color="gray.700">Wellness program enrollment</Text>
-                  </HStack>
-                </VStack>
-              </Box>
-
-              {/* Quick Stats Grid */}
-              <Grid templateColumns="repeat(2, 1fr)" gap={1.5}>
-                <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" textAlign="center">
-                  <Text fontSize="md" fontWeight="bold" color="red.600">5/12</Text>
-                  <Text fontSize="2xs" color="gray.600">High Critical + Risk</Text>
-                </Box>
-                <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" textAlign="center">
-                  <Text fontSize="md" fontWeight="bold" color="pink.600">2/12</Text>
-                  <Text fontSize="2xs" color="gray.600">Mental Health</Text>
-                </Box>
-                <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" textAlign="center">
-                  <Text fontSize="md" fontWeight="bold" color="purple.600">2/12</Text>
-                  <Text fontSize="2xs" color="gray.600">Career Concerns</Text>
-                </Box>
-                <Box p={1.5} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" textAlign="center">
-                  <Text fontSize="md" fontWeight="bold" color="teal.600">3/12</Text>
-                  <Text fontSize="2xs" color="gray.600">Personal Reasons</Text>
-                </Box>
-              </Grid>
-            </Grid>
-
-            {/* Bottom Row - Survey Sentiment & Engagement */}
-            <Grid templateColumns="repeat(2, 1fr)" gap={2} flex={1}>
-              <VStack gap={2} align="stretch">
-              {/* Survey Sentiment - Horizontal Bars with Dots */}
-              <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200" display="flex" flexDirection="column" h="full">
-                <HStack gap={1.5} mb={2}>
-                  <Box w="2px" h="2px" borderRadius="full" bg="blue.600" />
-                  <Heading size="xs" color="gray.800" fontWeight="600">Survey Sentiment</Heading>
-                </HStack>
-                <VStack align="stretch" gap={2} flex="1" justify="center">
-                  <HStack justify="space-between" align="center">
-                    <HStack gap={2} flex="0 0 100px">
-                      <Box w="8px" h="8px" borderRadius="full" bg="#ef4444" />
-                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Workload Stress</Text>
-                    </HStack>
-                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
-                      <Box w="68%" h="full" bg="#ef4444" borderRadius="full" />
-                    </Box>
-                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">68%</Text>
-                  </HStack>
-                  <HStack justify="space-between" align="center">
-                    <HStack gap={2} flex="0 0 100px">
-                      <Box w="8px" h="8px" borderRadius="full" bg="#f97316" />
-                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Work-Life Balance</Text>
-                    </HStack>
-                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
-                      <Box w="45%" h="full" bg="#f97316" borderRadius="full" />
-                    </Box>
-                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">45%</Text>
-                  </HStack>
-                </VStack>
-              </Box>
-
-              </VStack>
-
-              <VStack gap={2} align="stretch">
-              {/* Overall Engagement - Horizontal Bars with Dots */}
-              <Box p={3} bg="green.50" borderRadius="md" border="1px solid" borderColor="green.200" display="flex" flexDirection="column" h="full">
-                <HStack gap={1.5} mb={2}>
-                  <Box w="2px" h="2px" borderRadius="full" bg="green.600" />
-                  <Heading size="xs" color="gray.800" fontWeight="600">Content Consumption</Heading>
-                </HStack>
-                <VStack align="stretch" gap={2} flex="1" justify="center">
-                  <HStack justify="space-between" align="center">
-                    <HStack gap={2} flex="0 0 60px">
-                      <Box w="8px" h="8px" borderRadius="full" bg="#3b82f6" />
-                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Articles</Text>
-                    </HStack>
-                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
-                      <Box w="78%" h="full" bg="#3b82f6" borderRadius="full" />
-                    </Box>
-                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">78%</Text>
-                  </HStack>
-                  <HStack justify="space-between" align="center">
-                    <HStack gap={2} flex="0 0 60px">
-                      <Box w="8px" h="8px" borderRadius="full" bg="#10b981" />
-                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Videos</Text>
-                    </HStack>
-                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
-                      <Box w="65%" h="full" bg="#10b981" borderRadius="full" />
-                    </Box>
-                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">65%</Text>
-                  </HStack>
-                  <HStack justify="space-between" align="center">
-                    <HStack gap={2} flex="0 0 60px">
-                      <Box w="8px" h="8px" borderRadius="full" bg="#8b5cf6" />
-                      <Text fontSize="2xs" color="gray.700" fontWeight="500">Chat</Text>
-                    </HStack>
-                    <Box flex="1" h="6px" bg="gray.200" borderRadius="full" mx={2}>
-                      <Box w="82%" h="full" bg="#8b5cf6" borderRadius="full" />
-                    </Box>
-                    <Text fontSize="2xs" fontWeight="600" color="gray.900" w="30px" textAlign="right">82%</Text>
-                  </HStack>
-                </VStack>
-              </Box>
-              </VStack>
-            </Grid>
-          </VStack>
-        )}
+        {/* Tab 1: Your Attention */}
+        {activeTab === 1 && <Tab1Content />}
 
         {/* Tab 2: Recommendations */}
-        {activeTab === 2 && (
-          <HStack h="full" p={4} gap={4} align="stretch" justify="center" bg="white">
-            <Card.Root
-              flex="1"
-              bg="white"
-              borderRadius="xl"
-              border="1px solid"
-              borderColor="gray.200"
-              shadow="sm"
-              overflow="hidden"
-            >
-              <Card.Body p={5}>
-                <VStack align="stretch" gap={4}>
-                  <HStack gap={3} align="center" justify="center">
-                    <Box
-                      w="28px"
-                      h="28px"
-                      borderRadius="full"
-                      bg="cyan.50"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      flexShrink={0}
-                    >
-                      <Text fontSize="sm" lineHeight="1">🎯</Text>
-                    </Box>
-                    <Text fontSize="sm" fontWeight="700" color="gray.800">
-                      Action Items
-                    </Text>
-                  </HStack>
-
-                  <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4} mt={3}>
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📋 Survey Sentiment</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Conduct immediate 1-on-1 meetings with high-stress employees</Text>
-                        <Text fontSize="xs" color="gray.700">• Review and redistribute workload across team members</Text>
-                        <Text fontSize="xs" color="gray.700">• Implement flexible work arrangements and remote options</Text>
-                      </VStack>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>💚 Mental Health</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Schedule wellness check-ins with at-risk team members</Text>
-                        <Text fontSize="xs" color="gray.700">• Enroll team in mental health support programs</Text>
-                        <Text fontSize="xs" color="gray.700">• Promote work-life balance initiatives and time-off policies</Text>
-                      </VStack>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📚 Skill Gap</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Create personalized learning paths for each team member</Text>
-                        <Text fontSize="xs" color="gray.700">• Allocate budget for technical training and certifications</Text>
-                        <Text fontSize="xs" color="gray.700">• Pair junior developers with senior mentors for knowledge transfer</Text>
-                      </VStack>
-                    </Box>
-                  </Grid>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
-
-            <Card.Root
-              flex="1"
-              bg="white"
-              borderRadius="xl"
-              border="1px solid"
-              borderColor="gray.200"
-              shadow="sm"
-              overflow="hidden"
-            >
-              <Card.Body p={5}>
-                <VStack align="stretch" gap={4}>
-                  <HStack gap={3} align="center" justify="center">
-                    <Box
-                      w="28px"
-                      h="28px"
-                      borderRadius="full"
-                      bg="cyan.50"
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                      flexShrink={0}
-                    >
-                      <Text fontSize="sm" lineHeight="1">💡</Text>
-                    </Box>
-                    <Text fontSize="sm" fontWeight="700" color="gray.800">
-                      Recommendations
-                    </Text>
-                  </HStack>
-
-                  <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4} mt={3}>
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📅 Project Management</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Reassess project timelines and reduce unrealistic deadlines</Text>
-                        <Text fontSize="xs" color="gray.700">• Implement agile methodologies for better sprint planning</Text>
-                        <Text fontSize="xs" color="gray.700">• Prioritize critical projects and defer non-essential tasks</Text>
-                      </VStack>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>👨‍💼 Resource Allocation</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Balance workload distribution based on skill levels</Text>
-                        <Text fontSize="xs" color="gray.700">• Hire additional resources for high-priority initiatives</Text>
-                        <Text fontSize="xs" color="gray.700">• Cross-train team members to improve resource flexibility</Text>
-                      </VStack>
-                    </Box>
-
-                    <Box>
-                      <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📊 Impact Management</Text>
-                      <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Monitor team morale through regular pulse surveys</Text>
-                        <Text fontSize="xs" color="gray.700">• Establish clear communication channels for feedback</Text>
-                        <Text fontSize="xs" color="gray.700">• Track retention metrics and adjust strategies accordingly</Text>
-                      </VStack>
-                    </Box>
-                  </Grid>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
-          </HStack>
-        )}
+        {activeTab === 2 && <Tab2Content />}
       </Card.Body>
     </Card.Root>
   );

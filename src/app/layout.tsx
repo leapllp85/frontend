@@ -7,6 +7,7 @@ import { LoadingProvider } from "@/contexts/LoadingContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import AuthWrapper from "@/components/AuthWrapper";
 import AppLoader from "@/components/common/AppLoader";
+import { WebVitals } from "@/components/WebVitals";
 
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({
           <LoadingProvider>
             <AuthProvider>
               <ChatProvider>
+                <WebVitals />
                 <AuthWrapper>{children}</AuthWrapper>
                 <Suspense fallback={null}>
                   <AppLoader />

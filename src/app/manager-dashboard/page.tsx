@@ -70,6 +70,8 @@ import { RequireSurveyView, RequireSurveyCreate, ManagerOnly } from '@/component
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { formatDate } from '@/utils/date';
 import { Pagination } from '@/components/common/Pagination';
+import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface SurveyResponse {
     id: string;
@@ -106,6 +108,7 @@ interface EngagementScore {
 
 export default function ManagerDashboardPage() {
     const router = useRouter();
+    const { itemsToShow } = useResponsive(3, 5);
     const [activeTab, setActiveTab] = useState<'surveys' | 'responses' | 'actions'>('surveys');
     
     // Surveys state
@@ -656,12 +659,9 @@ export default function ManagerDashboardPage() {
 
                                         {/* Survey Templates List */}
                                         {surveysLoading ? (
-                                            <Flex justify="center" align="center" minH="40vh">
-                                                <VStack gap={4}>
-                                                    <Spinner size="xl" color="purple.500" />
-                                                    <Text color="gray.600" fontSize="sm">Loading survey templates...</Text>
-                                                </VStack>
-                                            </Flex>
+                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={3}>
+                                                <SkeletonLoader type="survey" count={itemsToShow} />
+                                            </SimpleGrid>
                                         ) : surveysError ? (
                                             <Card.Root bg="white">
                                                 <Card.Body p={8}>
@@ -1090,12 +1090,9 @@ export default function ManagerDashboardPage() {
 
                                         {/* Action Items List */}
                                         {actionsLoading ? (
-                                            <Flex justify="center" align="center" minH="40vh">
-                                                <VStack gap={4}>
-                                                    <Spinner size="xl" color="purple.500" />
-                                                    <Text color="gray.600">Loading action items...</Text>
-                                                </VStack>
-                                            </Flex>
+                                            <VStack gap={2} align="stretch">
+                                                <SkeletonLoader type="action-item" count={itemsToShow} />
+                                            </VStack>
                                         ) : actionsError ? (
                                             <Card.Root bg="white">
                                                 <Card.Body p={8}>

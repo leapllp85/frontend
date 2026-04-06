@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { Box, Text, VStack, HStack, Button, Input, Badge, SimpleGrid, Heading, IconButton } from "@chakra-ui/react";
-import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network, ClipboardList, UserSearch, BookOpen, TrendingUp, Clock, BarChart3, Target, Heart, Brain, Sparkles, Video, MessageCircle, UserCircle } from "lucide-react";
+import { Home, Users, FolderOpen, FileText, CheckCircle, LogOut, Send, Edit2, Bot, Network, ClipboardList, UserSearch, BookOpen, TrendingUp, Clock, BarChart3, Target, Heart, Brain, Sparkles, Video, MessageCircle, UserCircle, Menu } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { logout } from "@/lib/apis/auth";
@@ -125,29 +125,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, []);
   
   return (
-    <VStack 
-      w="230px"
-      h="100vh" 
-      bg="#e8e8ed"
-      overflow="hidden"
-      flexDirection="column" 
-      justify="space-between"
-      p={4}
-      gap={4}
-      borderRight="1px solid"
-      borderColor="gray.300"
-      position="relative"
-      zIndex={100}
-    >
+    <>
+      {/* Mobile Menu Button - Fixed Position */}
+      <IconButton
+        display={{ base: 'flex', lg: 'none' }}
+        position="fixed"
+        top={{ base: '0.75rem', sm: '1rem' }}
+        left={{ base: '0.75rem', sm: '1rem' }}
+        zIndex={1001}
+        bg="white"
+        shadow="lg"
+        size={{ base: 'md', sm: 'lg' }}
+        aria-label="Open menu"
+        borderRadius="0.75rem"
+        _hover={{ bg: 'gray.50' }}
+        onClick={() => {
+          // For now, this is a placeholder. Full mobile menu would require Drawer component
+          alert('Mobile menu - Navigate using browser back button or type URL directly');
+        }}
+      >
+        <Menu size="1.375rem" />
+      </IconButton>
+
+      {/* Desktop Sidebar */}
+      <VStack 
+        w={{ base: '12.5rem', lg: '14.375rem', xl: '15.625rem' }}
+        h="100vh" 
+        bg="#e8e8ed"
+        overflow="hidden"
+        flexDirection="column" 
+        justify="space-between"
+        p={{ base: '0.75rem', lg: '1rem' }}
+        gap={{ base: '0.75rem', lg: '1rem' }}
+        borderRight="0.0625rem solid"
+        borderColor="gray.300"
+        position="relative"
+        zIndex={100}
+        display={{ base: 'none', lg: 'flex' }}
+      >
       {/* Profile Section - Top */}
       <VStack w="full" gap={3} align="center">
         {/* Profile Picture */}
         <Box
-          w="120px"
-          h="120px"
-          borderRadius="xl"
+          w="7.5rem"
+          h="7.5rem"
+          borderRadius="1rem"
           overflow="hidden"
-          border="2px solid"
+          border="0.125rem solid"
           borderColor="white"
           shadow="md"
           bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
@@ -168,49 +192,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </Box>
 
         {/* Manager Name and Welcome Message */}
-        <VStack gap={0.5} align="center" w="full">
-          <Text fontSize="md" fontWeight="700" color="gray.800" textAlign="center">
+        <VStack gap="0.5rem" align="center" w="full">
+          <Text fontSize="1rem" fontWeight="700" color="gray.800" textAlign="center">
             {profileData?.user?.first_name || 'Joe'} {profileData?.user?.last_name || 'Right'}
           </Text>
-          <Text fontSize="xs" color="gray.600" textAlign="center">
+          <Text fontSize="0.75rem" color="gray.600" textAlign="center">
             Welcome back!
           </Text>
         </VStack>
 
         {/* Separator Line */}
-        <Box w="80%" h="1px" bg="gray.400" />
+        <Box w="80%" h="0.0625rem" bg="gray.400" />
       </VStack>
 
-      {/* Navigation - Centered in sidebar */}
-      <VStack w="full" gap={1.5} align="center" flex={1} justify="center">
+      {/* Navigation - Spread across sidebar */}
+      <VStack w="full" gap="0.75rem" align="center" flex="1 1 auto" justify="space-evenly" overflow="auto" py="1rem">
           {/* My Space - Only for Managers (First Option) */}
           {user && getUserRole(user) === 'Manager' && (
             <Link href="/my-space" style={{ width: '100%' }}>
               <HStack 
-                gap={2} 
+                gap="0.75rem" 
                 w="full" 
-                px={3}
-                py={2}
-                borderRadius="md"
+                px="1rem"
+                py="0.625rem"
+                borderRadius="0.5rem"
                 bg={pathname === '/my-space' ? "#e3f2fd" : "transparent"}
-                borderLeft={pathname === '/my-space' ? "3px solid" : "3px solid transparent"}
+                borderLeft={pathname === '/my-space' ? "0.1875rem solid" : "0.1875rem solid transparent"}
                 borderColor={pathname === '/my-space' ? "#2196f3" : "transparent"}
                 _hover={{ 
                   bg: pathname === '/my-space' ? "#e3f2fd" : "#d0d0d5"
                 }}
                 cursor="pointer"
                 transition="all 0.2s"
-                justify="center"
+                justify="flex-start"
+                align="center"
               >
-                <UserCircle 
-                  size={20} 
-                  color={pathname === '/my-space' ? "#2196f3" : "#6B7280"}
-                  strokeWidth={2}
-                />
+                <Box w="1.25rem" h="1.25rem" display="flex" alignItems="center" justifyContent="center" flexShrink={0}>
+                  <UserCircle 
+                    size="1.25rem" 
+                    color={pathname === '/my-space' ? "#2196f3" : "#6B7280"}
+                    strokeWidth={2}
+                  />
+                </Box>
                 <Text 
-                  fontSize="sm" 
+                  fontSize="0.875rem" 
                   color={pathname === '/my-space' ? "#2196f3" : "gray.700"} 
                   fontWeight={pathname === '/my-space' ? "600" : "500"}
+                  flex="1"
                 >
                   My Space
                 </Text>
@@ -229,30 +257,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <Link key={item.href} href={item.href} onClick={handleNavClick} style={{ width: '100%' }}>
                 <HStack 
-                  gap={2} 
+                  gap="0.75rem" 
                   w="full" 
-                  px={3}
-                  py={2}
-                  borderRadius="md"
+                  px="1rem"
+                  py="0.625rem"
+                  borderRadius="0.5rem"
                   bg={isActive ? "#e3f2fd" : "transparent"}
-                  borderLeft={isActive ? "3px solid" : "3px solid transparent"}
+                  borderLeft={isActive ? "0.1875rem solid" : "0.1875rem solid transparent"}
                   borderColor={isActive ? "#2196f3" : "transparent"}
                   _hover={{ 
                     bg: isActive ? "#e3f2fd" : "#d0d0d5"
                   }}
                   cursor="pointer"
                   transition="all 0.2s"
-                  justify="center"
+                  justify="flex-start"
+                  align="center"
                 >
-                  <Icon 
-                    size={20} 
-                    color={isActive ? "#2196f3" : "#6B7280"}
-                    strokeWidth={2}
-                  />
+                  <Box w="1.25rem" h="1.25rem" display="flex" alignItems="center" justifyContent="center" flexShrink={0}>
+                    <Icon 
+                      size="1.25rem" 
+                      color={isActive ? "#2196f3" : "#6B7280"}
+                      strokeWidth={2}
+                    />
+                  </Box>
                   <Text 
-                    fontSize="sm" 
+                    fontSize="0.875rem" 
                     color={isActive ? "#2196f3" : "gray.700"} 
                     fontWeight={isActive ? "600" : "500"}
+                    flex="1"
                   >
                     {item.label}
                   </Text>
@@ -263,26 +295,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
           
           {/* Logout */}
           <HStack 
-            gap={2} 
+            gap="0.75rem" 
             w="full" 
-            px={3}
-            py={2}
-            borderRadius="md"
+            px="1rem"
+            py="0.625rem"
+            borderRadius="0.5rem"
             bg="transparent"
-            borderLeft="3px solid transparent"
+            borderLeft="0.1875rem solid transparent"
             _hover={{ 
               bg: "#d0d0d5"
             }}
             cursor="pointer"
             transition="all 0.2s"
             onClick={handleLogout}
-            justify="center"
+            justify="flex-start"
+            align="center"
           >
-            <LogOut size={20} color="#EF4444" strokeWidth={2} />
+            <Box w="1.25rem" h="1.25rem" display="flex" alignItems="center" justifyContent="center" flexShrink={0}>
+              <LogOut size="1.25rem" color="#EF4444" strokeWidth={2} />
+            </Box>
             <Text 
-              fontSize="sm" 
+              fontSize="0.875rem" 
               color="red.500" 
               fontWeight="500"
+              flex="1"
             >
               Logout
             </Text>
@@ -466,57 +502,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           Chat with Clyra AI
         </Box>
-      </Box>
-
-      {/* AI Assistant - Bottom Section */}
-      <Box w="full" p={3} px={2} bg= 'circular-gradient(135deg,rgb(27, 93, 105) 0%,rgb(20, 71, 80)) 50%, #1a525c 100%)'>
-        <VStack  w="full" gap={2} p={2} align="stretch">
-          {/* <HStack gap={3}>
-            <Bot size={15} color="gray" />
-            {/* <Text fontSize="md" color="gray" fontWeight="semi-bold">
-              Clyra AI
-            </Text> */}
-          {/* </HStack>  */}
-          
-          {/* <Text fontSize="sm" color="whiteAlpha.800" lineHeight="1.4">
-            Ask me anything about your projects, action items, or team insights!
-          </Text> */}
-          
-          {/* Chat Input */}
-          <HStack gap={3}>
-            <Input
-              value={chatMessage}
-              onChange={(e) => setChatMessage(e.target.value)}
-              placeholder="Ask me anything..."
-              bg="whiteAlpha.200"
-              border="none"
-              color="black"
-              _placeholder={{ color: "whiteAlpha.600" }}
-              _focus={{ 
-                bg: "whiteAlpha.300",
-                outline: "none"
-              }}
-              size="sm"
-              fontSize="xs"
-              onKeyPress={handleKeyPress}
-              disabled={disabled || isLoading}
-              h="32px"
-            />
-            <Button
-              size="sm"
-              bg="whiteAlpha.300"
-              color="gray"
-              _hover={{ bg: "whiteAlpha.400" }}
-              onClick={handleSendMessage}
-              disabled={disabled || isLoading || !chatMessage.trim()}
-              minW="auto"
-              px={2.5}
-              h="32px"
-            >
-              <Send size={14} />
-            </Button>
-          </HStack>
-        </VStack>
       </Box>
 
       {/* Associate Insights Modal */}
@@ -1313,5 +1298,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </Box>
       )}
     </VStack>
+    </>
   );
 };

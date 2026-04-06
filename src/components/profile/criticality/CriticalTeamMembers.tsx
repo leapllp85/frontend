@@ -7,10 +7,10 @@ import {
   Text, 
   Box, 
   Heading,
-  Badge,
   SimpleGrid,
   Flex,
 } from '@chakra-ui/react';
+import { Badge } from '@/components/ui/badge';
 import { AlertCircle, TrendingUp } from 'lucide-react';
 
 interface CriticalityVsRiskProps {
@@ -212,32 +212,34 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
   return (
     <Box
       p={3}
-      borderRadius="lg"
+      borderRadius="xl"
       border="1px solid"
       borderColor={isHovered ? colors.border : 'gray.200'}
       bg={isHovered ? colors.bg : 'white'}
       transition="all 0.2s ease"
       cursor="pointer"
+      shadow="sm"
       _hover={{
         shadow: 'md',
-        transform: 'translateY(-2px)'
+        transform: 'translateY(-2px)',
+        borderColor: colors.border
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <VStack gap={2} align="stretch">
-        {/* Avatar and Name */}
-        <HStack gap={3}>
-          <Box
-            w="48px"
-            h="48px"
-            borderRadius="full"
-            overflow="hidden"
-            flexShrink={0}
-            border="2px solid"
-            borderColor={isHovered ? colors.border : 'gray.200'}
-            transition="all 0.2s ease"
-          >
+      <HStack gap={3} align="center">
+        {/* Avatar */}
+        <Box
+          w="40px"
+          h="40px"
+          borderRadius="full"
+          overflow="hidden"
+          flexShrink={0}
+          border="2px solid"
+          borderColor={isHovered ? colors.border : 'gray.300'}
+          transition="all 0.2s ease"
+          shadow="sm"
+        >
             <img
               src={avatarImage}
               alt={name}
@@ -269,119 +271,100 @@ const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: {
                 }
               }}
             />
-          </Box>
-          
-          <VStack align="start" gap={0} flex="1" minW="0">
-            <Text
-              fontSize="sm"
-              color="gray.800"
-              fontWeight="semibold"
-              lineClamp={1}
-            >
-              {name}
-            </Text>
-            <HStack gap={1}>
-              <TrendingUp size={12} color="#9CA3AF" />
-              <Text fontSize="xs" color="gray.500">
-                {attritionRisk} Risk
-              </Text>
-            </HStack>
-          </VStack>
-        </HStack>
+        </Box>
         
-        {/* Criticality Badge */}
-        <Flex justify="space-between" align="center">
-          <HStack gap={1}>
-            <AlertCircle size={14} color={colors.icon} />
-            <Text fontSize="xs" color="gray.600" fontWeight="medium">
-              Criticality:
-            </Text>
-          </HStack>
-          <Badge
-            colorScheme={criticality === 'High' ? 'red' : criticality === 'Medium' ? 'orange' : 'green'}
-            fontSize="xs"
-            px={2}
-            py={0.5}
-            borderRadius="md"
-            fontWeight="semibold"
+        {/* Name and Info */}
+        <VStack align="start" gap={1} flex="1" minW="0">
+          <Text
+            fontSize="sm"
+            color="gray.900"
+            fontWeight="600"
+            lineClamp={1}
+            letterSpacing="-0.01em"
           >
-            {criticality}
-          </Badge>
-        </Flex>
-      </VStack>
+            {name}
+          </Text>
+          <HStack gap={2} w="full" flexWrap="wrap">
+            <Badge
+              colorScheme={criticality === 'High' ? 'red' : criticality === 'Medium' ? 'orange' : 'green'}
+              fontSize="2xs"
+              px={2}
+              py={0.5}
+              borderRadius="md"
+              fontWeight="600"
+              textTransform="uppercase"
+            >
+              {criticality}
+            </Badge>
+            <Badge
+              colorScheme={attritionRisk === 'High' ? 'red' : attritionRisk === 'Medium' ? 'orange' : 'green'}
+              fontSize="2xs"
+              px={2}
+              py={0.5}
+              borderRadius="md"
+              fontWeight="600"
+              variant="outline"
+            >
+              {attritionRisk} Risk
+            </Badge>
+          </HStack>
+        </VStack>
+      </HStack>
     </Box>
   );
 };
 
 export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
   return (
-    <VStack h="full" align="stretch" gap={3}>
+    <VStack h="full" align="stretch" gap={4}>
       {/* Header */}
-      <HStack justify="space-between" align="center" pb={2} borderBottom="2px solid" borderColor="gray.200">
-        <HStack gap={2}>
-          <Box p={2} bg="red.50" borderRadius="lg">
-            <AlertCircle size={20} color="#EF4444" />
+      <HStack justify="space-between" align="start" pb={3} borderBottom="2px solid" borderColor="gray.200">
+        <HStack gap={3} align="start">
+          <Box p={2} bg="red.50" borderRadius="lg" border="1px solid" borderColor="red.100">
+            <AlertCircle size={20} color="#EF4444" strokeWidth={2.5} />
           </Box>
-          <VStack align="start" gap={0}>
-            <Heading size="sm" color="gray.800" fontWeight="bold">
+          <VStack align="start" gap={0.5}>
+            <Heading size="md" color="gray.900" fontWeight="700" letterSpacing="-0.02em">
               Top Critical Members
             </Heading>
-            <Text fontSize="xs" color="gray.500">
+            <Text fontSize="xs" color="gray.500" fontWeight="500">
               High priority team members requiring attention
             </Text>
           </VStack>
         </HStack>
-        <Badge colorScheme="red" fontSize="xs" px={2} py={1} borderRadius="md">
+        <Badge colorScheme="red" fontSize="xs" px={3} py={1} borderRadius="full" fontWeight="700">
           {CriticalTeamMembersData.length} Members
         </Badge>
       </HStack>
 
       {/* Grid of Members */}
-      <Box flex="1" overflowY="auto" pr={2}
-        css={{
-          '&::-webkit-scrollbar': {
-            width: '6px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
-            borderRadius: '10px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#CBD5E0',
-            borderRadius: '10px',
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            background: '#A0AEC0',
-          },
-        }}
-      >
-        <SimpleGrid columns={2} gap={3}>
-          {CriticalTeamMembersData.slice(0, 12).map((member, index) => (
-            <CriticalTeamMember 
-              key={index}
-              name={member.name}
-              criticality={member.criticality}
-              attritionRisk={member.attritionRisk}
-              avatarImage={member.avatarImage}
-            />
-          ))}
-        </SimpleGrid>
-      </Box>
+      <SimpleGrid columns={3} gap={3} flex="1" alignItems="start">
+        {CriticalTeamMembersData.slice(0, 6).map((member, index) => (
+          <CriticalTeamMember 
+            key={index}
+            name={member.name}
+            criticality={member.criticality}
+            attritionRisk={member.attritionRisk}
+            avatarImage={member.avatarImage}
+          />
+        ))}
+      </SimpleGrid>
       
       {/* View More Footer */}
       <Box 
-        pt={2}
+        pt={3}
         borderTop="1px solid"
         borderColor="gray.200"
         textAlign="center"
       >
         <Text 
           fontSize="sm" 
-          color="blue.500" 
+          color="blue.600" 
           cursor="pointer" 
-          fontWeight="semibold"
-          _hover={{ color: "blue.600", textDecoration: "underline" }}
+          fontWeight="600"
+          _hover={{ color: "blue.700", textDecoration: "underline" }}
           transition="all 0.2s"
+          letterSpacing="-0.01em"
         >
           View All {CriticalTeamMembersData.length} Members →
         </Text>

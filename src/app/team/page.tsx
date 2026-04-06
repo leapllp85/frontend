@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Box,
     VStack,
@@ -17,29 +17,25 @@ import {
 } from '@chakra-ui/react';
 import { Pagination } from '@/components/common/Pagination';
 import { 
-    Icon,
     Users, 
     TrendingUp, 
-    Star, 
     AlertTriangle,
     Target,
     Brain,
     UserCheck,
-    BarChart3,
-    Calendar,
     Heart,
     Briefcase,
     BookOpen,
     Video,
     MessageCircle,
-    CheckCircle,
-    AlertCircleIcon
+    BarChart3,
+    Calendar
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { insights } from './constants';
 import { TeamMember } from '@/types';
+import { EmployeeDetailModal } from '@/components/team/EmployeeDetailModal';
 
 export default function Teams() {
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -58,11 +54,30 @@ export default function Teams() {
     const [totalCount, setTotalCount] = useState(0);
     const [filteredCount, setFilteredCount] = useState(0);
     
-    // Modal state
+    // Filter state
+    const [riskFilter, setRiskFilter] = useState('');
+    const [mentalHealthFilter, setMentalHealthFilter] = useState('');
+    const [triggerFilter, setTriggerFilter] = useState('');
+    
+    // Modal and hover state
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+    const [isEmployeeDetailModalOpen, setIsEmployeeDetailModalOpen] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<TeamMember | null>(null);
     const [activeTab, setActiveTab] = useState<'work' | 'mental'>('work');
+    
+    // Dashboard visibility state - show only on first load
+    const [showDashboard, setShowDashboard] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const hasSeenDashboard = localStorage.getItem('teamDashboardSeen');
+            if (!hasSeenDashboard) {
+                localStorage.setItem('teamDashboardSeen', 'true');
+                return true;
+            }
+            return false;
+        }
+        return true;
+    });
 
     // Fetch quick data first for immediate dashboard display
     useEffect(() => {
@@ -71,7 +86,6 @@ export default function Teams() {
                 setQuickDataLoading(true);
                 const quickData = await dashboardApi.getDashboardQuickData();
                 setDashboardData(quickData);
-                console.log('Dashboard Quick Data:', quickData);
                 setError(null);
             } catch (err) {
                 console.error('Failed to fetch quick data:', err);
@@ -100,8 +114,6 @@ export default function Teams() {
                     // Transform team data to match UI expectations
                     // @ts-ignore
                     const teamArray = Array.isArray(teamData.results.team_members) ? teamData.results.team_members : [];
-                    
-                    console.log('Team API Response:', teamArray);
                     
                     const transformedTeamMembers: TeamMember[] = teamArray.map((member: any) => ({
                         id: member.id.toString(),
@@ -142,81 +154,6 @@ export default function Teams() {
         }
     }, [quickDataLoading, dashboardData, currentPage, pageSize, searchQuery]);
 
-    // Calculate analytics using API data or fallback to calculated values
-    const teamAttritionRisk = () => {
-        if (dashboardData) {
-            return dashboardData.team_attrition_risk;
-        }
-        if (teamMembers.length === 0) return 0;
-        const riskCounts = teamMembers.reduce((acc, member) => {
-            const risk = member.attritionRisk || 'Medium';
-            acc[risk] = (acc[risk] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        
-        const highRisk = riskCounts['High'] || 0;
-        const total = teamMembers.length;
-        return Math.round((highRisk / total) * 100);
-    };
-
-    const teamMentalHealth = () => {
-        if (dashboardData) {
-            return dashboardData.team_mental_health;
-        }
-        if (teamMembers.length === 0) return 0;
-        const scores = { 'High': 3, 'Medium': 2, 'Low': 1 };
-        const avgScore = teamMembers.reduce((sum, member) => 
-            sum + scores[member.mentalHealth], 0) / teamMembers.length;
-        return Math.round(avgScore * 100 / 3);
-    };
-
-    const avgUtilization = () => {
-        if (dashboardData) {
-            return dashboardData.avg_utilization;
-        }
-        if (teamMembers.length === 0) return 0;
-        return Math.round(teamMembers.reduce((sum, member) => 
-            sum + (member.utilization || 0), 0) / teamMembers.length);
-    };
-
-    const topTalent = () => {
-        if (dashboardData && dashboardData.top_talent) {
-            return dashboardData.top_talent.slice(0, 3).map((talent: any) => ({
-                id: talent.id.toString(),
-                name: `${talent.first_name || ''} ${talent.last_name || ''}`.trim() || talent.username || 'Unknown User',
-                email: talent.email || 'unknown@company.com',
-                age: talent.age || 0,
-                mentalHealth: talent.mental_health || 'Medium',
-                motivationFactor: talent.motivation_factor || 'High',
-                careerOpportunities: talent.career_opportunities || 'High',
-                personalReason: talent.personal_reason || 'Medium',
-                managerAssessmentRisk: talent.manager_assessment_risk || 'Medium',
-                utilization: Math.floor(Math.random() * 30) + 70,
-                projectCriticality: talent.project_criticality || 'Medium',
-                attritionRisk: talent.manager_assessment_risk || 'Medium',
-                primaryTrigger: talent.primary_trigger || 'MT',
-                triggers: {
-                    mentalHealth: talent.mental_health === 'Low',
-                    motivation: talent.motivation_factor === 'Low',
-                    career: talent.career_opportunities === 'Low',
-                    personal: talent.personal_reason === 'Low'
-                }
-            }));
-        }
-        return teamMembers
-            .filter(member => member.projectCriticality === 'High')
-            .slice(0, 3);
-    };
-
-    const averageAge = () => {
-        if (dashboardData) {
-            return dashboardData.average_age;
-        }
-        if (teamMembers.length === 0) return 0;
-        return Math.round(teamMembers.reduce((sum, member) => 
-            sum + member.age, 0) / teamMembers.length);
-    };
-
     const calculateSuggestedRisk = (member: TeamMember): 'High' | 'Medium' | 'Low' => {
         const riskValues = {
             'High': 3,
@@ -236,15 +173,15 @@ export default function Teams() {
         return 'Low';
     };
 
-    const handleRiskChange = (memberId: string, newRisk: 'High' | 'Medium' | 'Low') => {
+    const handleRiskChange = useCallback((memberId: string, newRisk: 'High' | 'Medium' | 'Low') => {
         setTeamMembers(prev => prev.map(member => 
             member.id === memberId ? { ...member, attritionRisk: newRisk } : member
         ));
         setChangedMembers(prev => new Set(prev).add(memberId));
-        setSaveSuccess(null); // Clear any previous success message
-    };
+        setSaveSuccess(null);
+    }, []);
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = useCallback(async () => {
         if (changedMembers.size === 0) return;
 
         setSaving(true);
@@ -256,11 +193,9 @@ export default function Teams() {
                 const member = teamMembers.find(m => m.id === memberId);
                 if (!member) return;
 
-                const updateData = {
+                return await teamApi.updateTeamMember(parseInt(memberId), {
                     manager_assessment_risk: member.attritionRisk || 'Medium'
-                };
-
-                return await teamApi.updateTeamMember(parseInt(memberId), updateData);
+                });
             });
 
             await Promise.all(updatePromises);
@@ -268,7 +203,6 @@ export default function Teams() {
             setChangedMembers(new Set());
             setSaveSuccess('Team member assessments updated successfully!');
             
-            // Clear success message after 3 seconds
             setTimeout(() => setSaveSuccess(null), 3000);
         } catch (err) {
             console.error('Failed to save team member changes:', err);
@@ -276,32 +210,40 @@ export default function Teams() {
         } finally {
             setSaving(false);
         }
-    };
+    }, [changedMembers, teamMembers]);
 
-    // Analytics data for team management
-    const attritionData = teamMembers.reduce((acc, member) => {
-        const risk = member.attritionRisk || 'Medium';
-        acc[risk] = (acc[risk] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    // Memoized analytics data
+    const { attritionData, mentalHealthIssues, filteredMembers } = useMemo(() => {
+        const attrition = teamMembers.reduce((acc, member) => {
+            const risk = member.attritionRisk || 'Medium';
+            acc[risk] = (acc[risk] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
 
-    const mentalHealthIssues = teamMembers.filter(member => member.mentalHealth === 'High').length;
+        const mentalHealth = teamMembers.filter(member => member.mentalHealth === 'High').length;
+
+        const filtered = teamMembers.filter(member => {
+            if (riskFilter && member.attritionRisk !== riskFilter) return false;
+            if (mentalHealthFilter && member.mentalHealth !== mentalHealthFilter) return false;
+            if (triggerFilter) {
+                if (triggerFilter === 'MH' && member.mentalHealth === 'High') return true;
+                if (triggerFilter === 'MF' && member.motivationFactor === 'High') return true;
+                if (triggerFilter === 'CO' && member.careerOpportunities === 'High') return true;
+                if (triggerFilter === 'PR' && member.personalReason === 'High') return true;
+                if (triggerFilter) return false;
+            }
+            return true;
+        });
+
+        return { attritionData: attrition, mentalHealthIssues: mentalHealth, filteredMembers: filtered };
+    }, [teamMembers, riskFilter, mentalHealthFilter, triggerFilter]);
 
     return (
+        <>
         <AppLayout>
             {/* Content */}
-            <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 4 }}>
-                <VStack gap={6} align="stretch" w="full">
-                    {/* Header */}
-                    {/* <Box textAlign="center" py={4}>
-                        <Heading size="xl" color="gray.800" mb={2} fontWeight="600">
-                            👥 Team Members Management
-                        </Heading>
-                        <Text color="gray.600" fontSize="lg">
-                            Manage and monitor your team members' performance and status
-                        </Text>
-                        <Box w="100px" h="1px" bg="blue.400" mx="auto" mt={0} />
-                    </Box> */}
+            <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 2, md: 2 }}>
+                <VStack gap={4} align="stretch" w="full">
 
                     {/* Loading State */}
                     {quickDataLoading && (
@@ -321,194 +263,15 @@ export default function Teams() {
                         </Box>
                     )}
 
-                    {/* Quick Data Widgets */}
-                    {/* {!quickDataLoading && !error && (
-                    <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}>
-                        {insights({
-                            teamAttritionRisk,
-                            teamMentalHealth,
-                            avgUtilization,
-                            topTalent,
-                            averageAge
-                        }).map((insight, index) => (
-                            <Card.Root 
-                                key={index}
-                                bg={insight.bg}
-                                border="none"
-                                borderRadius="2xl"
-                                shadow="sm"
-                                _hover={{ transform: "translateY(-4px)", shadow: "md" }}
-                                transition="all 0.3s ease"
-                                w="full"
-                            >
-                                <Card.Body p={{ base: 2, md: 4 }}>
-                                    <VStack gap={4} align="start" w="full">
-                                        <HStack justify="space-between" w="full">
-                                            <Box p={{ base: 2, md: 3 }} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                                {React.createElement(insight.icon, { size: 20, color: "white" })}
-                                            </Box>
-                                            <Badge
-                                                bg="whiteAlpha.300"
-                                                color="white"
-                                                variant="solid"
-                                                fontSize={{ base: "2xs", md: "xs" }}
-                                                px={{ base: 2, md: 3 }}
-                                                py={{ base: 1, md: 2 }}
-                                                borderRadius="full"
-                                            >
-                                                {insight.badge}
-                                            </Badge>
-                                        </HStack>
-                                        <VStack gap={1} align="start" w="full">
-                                            <Text fontSize={{ base: "md", md: "xl" }} fontWeight="black" color="white" lineHeight="1" letterSpacing="tight">
-                                                {insight.value}
-                                            </Text>
-                                            <Text fontSize={{ base: "sm", md: "md" }} color="white" fontWeight="semibold" letterSpacing="wide">
-                                                {insight.title}
-                                            </Text>
-                                        </VStack>
-                                    </VStack>
-                                </Card.Body>
-                            </Card.Root>
-                        ))}
-                    </SimpleGrid>
-                    )} */}
-
-                    {/* Top Talent Details */}
-                    {/* <Card.Root 
-                        bg="linear-gradient(135deg, #a5489f 0%, #8a3d85 100%)"
-                        border="1px solid" 
-                        borderColor="whiteAlpha.300"
-                        borderRadius="2xl"
-                        shadow="sm"
-                        _hover={{ transform: "translateY(-4px)", shadow: "md" }}
-                        transition="all 0.4s ease"
-                    >
-                        <Card.Header p={6} pb={4}>
-                            <HStack gap={3}>
-                                <Box p={3} bg="whiteAlpha.200" borderRadius="xl">
-                                    <Star size={24} color="white" />
-                                </Box>
-                                <Heading size={{ base: "lg", md: "xl" }} color="white" fontWeight="black" letterSpacing="tight">Top 3 Talent</Heading>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={6} pt={2}>
-                            <SimpleGrid columns={{ base: 1, md: 3 }} gap={{ base: 4, md: 6 }}>
-                                {topTalent().map((member: any, index: number) => (
-                                    <Card.Root 
-                                        key={member.id} 
-                                        bg="white" 
-                                        border="1px solid" 
-                                        borderColor="gray.200"
-                                        borderRadius="xl"
-                                        shadow="sm"
-                                        _hover={{ transform: "translateY(-2px)", shadow: "md" }}
-                                        transition="all 0.3s ease"
-                                        position="relative"
-                                    >
-                                        <Badge 
-                                            colorPalette={"white"} 
-                                            variant="solid" 
-                                            fontWeight="bold"
-                                            size="lg"
-                                            fontSize="6xl"
-                                            px={4}
-                                            py={2}
-                                            borderRadius="full"
-                                            position="absolute"
-                                            left={4}
-                                            top={3}
-                                            zIndex={1}
-                                        >
-                                            {index === 0 ? "🥇" : index === 1 ? "🥈" : "🥉"}
-                                        </Badge>
-                                        <Card.Body w="full" p={{ base: 2, md: 4 }}>
-                                            <VStack gap={4}>
-                                                <HStack justify="flex-end" w="full">
-                                                    <Badge 
-                                                        colorPalette={getRiskColor(member.attritionRisk || 'Medium')} 
-                                                        size="md" 
-                                                        fontWeight="semibold"
-                                                        variant="solid"
-                                                        px={3}
-                                                        py={1}
-                                                        borderRadius="full"
-                                                    >
-                                                        {member.attritionRisk} Risk
-                                                    </Badge>
-                                                </HStack>
-                                                <VStack gap={1} align="center">
-                                                    <Text fontWeight="black" fontSize={{ base: "lg", md: "xl" }} color="gray.900" letterSpacing="tight">
-                                                        {member.name}
-                                                    </Text>
-                                                    <Text fontSize={{ base: "sm", md: "md" }} color="gray.700" fontWeight="medium">
-                                                        {member.age} years old
-                                                    </Text>
-                                                </VStack>
-                                                <HStack justify="space-between" w="full">
-                                                    <VStack gap={0} align="center">
-                                                        <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="black" color="#a5489f" letterSpacing="tight">
-                                                            {member.utilization}%
-                                                        </Text>
-                                                        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" fontWeight="medium">
-                                                            Utilization
-                                                        </Text>
-                                                    </VStack>
-                                                    <VStack gap={0} align="center">
-                                                        <Badge 
-                                                            colorPalette={
-                                                                member.mentalHealth === 'High' ? 'green' :
-                                                                member.mentalHealth === 'Medium' ? 'blue' :
-                                                                'red'
-                                                            }
-                                                            size="md" 
-                                                            fontWeight="semibold"
-                                                            variant="solid"
-                                                            px={3}
-                                                            py={1}
-                                                            borderRadius="full"
-                                                        >
-                                                            {member.mentalHealth === 'High' ? '😊 ' + member.mentalHealth :
-                                                             member.mentalHealth === 'Medium' ? '😐 ' + member.mentalHealth :
-                                                             '😟 ' + member.mentalHealth}
-                                                        </Badge>
-                                                        <Text fontSize={{ base: "xs", md: "sm" }} color="gray.600" fontWeight="medium">
-                                                            Mental Health
-                                                        </Text>
-                                                    </VStack>
-                                                </HStack>
-                                            </VStack>
-                                        </Card.Body>
-                                    </Card.Root>
-                                ))}
-                            </SimpleGrid>
-                        </Card.Body>
-                    </Card.Root> */}
-
-                    {/* Team Overview */}
-                    {/* <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 5 }} gap={{ base: 2, md: 4 }}
-                        // bg="gray.50"
-                        // border="none"
-                        // borderRadius="2xl"
-                        // shadow="2xl"
-                        // _hover={{ transform: "translateY(-4px)", shadow: "3xl" }}
-                        // transition="all 0.4s ease"
-                    > */}
-                        {/* <Card.Header p={6} pb={4}>
-                            <HStack gap={3}>
-                                <Box p={3} bg="whiteAlpha.200" borderRadius="xl" backdropFilter="blur(10px)">
-                                    <Users size={24} color="white" />
-                                </Box>
-                                <Heading size="xl" color="white" fontWeight="black" letterSpacing="tight">Team Overview</Heading>
-                            </HStack>
-                        </Card.Header> */}
-                        {/* All Metric Cards in One Row with Subtle Background */}
-                        <Box bg="blue.50" borderRadius="2xl" p={3} mb={2}>
-                            <SimpleGrid columns={8} gap={2}>
-                                {/* Total Members Card */}
-                                <Box 
-                                    bg="white" 
-                                    borderRadius="lg" 
+                    {showDashboard && (
+                    <Box
+                    //  bg="blue.50"
+                      borderRadius="2xl" p={3}>
+                        <SimpleGrid columns={8} gap={2}>
+                            {/* Total Members Card */}
+                            <Box 
+                                bg="white" 
+                                borderRadius="lg" 
                                     p={3} 
                                     shadow="sm" 
                                     border="1px solid" 
@@ -707,12 +470,13 @@ export default function Teams() {
                                 </Box>
                             </SimpleGrid>
                         </Box>
+                    )}
 
                         {/* Team Members Management Section */}
                         {!quickDataLoading && !error && (
-                            <HStack align="stretch" gap={1} h="calc(100vh - 300px)">
+                            <HStack align="stretch" gap={4} h="calc(100vh - 300px)">
                             <Card.Root bg="white" shadow="sm" borderRadius="3xl" w="70%" h="120%" display="flex" flexDirection="column">
-                                <Card.Header p={4}>
+                                <Card.Header p={3}>
                                     <HStack justify="space-between">
                                         <VStack align="start" gap={1}>
                                             {teamDataLoading && (
@@ -724,27 +488,26 @@ export default function Teams() {
                                         </VStack>
                                     </HStack>
                                     
-                                    {/* Search, Filters and Actions in one row */}
-                                    <HStack gap={4} mt={4} flexWrap="wrap" align="center">
-                                        <Box flex={1} minW="250px">
-                                            <Input
-                                                placeholder="Search by name, email, or username..."
-                                                value={searchQuery}
-                                                onChange={(e) => {
-                                                    setSearchQuery(e.target.value);
-                                                    setCurrentPage(1); // Reset to first page on search
-                                                }}
-                                                size="sm"
-                                                color="black"
-                                                _placeholder={{ color: 'gray.500' }}
-                                            />
-                                        </Box>
-                                        <Box>
+                                    {/* Search and Filters */}
+                                    <VStack gap={3} mt={1} align="stretch">
+                                        <Input
+                                            placeholder="Search by name, email, or username..."
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                setCurrentPage(1);
+                                            }}
+                                            size="md"
+                                            color="black"
+                                            _placeholder={{ color: 'gray.500' }}
+                                        />
+                                        <HStack gap={3} flexWrap="wrap">
+                                            <Text fontSize="sm" fontWeight="600" color="gray.700">Filters:</Text>
                                             <select
-                                                value={pageSize}
+                                                value={riskFilter}
                                                 onChange={(e) => {
-                                                    setPageSize(Number(e.target.value));
-                                                    setCurrentPage(1); // Reset to first page on page size change
+                                                    setRiskFilter(e.target.value);
+                                                    setCurrentPage(1);
                                                 }}
                                                 style={{
                                                     padding: '6px 12px',
@@ -755,26 +518,63 @@ export default function Teams() {
                                                     color: '#4a5568',
                                                     outline: 'none',
                                                     cursor: 'pointer',
-                                                    minWidth: '120px'
+                                                    minWidth: '140px'
                                                 }}
                                             >
-                                                <option value={5}>5 per page</option>
-                                                <option value={10}>10 per page</option>
-                                                <option value={20}>20 per page</option>
-                                                <option value={50}>50 per page</option>
+                                                <option value="">All Risk Levels</option>
+                                                <option value="High">High Risk</option>
+                                                <option value="Medium">Medium Risk</option>
+                                                <option value="Low">Low Risk</option>
                                             </select>
-                                        </Box>
-                                        <Button
-                                            colorPalette="blue"
-                                            size="sm"
-                                            onClick={handleSaveChanges}
-                                            disabled={changedMembers.size === 0 || saving}
-                                            loading={saving}
-                                            loadingText="Saving..."
-                                        >
-                                            Save Changes ({changedMembers.size})
-                                        </Button>
-                                </HStack>
+                                            <select
+                                                value={mentalHealthFilter}
+                                                onChange={(e) => {
+                                                    setMentalHealthFilter(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'white',
+                                                    color: '#4a5568',
+                                                    outline: 'none',
+                                                    cursor: 'pointer',
+                                                    minWidth: '140px'
+                                                }}
+                                            >
+                                                <option value="">All Mental Health</option>
+                                                <option value="High">High</option>
+                                                <option value="Medium">Medium</option>
+                                                <option value="Low">Low</option>
+                                            </select>
+                                            <select
+                                                value={triggerFilter}
+                                                onChange={(e) => {
+                                                    setTriggerFilter(e.target.value);
+                                                    setCurrentPage(1);
+                                                }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    border: '1px solid #d1d5db',
+                                                    borderRadius: '6px',
+                                                    fontSize: '14px',
+                                                    backgroundColor: 'white',
+                                                    color: '#4a5568',
+                                                    outline: 'none',
+                                                    cursor: 'pointer',
+                                                    minWidth: '140px'
+                                                }}
+                                            >
+                                                <option value="">All Triggers</option>
+                                                <option value="MH">Mental Health</option>
+                                                <option value="MF">Motivation</option>
+                                                <option value="CO">Career</option>
+                                                <option value="PR">Personal</option>
+                                            </select>
+                                        </HStack>
+                                    </VStack>
                                     
                                     {/* Search Results Info */}
                                     {searchQuery && (
@@ -805,157 +605,132 @@ export default function Teams() {
                                         </Box>
                                     )}
                                 </Card.Header>
-                                <Card.Body p={0} flex="1" minH="0">
+                                <Card.Body p={3} py={0} flex="1" minH="0">
                                     <Box 
                                         overflowX="auto" 
                                         h="120%" 
                                         overflowY="auto"
-                                        border="1px solid"
-                                        borderColor="gray.200"
-                                        borderRadius="lg"
+                                        borderRadius="xl"
                                         bg="white"
-                                        shadow="sm"
                                         css={{
                                             '&::-webkit-scrollbar': {
-                                                display: 'none'
+                                                width: '8px',
+                                                height: '8px'
                                             },
-                                            '-ms-overflow-style': 'none',
-                                            'scrollbar-width': 'none'
+                                            '&::-webkit-scrollbar-track': {
+                                                background: '#f1f5f9',
+                                                borderRadius: '4px'
+                                            },
+                                            '&::-webkit-scrollbar-thumb': {
+                                                background: '#cbd5e1',
+                                                borderRadius: '4px'
+                                            },
+                                            '&::-webkit-scrollbar-thumb:hover': {
+                                                background: '#94a3b8'
+                                            }
                                         }}
                                     >
                                         <table style={{ 
                                             width: '100%', 
+                                            minWidth: '900px',
                                             borderCollapse: 'separate',
                                             borderSpacing: '0',
                                             background: 'white'
                                         }}>
                                             <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                                             <tr style={{ 
-                                                background: '#f8fafc',
-                                                borderBottom: '2px solid #e2e8f0'
+                                                background: 'linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%)',
+                                                borderBottom: '2px solid #e2e8f0',
+                                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                                             }}>
                                                 <th style={{ 
-                                                    padding: '10px 12px', 
+                                                    padding: '12px 16px', 
                                                     textAlign: 'left', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
+                                                    fontWeight: '700', 
+                                                    color: '#1e293b', 
                                                     fontSize: '12px',
                                                     letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '200px'
+                                                    textTransform: 'uppercase',
+                                                    borderRight: '1px solid #e2e8f0',
+                                                    minWidth: '140px',
+                                                    background: 'transparent'
                                                 }}>
                                                     Team Member
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '10px 8px', 
+                                                    padding: '12px 16px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
-                                                    fontSize: '11px',
+                                                    fontWeight: '700', 
+                                                    color: '#1e293b', 
+                                                    fontSize: '12px',
                                                     letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '100px'
+                                                    textTransform: 'uppercase',
+                                                    borderRight: '1px solid #e2e8f0',
+                                                    minWidth: '240px',
+                                                    background: 'transparent'
                                                 }}>
-                                                    Mental
+                                                    Member Score
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '10px 8px', 
+                                                    padding: '12px 16px', 
                                                     textAlign: 'center', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
-                                                    fontSize: '11px',
+                                                    fontWeight: '700', 
+                                                    color: '#1e293b', 
+                                                    fontSize: '12px',
                                                     letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '100px'
-                                                }}>
-                                                    Motivation
-                                                </th>
-                                                <th style={{ 
-                                                    padding: '10px 8px', 
-                                                    textAlign: 'center', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
-                                                    fontSize: '11px',
-                                                    letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '100px'
-                                                }}>
-                                                    Career
-                                                </th>
-                                                <th style={{ 
-                                                    padding: '10px 8px', 
-                                                    textAlign: 'center', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
-                                                    fontSize: '11px',
-                                                    letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '100px'
-                                                }}>
-                                                    Personal
-                                                </th>
-                                                <th style={{ 
-                                                    padding: '10px 8px', 
-                                                    textAlign: 'center', 
-                                                    fontWeight: '600', 
-                                                    color: '#374151', 
-                                                    fontSize: '11px',
-                                                    letterSpacing: '0.025em',
-                                                    borderRight: '1px solid #e5e7eb',
-                                                    width: '90px'
+                                                    textTransform: 'uppercase',
+                                                    borderRight: '1px solid #e2e8f0',
+                                                    minWidth: '120px',
+                                                    background: 'transparent'
                                                 }}>
                                                     AI Risk
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '12px',
-                                                    textAlign: 'left',
-                                                    fontWeight: '600',
+                                                    padding: '12px 16px',
+                                                    textAlign: 'center',
+                                                    fontWeight: '700',
                                                     fontSize: '12px',
-                                                    color: '#374151',
-                                                    borderBottom: '2px solid #e5e7eb',
-                                                    backgroundColor: '#f9fafb',
-                                                    position: 'sticky',
-                                                    top: 0,
-                                                    zIndex: 10,
-                                                    borderRight: '1px solid #f3f4f6'
+                                                    color: '#1e293b',
+                                                    letterSpacing: '0.025em',
+                                                    textTransform: 'uppercase',
+                                                    borderRight: '1px solid #e2e8f0',
+                                                    minWidth: '140px',
+                                                    background: 'transparent'
                                                 }}>
                                                     Assessment
                                                 </th>
                                                 <th style={{ 
-                                                    padding: '12px',
-                                                    textAlign: 'left',
-                                                    fontWeight: '600',
+                                                    padding: '12px 16px',
+                                                    textAlign: 'center',
+                                                    fontWeight: '700',
                                                     fontSize: '12px',
-                                                    color: '#374151',
-                                                    borderBottom: '2px solid #e5e7eb',
-                                                    backgroundColor: '#f9fafb',
-                                                    position: 'sticky',
-                                                    top: 0,
-                                                    zIndex: 10,
-                                                    width: '180px'
+                                                    color: '#1e293b',
+                                                    letterSpacing: '0.025em',
+                                                    textTransform: 'uppercase',
+                                                    minWidth: '140px',
+                                                    background: 'transparent'
                                                 }}>
-                                                    Trigger
+                                                    Primary Trigger
                                                 </th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {teamMembers.map((member, index) => (
+                                            {filteredMembers.map((member, index) => (
                                                 <tr 
                                                     key={member.id}
                                                     onMouseEnter={() => setHoveredMember(member)}
                                                     style={{ 
-                                                        borderBottom: '1px solid #f3f4f6',
-                                                        backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                                        transition: 'background-color 0.2s ease'
+                                                        borderBottom: '1px solid #e5e7eb',
+                                                        backgroundColor: index % 2 === 0 ? '#ffffff' : '#fafbfc',
+                                                        transition: 'all 0.2s ease'
                                                     }}
                                                     className={`table-row ${index % 2 === 1 ? 'table-row-alt' : ''}`}
                                                 >
                                                     <td style={{ 
-                                                        padding: '8px 12px',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '200px'
+                                                        padding: '16px 20px',
+                                                        borderRight: '1px solid #e5e7eb'
                                                     }}>
-                                                        <VStack align="start" gap={0}>
+                                                        <VStack align="stretch" gap={2}>
                                                             <HStack gap={2} align="center">
                                                                 <Box
                                                                     w="28px"
@@ -971,7 +746,7 @@ export default function Teams() {
                                                                 >
                                                                     {member.name.charAt(0).toUpperCase()}
                                                                 </Box>
-                                                                <VStack align="start" gap={0}>
+                                                                <VStack align="start" gap={0} flex={1}>
                                                                     <Text fontWeight="semibold" color="gray.800" fontSize="xs">
                                                                         {member.name}
                                                                     </Text>
@@ -982,110 +757,98 @@ export default function Teams() {
                                                             </HStack>
                                                         </VStack>
                                                     </td>
+
                                                     <td style={{ 
-                                                        padding: '8px 8px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '100px'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
-                                                        <Text 
-                                                            fontSize="2xs"
-                                                            fontWeight="medium"
-                                                            color={member.mentalHealth === 'High' ? '#dc2626' : member.mentalHealth === 'Medium' ? '#d97706' : '#059669'}
-                                                            bg={member.mentalHealth === 'High' ? '#fef2f2' : member.mentalHealth === 'Medium' ? '#fef3c7' : '#f0fdf4'}
-                                                            px={1.5}
-                                                            py={0.5}
-                                                            borderRadius="md"
-                                                            border="1px solid"
-                                                            borderColor={member.mentalHealth === 'High' ? '#fecaca' : member.mentalHealth === 'Medium' ? '#fed7aa' : '#bbf7d0'}
-                                                        >
-                                                            {member.mentalHealth}
-                                                        </Text>
+                                                        {/* Risk Factors Grid - 2x2 Layout */}
+                                                        <VStack gap={2} w="full">
+                                                            {/* Top Row: Mental and Motivation */}
+                                                            <HStack gap={3} justify="center" w="full">
+                                                                <VStack gap={1} align="center" minW="80px">
+                                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">
+                                                                        Mental
+                                                                    </Text>
+                                                                    <Badge
+                                                                        colorScheme={member.mentalHealth === 'High' ? 'red' : member.mentalHealth === 'Medium' ? 'orange' : 'green'}
+                                                                        fontSize="2xs"
+                                                                        px={2}
+                                                                        py={0.5}
+                                                                    >
+                                                                        {member.mentalHealth}
+                                                                    </Badge>
+                                                                </VStack>
+                                                                <VStack gap={1} align="center" minW="80px">
+                                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">
+                                                                        Motivation
+                                                                    </Text>
+                                                                    <Badge
+                                                                        colorScheme={member.motivationFactor === 'High' ? 'red' : member.motivationFactor === 'Medium' ? 'orange' : 'green'}
+                                                                        fontSize="2xs"
+                                                                        px={2}
+                                                                        py={0.5}
+                                                                    >
+                                                                        {member.motivationFactor}
+                                                                    </Badge>
+                                                                </VStack>
+                                                            </HStack>
+                                                            {/* Bottom Row: Career and Personal */}
+                                                            <HStack gap={3} justify="center" w="full">
+                                                                <VStack gap={1} align="center" minW="80px">
+                                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">
+                                                                        Career
+                                                                    </Text>
+                                                                    <Badge
+                                                                        colorScheme={member.careerOpportunities === 'High' ? 'red' : member.careerOpportunities === 'Medium' ? 'orange' : 'green'}
+                                                                        fontSize="2xs"
+                                                                        px={2}
+                                                                        py={0.5}
+                                                                    >
+                                                                        {member.careerOpportunities}
+                                                                    </Badge>
+                                                                </VStack>
+                                                                <VStack gap={1} align="center" minW="80px">
+                                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">
+                                                                        Personal
+                                                                    </Text>
+                                                                    <Badge
+                                                                        colorScheme={member.personalReason === 'High' ? 'red' : member.personalReason === 'Medium' ? 'orange' : 'green'}
+                                                                        fontSize="2xs"
+                                                                        px={2}
+                                                                        py={0.5}
+                                                                    >
+                                                                        {member.personalReason}
+                                                                    </Badge>
+                                                                </VStack>
+                                                            </HStack>
+                                                        </VStack>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '8px 8px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '100px'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
                                                         <Text 
-                                                            fontSize="2xs"
-                                                            fontWeight="medium"
-                                                            color={member.motivationFactor === 'High' ? '#dc2626' : member.motivationFactor === 'Medium' ? '#d97706' : '#059669'}
-                                                            bg={member.motivationFactor === 'High' ? '#fef2f2' : member.motivationFactor === 'Medium' ? '#fef3c7' : '#f0fdf4'}
-                                                            px={1.5}
-                                                            py={0.5}
-                                                            borderRadius="md"
-                                                            border="1px solid"
-                                                            borderColor={member.motivationFactor === 'High' ? '#fecaca' : member.motivationFactor === 'Medium' ? '#fed7aa' : '#bbf7d0'}
-                                                        >
-                                                            {member.motivationFactor}
-                                                        </Text>
-                                                    </td>
-                                                    <td style={{ 
-                                                        padding: '8px 8px', 
-                                                        textAlign: 'center',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '100px'
-                                                    }}>
-                                                        <Text 
-                                                            fontSize="2xs"
-                                                            fontWeight="medium"
-                                                            color={member.careerOpportunities === 'High' ? '#dc2626' : member.careerOpportunities === 'Medium' ? '#d97706' : '#059669'}
-                                                            bg={member.careerOpportunities === 'High' ? '#fef2f2' : member.careerOpportunities === 'Medium' ? '#fef3c7' : '#f0fdf4'}
-                                                            px={1.5}
-                                                            py={0.5}
-                                                            borderRadius="md"
-                                                            border="1px solid"
-                                                            borderColor={member.careerOpportunities === 'High' ? '#fecaca' : member.careerOpportunities === 'Medium' ? '#fed7aa' : '#bbf7d0'}
-                                                        >
-                                                            {member.careerOpportunities}
-                                                        </Text>
-                                                    </td>
-                                                    <td style={{ 
-                                                        padding: '8px 8px', 
-                                                        textAlign: 'center',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '100px'
-                                                    }}>
-                                                        <Text 
-                                                            fontSize="2xs"
-                                                            fontWeight="medium"
-                                                            color={member.personalReason === 'High' ? '#dc2626' : member.personalReason === 'Medium' ? '#d97706' : '#059669'}
-                                                            bg={member.personalReason === 'High' ? '#fef2f2' : member.personalReason === 'Medium' ? '#fef3c7' : '#f0fdf4'}
-                                                            px={1.5}
-                                                            py={0.5}
-                                                            borderRadius="md"
-                                                            border="1px solid"
-                                                            borderColor={member.personalReason === 'High' ? '#fecaca' : member.personalReason === 'Medium' ? '#fed7aa' : '#bbf7d0'}
-                                                        >
-                                                            {member.personalReason}
-                                                        </Text>
-                                                    </td>
-                                                    <td style={{ 
-                                                        padding: '8px 8px', 
-                                                        textAlign: 'center',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '90px'
-                                                    }}>
-                                                        <Text 
-                                                            fontSize="2xs"
-                                                            fontWeight="medium"
+                                                            fontSize="xs"
+                                                            fontWeight="600"
                                                             color={calculateSuggestedRisk(member) === 'High' ? '#dc2626' : calculateSuggestedRisk(member) === 'Medium' ? '#d97706' : '#059669'}
                                                             bg={calculateSuggestedRisk(member) === 'High' ? '#fef2f2' : calculateSuggestedRisk(member) === 'Medium' ? '#fef3c7' : '#f0fdf4'}
-                                                            px={1.5}
-                                                            py={0.5}
+                                                            px={3}
+                                                            py={1.5}
                                                             borderRadius="md"
                                                             border="1px solid"
                                                             borderColor={calculateSuggestedRisk(member) === 'High' ? '#fecaca' : calculateSuggestedRisk(member) === 'Medium' ? '#fed7aa' : '#bbf7d0'}
+                                                            display="inline-block"
                                                         >
                                                             {calculateSuggestedRisk(member)}
                                                         </Text>
                                                     </td>
                                                     <td style={{ 
-                                                        padding: '8px 8px', 
+                                                        padding: '12px 16px', 
                                                         textAlign: 'center',
-                                                        width: '130px'
+                                                        borderRight: '1px solid #f3f4f6'
                                                     }}>
                                                         <select
                                                             value={member.attritionRisk || 'Medium'}
@@ -1111,8 +874,7 @@ export default function Teams() {
                                                     </td>
                                                     <td style={{ 
                                                         padding: '8px 8px', 
-                                                        textAlign: 'center',
-                                                        width: '180px'
+                                                        textAlign: 'center'
                                                     }}>
                                                         <select
                                                             defaultValue=""
@@ -1179,20 +941,29 @@ export default function Teams() {
                             
                             {/* Enhanced Pagination Footer */}
                             <Card.Footer p={4} borderTop="1px solid" borderColor="gray.200">
-                                <Pagination
-                                    currentPage={currentPage}
-                                    totalPages={Math.ceil((searchQuery ? filteredCount : totalCount) / pageSize)}
-                                    totalItems={searchQuery ? filteredCount : totalCount}
-                                    itemsPerPage={pageSize}
-                                    onPageChange={setCurrentPage}
-                                    onItemsPerPageChange={(newPageSize) => {
-                                        setPageSize(newPageSize);
-                                        setCurrentPage(1);
-                                    }}
-                                    loading={teamDataLoading}
-                                    showFirstLast={true}
-                                    showPageNumbers={true}
-                                />
+                                <HStack justify="space-between" w="full" align="center" flexWrap="wrap" gap={4}>
+                                    <Pagination
+                                        currentPage={currentPage}
+                                        totalPages={Math.ceil((searchQuery ? filteredCount : totalCount) / pageSize)}
+                                        totalItems={searchQuery ? filteredCount : totalCount}
+                                        itemsPerPage={pageSize}
+                                        onPageChange={setCurrentPage}
+                                        loading={teamDataLoading}
+                                        showFirstLast={true}
+                                        showPageNumbers={true}
+                                        hideItemCount={true}
+                                    />
+                                    <Button
+                                        colorPalette="blue"
+                                        size="sm"
+                                        onClick={handleSaveChanges}
+                                        disabled={changedMembers.size === 0 || saving}
+                                        loading={saving}
+                                        loadingText="Saving..."
+                                    >
+                                        Save Changes ({changedMembers.size})
+                                    </Button>
+                                </HStack>
                             </Card.Footer>
                         </Card.Root>
                         
@@ -1916,5 +1687,16 @@ export default function Teams() {
                 </Box>
                 )}
             </AppLayout>
+
+            {/* Employee Detail Modal - Rendered outside AppLayout */}
+            <EmployeeDetailModal
+                isOpen={isEmployeeDetailModalOpen}
+                onClose={() => {
+                    setIsEmployeeDetailModalOpen(false);
+                    setSelectedMember(null);
+                }}
+                employee={selectedMember}
+            />
+        </>
     );
 }

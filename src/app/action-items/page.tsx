@@ -37,6 +37,9 @@ import {
     CheckCircle2,
     X
 } from 'lucide-react';
+import { Pagination } from '@/components/common/Pagination';
+import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useResponsive } from '@/hooks/useResponsive';
 import { actionItemApi, ActionItem, ActionItemsPaginatedResponse, ActionItemsQueryParams } from '@/services';
 import { formatDate } from '@/utils/date';
 import { AppLayout } from '@/components/layouts/AppLayout';
@@ -67,6 +70,7 @@ export default function ActionItemsPage() {
         tags: [] as string[]
     });
     const [currentPage, setCurrentPage] = useState(1);
+    const { itemsToShow } = useResponsive(3, 5);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [hasNext, setHasNext] = useState(false);
@@ -233,14 +237,18 @@ export default function ActionItemsPage() {
     if (loading) {
         return (
             <AppLayout>
-                <Flex justify="center" align="center" minH="60vh">
-                    <VStack gap={4}>
-                        <Spinner size="xl" color="purple.500" />
-                        <Text color="gray.600" fontSize="lg">
-                            Loading action items...
-                        </Text>
-                    </VStack>
-                </Flex>
+                <Box w="full" h="100vh" bg="gray.50" overflow="auto">
+                    <Box px={{ base: 3, sm: 4, md: 6, lg: 8 }} py={{ base: 3, sm: 4, md: 5, lg: 6 }} maxW="1920px" mx="auto">
+                        <VStack gap={6} align="stretch" w="full">
+                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+                                <SkeletonLoader type="metric" count={3} />
+                            </SimpleGrid>
+                            <Box mt={4}>
+                                <SkeletonLoader type="action-item" count={itemsToShow} />
+                            </Box>
+                        </VStack>
+                    </Box>
+                </Box>
             </AppLayout>
         );
     }
@@ -250,7 +258,7 @@ export default function ActionItemsPage() {
             <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
-                        <Text color="red.600" fontSize="lg">
+                        <Text color="red.600" fontSize="1.125rem">
                             {error}
                         </Text>
                         <Button onClick={() => window.location.reload()} colorPalette="blue">
@@ -289,12 +297,12 @@ export default function ActionItemsPage() {
                                                     <Heading size="2xl" color="white" fontWeight="bold">
                                                         Action Items
                                                     </Heading>
-                                                    <Text color="teal.600" fontSize="lg">
+                                                    <Text color="teal.600" fontSize="1.125rem">
                                                         Track progress and drive results
                                                     </Text>
                                                 </VStack>
                                             </HStack>
-                                            <Text fontSize="sm" color="teal.600">
+                                            <Text fontSize="0.875rem" color="teal.600">
                                                 {searchQuery ? (
                                                     `${filteredAndSortedItems.length} of ${totalCount} items matching "${searchQuery}"`
                                                 ) : (
@@ -354,11 +362,11 @@ export default function ActionItemsPage() {
                                 </Box>
                                 
                                 {/* Enhanced Search and Filter Section */}
-                                <Box p={6} bg="gray.50">
+                                <Box p={{ base: 3, sm: 4, md: 5, lg: 6 }} bg="gray.50">
                                     <VStack gap={4} align="stretch">
-                                        <HStack gap={4} flexWrap="wrap">
+                                        <HStack gap={4} flexWrap="wrap" flexDirection={{ base: 'column', md: 'row' }}>
                                             {/* Advanced Search */}
-                                            <Box flex={1} minW="300px">
+                                            <Box flex={1} minW={{ base: 'full', md: '300px' }} w={{ base: 'full', md: 'auto' }}>
                                                 <Box position="relative">
                                                     <Input
                                                         placeholder="Search action items by title or description..."
@@ -429,6 +437,7 @@ export default function ActionItemsPage() {
                                                 }}
                                                 borderRadius="xl"
                                                 px={6}
+                                                w={{ base: 'full', md: 'auto' }}
                                             >
                                                 <Filter size={20} />
                                                 Filters
@@ -486,7 +495,7 @@ export default function ActionItemsPage() {
                                                         <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
                                                             {/* Status Filter */}
                                                             <VStack align="start" gap={2}>
-                                                                <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="1rem">
                                                                     Status
                                                                 </Text>
                                                                 <VStack align="start" gap={2}>
@@ -586,14 +595,14 @@ export default function ActionItemsPage() {
                         {loading && (
                             <Box textAlign="center" py={12}>
                                 <Spinner size="xl" color="blue.500" mb={4} />
-                                <Text fontSize="lg" color="gray.600">Loading action items...</Text>
+                                <Text fontSize="1.125rem" color="gray.600">Loading action items...</Text>
                             </Box>
                         )}
 
                         {/* Error State */}
                         {error && (
                             <Box textAlign="center" py={12}>
-                                <Text fontSize="lg" color="red.500" mb={4}>{error}</Text>
+                                <Text fontSize="1.125rem" color="red.500" mb={4}>{error}</Text>
                                 <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
                                     Retry
                                 </Button>
@@ -602,7 +611,7 @@ export default function ActionItemsPage() {
 
                         {/* Stats Section - Compact Design */}
                         {!loading && !error && (
-                        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={4} maxW="1000px">
+                        <SimpleGrid columns={{ base: 1, sm: 2, md: 2, lg: 4, xl: 4 }} gap={{ base: 3, sm: 4, lg: 4 }} maxW="1400px" mx="auto">
                             <Card.Root bg="white" shadow="sm" borderRadius="xl">
                                 <Card.Body p={4}>
                                     <HStack gap={3} align="center">
@@ -610,10 +619,10 @@ export default function ActionItemsPage() {
                                             <Clock color="#3182ce" size={20} />
                                         </Box>
                                         <VStack align="start" gap={0} flex={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.600">
                                                 Total Items
                                             </Text>
-                                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.800">
                                                 {actionItems.length}
                                             </Text>
                                         </VStack>
@@ -1062,7 +1071,7 @@ export default function ActionItemsPage() {
                                                 </VStack>
                                             </Box>
                                         ) : viewMode === 'grid' ? (
-                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                                            <SimpleGrid columns={{ base: 1, sm: 1, md: 2, lg: 3, xl: 4 }} gap={{ base: 4, sm: 5, md: 6 }}>
                                                 {filteredAndSortedItems.map((item) => {
                                                     const priority = item.priority || 'Medium';
                                                     const priorityColor = getPriorityColor(priority);
