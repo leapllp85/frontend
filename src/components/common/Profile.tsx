@@ -1,18 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
-import { Box, Grid, VStack, Card, Text, Spinner, GridItem, HStack, Heading } from "@chakra-ui/react";
-import { User } from "lucide-react";
+import { Box, Grid, VStack, Card, Text, Spinner, GridItem, HStack, Heading, SimpleGrid, IconButton, Badge, Flex, Dialog, Button } from "@chakra-ui/react";
+import { User, Users, UsersRound, FolderKanban, AlertTriangle, TrendingUp, ArrowLeftRight, X, Calendar, TrendingDown } from "lucide-react";
 import { userApi, actionItemApi, projectApi, teamApi, metricsApi, notificationsApi } from '../../services';
 import type { TeamStats, ProjectStats, ProjectRisksResponse, ProjectMetrics, NotificationsResponse } from '../../services';
 import type { UserProfile } from "../../services/userApi";
-import { CriticalityVsRisk } from "../profile/criticality/CriticalityVsRisk";
-import { AttritionRisk } from "../profile/criticality/AttritionRisk";
+import { AttritionAnalysis } from "../profile/AttritionAnalysis";
 import { CriticalTeamMembers } from "../profile/criticality/CriticalTeamMembers";
 import { StatsRow } from "../profile/StatsRow";
 import { AttritionTrendsPanel } from "../profile/AttritionTrendsPanel";
 import { HealthMetrics } from "../profile/HealthMetrics";
 import { ProjectRisks } from "../profile/ProjectRisks";
+import { LoadingScreen } from "./LoadingScreen";
+import { ProfileMetricsGrid } from "../profile/ProfileMetricsGrid";
+import { ProfileBottomSection } from "../profile/ProfileBottomSection";
+import { CriticalMembersDialog } from "../profile/CriticalMembersDialog";
+import { MOCK_AT_RISK_PROJECTS } from "../../constants/index";
 
 type ProfileData = UserProfile;
 
@@ -32,6 +36,7 @@ export const Profile = ({
   const [notifications, setNotifications] = useState<NotificationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMappingModalOpen, setIsMappingModalOpen] = useState(false);
 
   const fetchProfileData = async () => {
     try {
@@ -115,45 +120,7 @@ export const Profile = ({
   }, []);
 
   if (loading) {
-    return (
-      <Box 
-        w={width} 
-        h="full" 
-        bg="#d4f1f4"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        p={6}
-        overflow="hidden"
-      >
-        <Card.Root
-          bg="whiteAlpha.900"
-          backdropFilter="blur(10px)"
-          borderRadius="2xl"
-          border="1px solid"
-          borderColor="whiteAlpha.300"
-          shadow="sm"
-          p={8}
-        >
-          <Card.Body>
-            <VStack gap={0}>
-              <Box
-                w="16"
-                h="16"
-                borderRadius="full"
-                border="4px solid"
-                bg="#d4f1f4"
-                borderTopColor="transparent"
-                animation="spin 1s linear infinite"
-              />
-              <Text fontSize="lg" fontWeight="semibold" color="gray.700">
-                Loading your profile...
-              </Text>
-            </VStack>
-          </Card.Body>
-        </Card.Root>
-      </Box>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
@@ -182,7 +149,7 @@ export const Profile = ({
               <Box p={3} bg="red.100" borderRadius="full" color="red.600">
                 <User size={24} />
               </Box>
-              <Text fontSize="lg" fontWeight="semibold" color="red.600" textAlign="center">
+              <Text fontSize="1.125rem" fontWeight="semibold" color="red.600" textAlign="center">
                 Error loading profile: {error}
               </Text>
             </VStack>
@@ -195,81 +162,40 @@ export const Profile = ({
   return (
     <Box 
       w="full"
-      h="full" 
-      bg="#ffffff"
-      position="relative"
-      gap={0}
-      p={0}
-      overflow="hidden"
+      minH="100vh" 
+      bg="#f4f6f9"
+      overflow="auto"
     >
-      {/* Main Content */}
-      <Box position="relative" h="98%" overflow="hidden" w="98%">
-        {/* Dashboard Content */}
-        <Box h="full" p={1} position="relative">
-          {/* Main Content Grid - Full Screen Layout */}
-          <HStack 
-            h="full"
-            w="full"
-            gap={0}
-            align="center"
-            minH="0"
-          >
-            {/* Left Side - Health Metrics (Full Height) */}
-            <VStack h="full" w="320px" flexShrink={0} gap={1} align="center">
-              <HealthMetrics 
-                metrics={metrics ? [
-                  { label: 'Portfolio Health', value: 76, color: '#ef4444', type: 'portfolio_health' as const, isLarge: true },
-                  { label: 'Mental Health', value: metrics.data?.mental_health, color: '#60a5fa', type: 'mental_health' as const },
-                  { label: 'Attrition Risk', value: metrics.data?.attrition_risk, color: '#4ade80', type: 'attrition_risk' as const },
-                  { label: 'Project Health', value: metrics.data?.project_health, color: '#fb923c', type: 'project_health' as const }
-                ] : []}
-              />
-            </VStack>
+      {/* Main Dashboard */}
+      <Box w="full" p={0}>
+        <VStack flex={1} minW={0} gap={{ base: 3, sm: 4, lg: 5 }} align="stretch" w="full" p={{ base: 3, sm: 4, md: 5, lg: 5, xl: 6 }} pt={{ base: 3, sm: 4, md: 5 }} maxW="1920px" mx="auto">
+            {/* Metric Cards Row */}
+            <ProfileMetricsGrid
+              teamStats={teamStats}
+              projectStats={projectStats}
+              projectRisks={projectRisks}
+              metrics={metrics}
+            />
 
-            {/* Right Side - Stats Row + Main Content */}
-            <VStack flex="1" h="full" gap={1} align="stretch" minH="0">
-              {/* Stats Row - Top Right */}
-              <Box w="full" flexShrink={0}>
-                <StatsRow 
-                  activeProjects={projectStats?.active_projects ?? projects?.length ?? 150}
-                  teamMembers={teamStats?.team_members_count}
-                  avgUtilization={teamStats?.utilization_percentage}
-                  highRiskProjects={projectStats?.high_risk_projects}
-                />
-              </Box>
+            {/* Attrition Risk Analysis (with integrated Trends) */}
+            <Box h="460px" flexShrink={0} overflow="hidden" w="full">
+              <AttritionAnalysis userId={user?.id?.toString()} />
+            </Box>
 
-              {/* Main Content Area */}
-              <VStack flex="1" h="full" gap={2} align="stretch" minH="0">
-                {/* Top - Criticality vs Attrition Risk */}
-                <HStack w="full" h="58%" gap={2} minH="0" align="stretch">
-                  <Box w="30%" h="full" minW="0">
-                    <CriticalityVsRisk userId={user?.id?.toString()} />
-                  </Box>
-                  <Box w="30%" h="full" minW="0">
-                    <AttritionRisk userId={user?.id?.toString()} />
-                  </Box>
-                  <Box w="40%" h="full" minW="0">
-                    <CriticalTeamMembers userId={user?.id?.toString()} />
-                  </Box>
-                </HStack>
-                                
-                {/* Bottom Row - Notifications and Project Risks */}
-                <HStack gap={2} align="stretch" w="full" h="42%" minH="0">
-                  <Box flex="1" h="full" minH="0">
-                    <AttritionTrendsPanel 
-                      trends={notifications?.notifications}
-                    />
-                  </Box>
-                  <Box flex="1" h="full" minH="0">
-                    <ProjectRisks 
-                      projects={projectRisks?.projects}
-                    />
-                  </Box>
-                </HStack>
-              </VStack>
-            </VStack>
-          </HStack>
-        </Box>
+            {/* Bottom Row - Critical Members and Project Risks */}
+            <ProfileBottomSection
+              userId={user?.id?.toString()}
+              projectRisks={projectRisks}
+              onMappingClick={() => setIsMappingModalOpen(true)}
+            />
+
+            {/* Member-Project Mapping Modal */}
+            <CriticalMembersDialog
+              isOpen={isMappingModalOpen}
+              onClose={() => setIsMappingModalOpen(false)}
+              projects={MOCK_AT_RISK_PROJECTS as any}
+            />
+          </VStack>
       </Box>
     </Box>
   );

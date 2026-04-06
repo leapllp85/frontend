@@ -176,28 +176,28 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
     return gradient;
   };
 
-  // Prepare chart data with single straight line
+  // Prepare chart data with teal/cyan gradient matching the attached image
   const chartData = {
     labels: attritionData.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`),
     datasets: [
       {
-        label: 'High Risk',
+        label: 'Attrition Risk',
         data: attritionData.map(item => item.high),
-        borderColor: '#EF4444',
+        borderColor: '#7EC8E3',
         backgroundColor: (context: any) => {
           const chart = context.chart;
           const { ctx } = chart;
-          return createGradient(ctx, 'rgba(239, 68, 68, 0.001)', 'rgba(239, 68, 68, 0.9)');
+          return createGradient(ctx, 'rgba(126, 200, 227, 0.1)', 'rgba(126, 200, 227, 0.6)');
         },
         borderWidth: 3,
-        pointBackgroundColor: '#EF4444',
+        pointBackgroundColor: '#FF6B6B',
         pointBorderColor: '#FFFFFF',
         pointBorderWidth: 3,
-        pointRadius: 4,
+        pointRadius: 6,
         pointHoverRadius: 12,
         pointHoverBorderWidth: 4,
         fill: true,
-        tension: 0,
+        tension: 0.4,
         borderCapStyle: 'round' as const,
         borderJoinStyle: 'round' as const
       }
@@ -231,7 +231,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         titleColor: '#FFFFFF',
         bodyColor: '#FFFFFF',
-        borderColor: '#FF4757',
+        borderColor: '#7EC8E3',
         borderWidth: 1,
         cornerRadius: 8,
         displayColors: true,
@@ -248,9 +248,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
     scales: {
       x: {
         grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1
+          display: false
         },
         ticks: {
           color: '#4A5568',
@@ -258,7 +256,9 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
             size: 11,
             weight: 'normal' as const
           },
-          padding: 8
+          padding: 8,
+          maxRotation: 45,
+          minRotation: 45
         },
         border: {
           display: false
@@ -269,9 +269,7 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
         min: 150,
         max: 500,
         grid: {
-          display: true,
-          color: 'rgba(0, 0, 0, 0.05)',
-          lineWidth: 1
+          display: false
         },
         ticks: {
           color: '#4A5568',
@@ -311,53 +309,23 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
   };
 
   return (
-    <Card.Root 
-      bg="#ffffff"
-      shadow="xs" 
-      borderRadius="3xl" 
+    <VStack 
+      align="center" 
+      justify="center" 
       h="full" 
-      display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.200"
-      maxH="320px"
-      minH="280px"
-   
-      transition="all 0.2s ease"
+      gap={2}
+      flex="1"
+      minH="0"
     >
-      <Card.Header p={3} pb={0} >
-        <VStack justify="space-between" align="center">
-          <Heading
-                      size="md"
-                      color="gray.900"
-                      textAlign="center"
-                      fontWeight="normal"
-                    >
-                       Attrition Risk Trends
-                      </Heading>
-                       <Box 
-                                              w="80%" 
-                                              h="0.9px" 
-                                              bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                                            />
-        </VStack>
-      </Card.Header>
-      
-      <Card.Body p={3} flex="1" display="flex" flexDirection="column">
-        {/* Line Chart with Area Fill */}
-        <Box w="full" h="full" flex="1">
-          <Box 
-            w="full" 
-            h="full" 
-            bg="transparent" 
-            borderRadius="3xl" 
-            p={2}
-            position="relative"
-          >
-            <Line data={chartData} options={chartOptions} />
-          </Box>
-        </Box>
-      </Card.Body>
-    </Card.Root>
+      {/* Line Chart */}
+      <Box
+        w="full"
+        h="300px"
+        maxH="300px"
+        transition="all 0.2s ease"
+      >
+        <Line data={chartData} options={chartOptions} />
+      </Box>
+    </VStack>
   );
 };

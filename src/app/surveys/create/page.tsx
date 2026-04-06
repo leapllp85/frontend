@@ -14,9 +14,11 @@ import {
     Flex,
     Input,
     Textarea,
-    Select
+    Card,
+    SimpleGrid,
+    Spinner
 } from '@chakra-ui/react';
-import { ArrowLeft, Plus, X, FileText, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, Plus, X, FileText, Calendar, Users, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { RequireSurveyCreate } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
@@ -237,193 +239,295 @@ const CreateSurveyPage = () => {
     return (
     <RequireSurveyCreate>
         <AppLayout>
-            <Box p={8} maxW="4xl" mx="auto">
-                {/* Back Button */}
-                <HStack mb={6}>
-                    <Button
-                        variant="ghost"
-                        onClick={() => router.push('/surveys')}
-                    >
-                        <ArrowLeft size={16} style={{ marginRight: '8px' }} />
-                        Back to Surveys
-                    </Button>
-                </HStack>
+            <Box w="full" h="100vh" bg="gradient-to-br from-purple.50 to-blue.50" overflow="auto">
+                <Box p={8} maxW="5xl" mx="auto">
+                    {/* Back Button */}
+                    <HStack mb={6}>
+                        <Button
+                            variant="ghost"
+                            onClick={() => router.push('/surveys')}
+                            size="lg"
+                            _hover={{ bg: "white", shadow: "md" }}
+                        >
+                            <ArrowLeft size={20} style={{ marginRight: '8px' }} />
+                            Back to Surveys
+                        </Button>
+                    </HStack>
 
-                {/* Header Box */}
-                <Box bg="white" shadow="md" borderRadius="lg" border="1px solid" borderColor="gray.200" mb={8}>
-                    <Box p={6}>
-                        <VStack align="start" gap={2}>
-                            <Heading size="xl" color="gray.800">Create New Survey</Heading>
-                            <Text color="gray.600" fontSize="lg">Design and configure your team survey</Text>
-                        </VStack>
-                    </Box>
-                </Box>
-
-                <VStack gap={8} align="stretch">
-                    {/* Basic Information */}
-                    <Box bg="white" shadow="md" borderRadius="lg" border="1px solid" borderColor="gray.200">
-                        <Box p={4} borderBottom="1px solid" borderColor="gray.200">
-                            <HStack gap={2}>
-                                <FileText size={20} color="#6366F1" />
-                                <Heading size="md" color="gray.800">Basic Information</Heading>
+                    {/* Enhanced Header */}
+                    <Card.Root bg="white" shadow="xl" borderRadius="2xl" border="1px solid" borderColor="gray.100" mb={8} overflow="hidden">
+                        <Box bg="gradient-to-r from-purple.600 to-blue.600" p={8}>
+                            <HStack justify="space-between" align="center">
+                                <VStack align="start" gap={2}>
+                                    <HStack gap={3}>
+                                        <Box p={3} bg="white" borderRadius="xl" shadow="lg">
+                                            <FileText size={32} color="#7c3aed" />
+                                        </Box>
+                                        <VStack align="start" gap={1}>
+                                            <Heading size="2xl" color="white" fontWeight="bold">
+                                                Create New Survey
+                                            </Heading>
+                                            <Text color="purple.100" fontSize="lg">
+                                                Design and configure your team survey
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </VStack>
+                                <Box p={4} bg="white" borderRadius="full" opacity={0.9}>
+                                    <Users size={24} color="#7c3aed" />
+                                </Box>
                             </HStack>
                         </Box>
-                        <Box p={6}>
+                    </Card.Root>
+
+                    <VStack gap={8} align="stretch">
+                        {/* Basic Information */}
+                        <Card.Root bg="white" shadow="lg" borderRadius="xl" border="1px solid" borderColor="gray.100">
+                            <Card.Header bg="gradient-to-r from-purple.50 to-blue.50" borderTopRadius="xl" p={6}>
+                                <HStack gap={3}>
+                                    <Box p={2} bg="purple.100" borderRadius="lg">
+                                        <FileText size={20} color="#7c3aed" />
+                                    </Box>
+                                    <Heading size="lg" color="gray.800" fontWeight="bold">Basic Information</Heading>
+                                </HStack>
+                            </Card.Header>
+                            <Card.Body p={8}>
                                 <VStack gap={6} align="stretch">
                                     <Box>
-                                        <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>Survey Title</Text>
+                                        <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Survey Title *</Text>
                                         <Input
-                                            placeholder="Enter survey title..."
+                                            placeholder="e.g., Employee Satisfaction Survey Q4 2024"
                                             value={formData.title}
                                             onChange={(e) => handleInputChange('title', e.target.value)}
-                                            borderColor={errors.title ? "red.500" : "gray.300"}
+                                            size="lg"
+                                            bg="white"
+                                            border="2px solid"
+                                            borderColor={errors.title ? "red.400" : "gray.200"}
                                             color="gray.800"
+                                            borderRadius="lg"
                                             _placeholder={{ color: "gray.400" }}
+                                            _focus={{
+                                                borderColor: "purple.400",
+                                                boxShadow: "0 0 0 1px #a855f7"
+                                            }}
+                                            _hover={{ borderColor: "gray.300" }}
                                         />
-                                        {errors.title && <Text color="red.500" fontSize="sm" mt={1}>{errors.title}</Text>}
+                                        {errors.title && (
+                                            <HStack gap={2} mt={2}>
+                                                <AlertCircle size={16} color="#ef4444" />
+                                                <Text color="red.500" fontSize="sm">{errors.title}</Text>
+                                            </HStack>
+                                        )}
                                     </Box>
 
                                     <Box>
-                                        <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>Description</Text>
+                                        <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Description *</Text>
                                         <Textarea
-                                            placeholder="Describe the purpose of this survey..."
+                                            placeholder="Describe the purpose and objectives of this survey. What insights are you looking to gather?"
                                             value={formData.description}
                                             onChange={(e) => handleInputChange('description', e.target.value)}
                                             rows={4}
-                                            borderColor={errors.description ? "red.500" : "gray.300"}
+                                            bg="white"
+                                            border="2px solid"
+                                            borderColor={errors.description ? "red.400" : "gray.200"}
                                             color="gray.800"
+                                            borderRadius="lg"
                                             _placeholder={{ color: "gray.400" }}
+                                            _focus={{
+                                                borderColor: "purple.400",
+                                                boxShadow: "0 0 0 1px #a855f7"
+                                            }}
+                                            _hover={{ borderColor: "gray.300" }}
+                                            resize="vertical"
                                         />
-                                        {errors.description && <Text color="red.500" fontSize="sm" mt={1}>{errors.description}</Text>}
+                                        {errors.description && (
+                                            <HStack gap={2} mt={2}>
+                                                <AlertCircle size={16} color="#ef4444" />
+                                                <Text color="red.500" fontSize="sm">{errors.description}</Text>
+                                            </HStack>
+                                        )}
                                     </Box>
 
-                                    <HStack gap={6}>
-                                        <Box flex="1">
-                                            <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>Survey Type</Text>
+                                    <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+                                        <Box>
+                                            <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Survey Type *</Text>
                                             <select
                                                 value={formData.survey_type}
                                                 onChange={(e) => handleInputChange('survey_type', e.target.value)}
                                                 style={{
                                                     width: '100%',
-                                                    padding: '8px 12px',
-                                                    border: '1px solid #D1D5DB',
-                                                    borderRadius: '6px',
-                                                    fontSize: '14px',
-                                                    color: '#374151'
+                                                    padding: '12px 16px',
+                                                    border: '2px solid #e5e7eb',
+                                                    borderRadius: '8px',
+                                                    fontSize: '16px',
+                                                    color: '#374151',
+                                                    backgroundColor: 'white',
+                                                    outline: 'none',
+                                                    appearance: 'none',
+                                                    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+                                                    backgroundPosition: 'right 12px center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundSize: '16px'
                                                 }}
                                             >
-                                                <option value="feedback">Feedback</option>
-                                                <option value="evaluation">Evaluation</option>
-                                                <option value="assessment">Assessment</option>
-                                                <option value="poll">Poll</option>
+                                                <option value="wellness">🧘 Wellness - Mental health & wellbeing</option>
+                                                <option value="feedback">💬 Feedback - General feedback collection</option>
+                                                <option value="satisfaction">😊 Satisfaction - Employee satisfaction</option>
+                                                <option value="skills">🎯 Skills - Skills assessment & development</option>
+                                                <option value="goals">🚀 Goals - Career goals & aspirations</option>
+                                                <option value="engagement">🤝 Engagement - Employee engagement</option>
+                                                <option value="leadership">👑 Leadership - Leadership assessment</option>
+                                                <option value="project_feedback">📋 Project Feedback - Project-specific feedback</option>
                                             </select>
                                         </Box>
 
-                                        <Box flex="1">
-                                            <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>Target Audience</Text>
+                                        <Box>
+                                            <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Target Audience *</Text>
                                             <select
                                                 value={formData.targeting_option}
                                                 onChange={(e) => handleInputChange('targeting_option', e.target.value)}
                                                 style={{
                                                     width: '100%',
-                                                    padding: '8px 12px',
-                                                    border: '1px solid #D1D5DB',
-                                                    borderRadius: '6px',
-                                                    fontSize: '14px',
-                                                    color: '#374151'
+                                                    padding: '12px 16px',
+                                                    border: '2px solid #e5e7eb',
+                                                    borderRadius: '8px',
+                                                    fontSize: '16px',
+                                                    color: '#374151',
+                                                    backgroundColor: 'white',
+                                                    outline: 'none',
+                                                    appearance: 'none',
+                                                    backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+                                                    backgroundPosition: 'right 12px center',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundSize: '16px'
                                                 }}
                                             >
-                                                <option value="all_team_members">All Team Members</option>
-                                                <option value="managers_only">Managers Only</option>
-                                                <option value="associates_only">Associates Only</option>
+                                                <option value="all_employees">👥 All Employees</option>
+                                                <option value="team_only">🏢 Team Only</option>
+                                                <option value="by_department">🏛️ By Department</option>
+                                                <option value="by_role">👔 By Role</option>
+                                                <option value="by_risk_level">⚠️ By Risk Level</option>
+                                                <option value="custom_selection">🎯 Custom Selection</option>
                                             </select>
                                         </Box>
-                                    </HStack>
+                                    </SimpleGrid>
                                 </VStack>
-                            </Box>
-                        </Box>
+                            </Card.Body>
+                        </Card.Root>
 
                         {/* Schedule */}
-                        <Box bg="white" shadow="md" borderRadius="lg" border="1px solid" borderColor="gray.200">
-                            <Box p={4} borderBottom="1px solid" borderColor="gray.200">
-                                <HStack gap={2}>
-                                    <Calendar size={20} color="#10B981" />
-                                    <Heading size="md" color="gray.800">Schedule</Heading>
+                        <Card.Root bg="white" shadow="lg" borderRadius="xl" border="1px solid" borderColor="gray.100">
+                            <Card.Header bg="gradient-to-r from-green.50 to-teal.50" borderTopRadius="xl" p={6}>
+                                <HStack gap={3}>
+                                    <Box p={2} bg="green.100" borderRadius="lg">
+                                        <Calendar size={20} color="#059669" />
+                                    </Box>
+                                    <Heading size="lg" color="gray.800" fontWeight="bold">Schedule</Heading>
                                 </HStack>
-                            </Box>
-                            <Box p={6}>
-                                <HStack gap={6}>
+                            </Card.Header>
+                            <Card.Body p={8}>
+                                <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
                                     <Box>
-                                        <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>Start Date & Time</Text>
+                                        <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Start Date & Time *</Text>
                                         <Input
                                             type="datetime-local"
                                             value={formData.start_date}
                                             onChange={(e) => handleInputChange('start_date', e.target.value)}
+                                            size="lg"
                                             bg="white"
-                                            border="1px solid"
-                                            borderColor="gray.300"
+                                            border="2px solid"
+                                            borderColor={errors.start_date ? "red.400" : "gray.200"}
                                             color="gray.800"
-                                            _hover={{ borderColor: "gray.400" }}
-                                            _focus={{ borderColor: "purple.500", boxShadow: "0 0 0 1px #6366F1" }}
+                                            borderRadius="lg"
+                                            _hover={{ borderColor: "gray.300" }}
+                                            _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px #10b981" }}
                                         />
-                                        {errors.start_date && <Text color="red.500" fontSize="sm" mt={1}>{errors.start_date}</Text>}
+                                        {errors.start_date && (
+                                            <HStack gap={2} mt={2}>
+                                                <AlertCircle size={16} color="#ef4444" />
+                                                <Text color="red.500" fontSize="sm">{errors.start_date}</Text>
+                                            </HStack>
+                                        )}
                                     </Box>
 
                                     <Box>
-                                        <Text color="gray.700" fontSize="sm" fontWeight="medium" mb={2}>End Date & Time</Text>
+                                        <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>End Date & Time *</Text>
                                         <Input
                                             type="datetime-local"
                                             value={formData.end_date}
                                             onChange={(e) => handleInputChange('end_date', e.target.value)}
+                                            size="lg"
                                             bg="white"
-                                            border="1px solid"
-                                            borderColor="gray.300"
+                                            border="2px solid"
+                                            borderColor={errors.end_date ? "red.400" : "gray.200"}
                                             color="gray.800"
-                                            _hover={{ borderColor: "gray.400" }}
-                                            _focus={{ borderColor: "purple.500", boxShadow: "0 0 0 1px #6366F1" }}
+                                            borderRadius="lg"
+                                            _hover={{ borderColor: "gray.300" }}
+                                            _focus={{ borderColor: "green.400", boxShadow: "0 0 0 1px #10b981" }}
                                         />
-                                        {errors.end_date && <Text color="red.500" fontSize="sm" mt={1}>{errors.end_date}</Text>}
+                                        {errors.end_date && (
+                                            <HStack gap={2} mt={2}>
+                                                <AlertCircle size={16} color="#ef4444" />
+                                                <Text color="red.500" fontSize="sm">{errors.end_date}</Text>
+                                            </HStack>
+                                        )}
                                     </Box>
-                                </HStack>
-                            </Box>
-                        </Box>
+                                </SimpleGrid>
+                            </Card.Body>
+                        </Card.Root>
 
                         {/* Questions */}
-                        <Box bg="white" shadow="md" borderRadius="lg" border="1px solid" borderColor="gray.200">
-                            <Box p={4} borderBottom="1px solid" borderColor="gray.200">
+                        <Card.Root bg="white" shadow="lg" borderRadius="xl" border="1px solid" borderColor="gray.100">
+                            <Card.Header bg="gradient-to-r from-orange.50 to-yellow.50" borderTopRadius="xl" p={6}>
                                 <HStack justify="space-between">
-                                    <HStack gap={2}>
-                                        <Users size={20} color="#F59E0B" />
-                                        <Heading size="md" color="gray.800">Questions</Heading>
-                                        <Badge colorPalette="blue" size="sm">
+                                    <HStack gap={3}>
+                                        <Box p={2} bg="orange.100" borderRadius="lg">
+                                            <Users size={20} color="#ea580c" />
+                                        </Box>
+                                        <Heading size="lg" color="gray.800" fontWeight="bold">Questions</Heading>
+                                        <Badge colorPalette="orange" variant="solid" px={3} py={1} borderRadius="full" fontSize="xs">
                                             {formData.questions.length} question{formData.questions.length !== 1 ? 's' : ''}
                                         </Badge>
                                     </HStack>
                                     <Button
-                                        size="sm"
-                                        colorPalette="purple"
-                                        // leftIcon={<Plus size={16} />}
+                                        size="md"
+                                        bg="orange.600"
+                                        color="white"
+                                        _hover={{ bg: "orange.700", transform: "translateY(-2px)", shadow: "lg" }}
                                         onClick={addQuestion}
+                                        borderRadius="lg"
+                                        px={6}
                                     >
+                                        <Plus size={16} style={{ marginRight: '8px' }} />
                                         Add Question
                                     </Button>
                                 </HStack>
-                            </Box>
-                            <Box p={6}>
+                            </Card.Header>
+                            <Card.Body p={8}>
                                 <VStack gap={6} align="stretch">
                                     {formData.questions.map((question, index) => (
-                                        <Box key={index} p={4} border="1px solid" borderColor="gray.200" borderRadius="lg">
-                                            <VStack gap={4} align="stretch">
+                                        <Box key={index} p={6} bg="gray.50" border="2px solid" borderColor="gray.200" borderRadius="xl" _hover={{ borderColor: "orange.300", bg: "white" }} transition="all 0.2s">
+                                            <VStack gap={5} align="stretch">
                                                 <HStack justify="space-between">
-                                                    <Text fontWeight="semibold" color="gray.700">
-                                                        Question {index + 1}
-                                                    </Text>
+                                                    <HStack gap={3}>
+                                                        <Box p={2} bg="orange.100" borderRadius="md">
+                                                            <Text fontSize="sm" fontWeight="bold" color="orange.600">
+                                                                Q{index + 1}
+                                                            </Text>
+                                                        </Box>
+                                                        <Text fontWeight="bold" color="gray.800" fontSize="lg">
+                                                            Question {index + 1}
+                                                        </Text>
+                                                    </HStack>
                                                     {formData.questions.length > 1 && (
                                                         <Button
                                                             size="sm"
-                                                            variant="ghost"
-                                                            colorPalette="red"
+                                                            variant="outline"
+                                                            borderColor="red.400"
+                                                            color="red.600"
+                                                            _hover={{ bg: "red.50" }}
                                                             onClick={() => removeQuestion(index)}
+                                                            borderRadius="lg"
                                                         >
                                                             <X size={14} />
                                                         </Button>
@@ -431,68 +535,104 @@ const CreateSurveyPage = () => {
                                                 </HStack>
 
                                                 <Box>
+                                                    <Text color="gray.700" fontSize="sm" fontWeight="semibold" mb={3}>Question Text *</Text>
                                                     <Input
-                                                        placeholder="Enter your question..."
+                                                        placeholder="Enter your question here..."
                                                         value={question.question_text}
                                                         onChange={(e) => handleQuestionChange(index, 'question_text', e.target.value)}
+                                                        size="lg"
+                                                        bg="white"
+                                                        border="2px solid"
+                                                        borderColor={errors[`question_${index}`] ? "red.400" : "gray.200"}
                                                         color="gray.800"
+                                                        borderRadius="lg"
                                                         _placeholder={{ color: "gray.400" }}
+                                                        _focus={{
+                                                            borderColor: "orange.400",
+                                                            boxShadow: "0 0 0 1px #ea580c"
+                                                        }}
+                                                        _hover={{ borderColor: "gray.300" }}
                                                     />
-                                                    {errors[`question_${index}`] && <Text color="red.500" fontSize="sm" mt={1}>{errors[`question_${index}`]}</Text>}
+                                                    {errors[`question_${index}`] && (
+                                                        <HStack gap={2} mt={2}>
+                                                            <AlertCircle size={16} color="#ef4444" />
+                                                            <Text color="red.500" fontSize="sm">{errors[`question_${index}`]}</Text>
+                                                        </HStack>
+                                                    )}
                                                 </Box>
 
-                                                <HStack gap={4}>
-                                                    <Box>
-                                                        <Text fontSize="sm" color="gray.600" fontWeight="medium" mb={2}>Question Type</Text>
-                                                        <select
-                                                            value={question.question_type}
-                                                            onChange={(e) => handleQuestionChange(index, 'question_type', e.target.value)}
-                                                            style={{
-                                                                padding: '6px 10px',
-                                                                border: '1px solid #D1D5DB',
-                                                                borderRadius: '4px',
-                                                                fontSize: '14px',
-                                                                width: '150px',
-                                                                color: '#374151'
-                                                            }}
-                                                        >
-                                                            <option value="text">Text Response</option>
-                                                            <option value="choice">Multiple Choice</option>
-                                                            <option value="rating">Rating Scale</option>
-                                                        </select>
-                                                    </Box>
-                                                </HStack>
+                                                <Box>
+                                                    <Text fontSize="sm" color="gray.700" fontWeight="semibold" mb={3}>Question Type</Text>
+                                                    <select
+                                                        value={question.question_type}
+                                                        onChange={(e) => handleQuestionChange(index, 'question_type', e.target.value)}
+                                                        style={{
+                                                            padding: '12px 16px',
+                                                            border: '2px solid #e5e7eb',
+                                                            borderRadius: '8px',
+                                                            fontSize: '16px',
+                                                            width: '200px',
+                                                            color: '#374151',
+                                                            backgroundColor: 'white',
+                                                            outline: 'none',
+                                                            appearance: 'none',
+                                                            backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")',
+                                                            backgroundPosition: 'right 12px center',
+                                                            backgroundRepeat: 'no-repeat',
+                                                            backgroundSize: '16px'
+                                                        }}
+                                                    >
+                                                        <option value="text">📝 Text Response</option>
+                                                        <option value="choice">📊 Multiple Choice</option>
+                                                        <option value="rating">⭐ Rating Scale</option>
+                                                    </select>
+                                                </Box>
 
                                                 {(question.question_type === 'choice' || question.question_type === 'rating') && (
-                                                    <Box>
-                                                        <HStack justify="space-between" mb={3}>
-                                                            <Text fontSize="sm" color="gray.600" fontWeight="medium">
-                                                                {question.question_type === 'rating' ? 'Rating Options' : 'Answer Options'}
+                                                    <Box p={4} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                        <HStack justify="space-between" mb={4}>
+                                                            <Text fontSize="sm" color="gray.700" fontWeight="semibold">
+                                                                {question.question_type === 'rating' ? '⭐ Rating Options' : '📊 Answer Options'}
                                                             </Text>
                                                             <Button
-                                                                size="xs"
-                                                                variant="outline"
+                                                                size="sm"
+                                                                bg="orange.500"
+                                                                color="white"
+                                                                _hover={{ bg: "orange.600" }}
                                                                 onClick={() => addOption(index)}
+                                                                borderRadius="lg"
                                                             >
+                                                                <Plus size={14} style={{ marginRight: '4px' }} />
                                                                 Add Option
                                                             </Button>
                                                         </HStack>
-                                                        <VStack gap={2} align="stretch">
+                                                        <VStack gap={3} align="stretch">
                                                             {question.choices?.map((option: string, optionIndex: number) => (
-                                                                <HStack key={optionIndex}>
+                                                                <HStack key={optionIndex} gap={3}>
+                                                                    <Text fontSize="sm" color="gray.500" minW="20px">
+                                                                        {optionIndex + 1}.
+                                                                    </Text>
                                                                     <Input
-                                                                        size="sm"
                                                                         placeholder={`Option ${optionIndex + 1}`}
                                                                         value={option}
                                                                         onChange={(e) => updateOption(index, optionIndex, e.target.value)}
+                                                                        bg="white"
+                                                                        border="1px solid"
+                                                                        borderColor="gray.300"
                                                                         color="gray.800"
+                                                                        borderRadius="md"
                                                                         _placeholder={{ color: "gray.400" }}
+                                                                        _focus={{ borderColor: "orange.400" }}
                                                                     />
                                                                     <Button
                                                                         size="sm"
-                                                                        variant="ghost"
-                                                                        colorPalette="red"
+                                                                        variant="outline"
+                                                                        borderColor="red.400"
+                                                                        color="red.600"
+                                                                        _hover={{ bg: "red.50" }}
                                                                         onClick={() => removeOption(index, optionIndex)}
+                                                                        minW="auto"
+                                                                        p={2}
                                                                     >
                                                                         <X size={12} />
                                                                     </Button>
@@ -500,9 +640,12 @@ const CreateSurveyPage = () => {
                                                             ))}
                                                         </VStack>
                                                         {errors[`question_${index}_choices`] && (
-                                                            <Text color="red.500" fontSize="sm" mt={2}>
-                                                                {errors[`question_${index}_choices`]}
-                                                            </Text>
+                                                            <HStack gap={2} mt={3}>
+                                                                <AlertCircle size={16} color="#ef4444" />
+                                                                <Text color="red.500" fontSize="sm">
+                                                                    {errors[`question_${index}_choices`]}
+                                                                </Text>
+                                                            </HStack>
                                                         )}
                                                     </Box>
                                                 )}
@@ -510,29 +653,68 @@ const CreateSurveyPage = () => {
                                         </Box>
                                     ))}
                                 </VStack>
-                            </Box>
-                        </Box>
+                            </Card.Body>
+                        </Card.Root>
 
-                        {/* Actions */}
-                        <HStack justify="end" gap={4}>
-                            <Button
-                                variant="outline"
-                                onClick={() => router.push('/surveys')}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                colorPalette="purple"
-                                onClick={handleSubmit}
-                                loading={loading}
-                            >
-                                Create Survey
-                            </Button>
-                        </HStack>
+                        {/* Enhanced Actions */}
+                        <Card.Root bg="white" shadow="lg" borderRadius="xl" border="1px solid" borderColor="gray.100">
+                            <Card.Body p={6}>
+                                <HStack justify="space-between" align="center">
+                                    <VStack align="start" gap={1}>
+                                        <Text fontWeight="bold" color="gray.800">
+                                            Ready to create your survey?
+                                        </Text>
+                                        <Text fontSize="sm" color="gray.600">
+                                            Review your settings and launch the survey to your team
+                                        </Text>
+                                    </VStack>
+                                    <HStack gap={4}>
+                                        <Button
+                                            variant="outline"
+                                            size="lg"
+                                            borderColor="gray.300"
+                                            color="gray.600"
+                                            _hover={{ bg: "gray.50", borderColor: "gray.400" }}
+                                            onClick={() => router.push('/surveys')}
+                                            px={6}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            bg="purple.600"
+                                            color="white"
+                                            size="lg"
+                                            _hover={{ 
+                                                bg: "purple.700",
+                                                transform: "translateY(-2px)",
+                                                shadow: "xl"
+                                            }}
+                                            onClick={handleSubmit}
+                                            disabled={loading}
+                                            px={8}
+                                            transition="all 0.2s ease"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <Spinner size="sm" mr={2} />
+                                                    Creating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save size={20} style={{ marginRight: '8px' }} />
+                                                    Create Survey
+                                                </>
+                                            )}
+                                        </Button>
+                                    </HStack>
+                                </HStack>
+                            </Card.Body>
+                        </Card.Root>
                     </VStack>
                 </Box>
-            </AppLayout>
-        </RequireSurveyCreate>
+            </Box>
+        </AppLayout>
+    </RequireSurveyCreate>
     );
 };
 

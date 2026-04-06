@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { Box, Text, VStack, HStack, Card, Heading } from "@chakra-ui/react";
+import { Box, Text, VStack, Card, Heading } from "@chakra-ui/react";
 
 interface MetricData {
   label: string;
@@ -201,20 +201,19 @@ export const HealthMetrics: React.FC<HealthMetricsProps> = ({
 }) => {
   return (
     <Card.Root 
-     bg="#ffffff"
+      maxW="900px"
+      boxShadow="sm"
+      bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
       h="full" 
-      w="full"
       display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.200"
-      maxW="300px"
-      // transition="all 0.2s ease"
+      flexDirection="column"  
+      borderColor="gray.100"
+      p={2}
       py={3}
     >
-      <Card.Header p={0} pb={0}  borderColor="gray.200">
+      <Card.Header p={0} pb={0} borderColor="gray.200">
         <VStack gap={1}>
         <Heading 
           size="md" 

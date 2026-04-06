@@ -1,5 +1,7 @@
 import { RAGApiResponse, ChatMessage, ChatRequest, ChatResponse } from '../types/ragApi';
 import { apiService } from './api';
+import { isDemoMode, simulateAsync } from '@/config/demo';
+import { findChatResponse, MOCK_CHAT_PROMPTS } from '@/constants/mockData';
 
 // Enhanced types for async chat operations
 export interface AsyncChatInitiateResponse {
@@ -127,6 +129,63 @@ export class AsyncChatApiService {
     } = options;
 
     try {
+      // Demo mode: Return mock chat response
+      if (isDemoMode()) {
+        // Simulate progress
+        onProgress?.(10, 'Analyzing query...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        onProgress?.(40, 'Fetching data...');
+        await new Promise(resolve => setTimeout(resolve, 400));
+        
+        onProgress?.(70, 'Generating insights...');
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        onProgress?.(90, 'Finalizing response...');
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Find matching mock response
+        const mockResponse = findChatResponse(prompt);
+        
+        if (mockResponse) {
+          onProgress?.(100, 'Complete');
+          onComplete?.(mockResponse);
+          
+          return {
+            response: mockResponse,
+            message_id: Date.now(),
+            conversation_id: conversationId || `conv_${Date.now()}`,
+          };
+        } else {
+          // Default response if no match found
+          const defaultResponse: RAGApiResponse = {
+            success: true,
+            insights: {
+              key_findings: [
+                'This is a demo response. Try one of the pre-defined prompts:',
+                '- "Show me all high-risk employees"',
+                '- "Which projects are at risk?"',
+                '- "Team mental health trends"',
+                '- "Attrition risk analysis"',
+              ],
+              recommendations: [
+                'Use specific queries about employees, projects, mental health, or attrition',
+                'Check the available mock prompts for detailed responses',
+              ],
+            },
+          };
+          
+          onProgress?.(100, 'Complete');
+          onComplete?.(defaultResponse);
+          
+          return {
+            response: defaultResponse,
+            message_id: Date.now(),
+            conversation_id: conversationId || `conv_${Date.now()}`,
+          };
+        }
+      }
+      
       // Step 1: Initiate the chat
       const initiateResponse = await this.initiateChat(prompt, conversationId);
       

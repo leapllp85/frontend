@@ -18,7 +18,31 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import { Pagination } from '@/components/common/Pagination';
-import { FileText, Plus, Calendar, Users, BarChart3, Trash2, X, Search } from 'lucide-react';
+import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useResponsive } from '@/hooks/useResponsive';
+import { 
+    FileText, 
+    Plus, 
+    Calendar, 
+    Users, 
+    BarChart3, 
+    Trash2, 
+    X, 
+    Search, 
+    Filter, 
+    Eye, 
+    Edit, 
+    MoreVertical,
+    TrendingUp,
+    Clock,
+    Target,
+    Activity,
+    CheckCircle2,
+    AlertCircle,
+    Star,
+    Download,
+    Share2
+} from 'lucide-react';
 import { surveyApi, Survey, SurveyQuestion, SurveysPaginatedResponse, SurveysQueryParams } from '@/services';
 import { RequireSurveyView, RequireSurveyCreate, RequireSurveyDelete, ManagerOnly, AssociateOnly } from '@/components/RoleGuard';
 import { AppLayout } from '@/components/layouts/AppLayout';
@@ -56,6 +80,7 @@ export default function SurveysPage() {
     const [error, setError] = useState<string | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const { itemsToShow } = useResponsive(3, 5);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [filteredCount, setFilteredCount] = useState(0);
@@ -63,6 +88,13 @@ export default function SurveysPage() {
     const [hasPrevious, setHasPrevious] = useState(false);
     const [isManager, setIsManager] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'status' | 'responses'>('created_at');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [statusFilter, setStatusFilter] = useState<string>('');
+    const [typeFilter, setTypeFilter] = useState<string>('');
+    const [selectedSurveys, setSelectedSurveys] = useState<number[]>([]);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const currentDateTime = getCurrentDateTime();
     const [newSurvey, setNewSurvey] = useState({
         title: '',
@@ -265,6 +297,78 @@ export default function SurveysPage() {
         }
     };
 
+    // Helper functions for enhanced UI
+    const getSurveyTypeIcon = (type: string) => {
+        switch (type) {
+            case 'wellness': return '🧘';
+            case 'feedback': return '💬';
+            case 'satisfaction': return '😊';
+            case 'skills': return '🎯';
+            case 'goals': return '🚀';
+            case 'engagement': return '🤝';
+            case 'leadership': return '👑';
+            case 'project_feedback': return '📋';
+            default: return '📊';
+        }
+    };
+
+    const getSurveyPriority = (survey: Survey) => {
+        const now = new Date();
+        const endDate = new Date(survey.end_date);
+        const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysLeft <= 1) return 'high';
+        if (daysLeft <= 3) return 'medium';
+        return 'low';
+    };
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case 'high': return 'red';
+            case 'medium': return 'orange';
+            case 'low': return 'green';
+            default: return 'gray';
+        }
+    };
+
+    const sortSurveys = (surveys: Survey[]) => {
+        return [...surveys].sort((a, b) => {
+            let aValue: any, bValue: any;
+            
+            switch (sortBy) {
+                case 'title':
+                    aValue = a.title.toLowerCase();
+                    bValue = b.title.toLowerCase();
+                    break;
+                case 'status':
+                    aValue = a.status;
+                    bValue = b.status;
+                    break;
+                case 'responses':
+                    aValue = a.responses_count || 0;
+                    bValue = b.responses_count || 0;
+                    break;
+                default:
+                    aValue = new Date(a.created_at);
+                    bValue = new Date(b.created_at);
+            }
+            
+            if (sortOrder === 'asc') {
+                return aValue > bValue ? 1 : -1;
+            } else {
+                return aValue < bValue ? 1 : -1;
+            }
+        });
+    };
+
+    const filteredAndSortedSurveys = sortSurveys(
+        surveys.filter(survey => {
+            const matchesStatus = !statusFilter || survey.status === statusFilter;
+            const matchesType = !typeFilter || survey.survey_type === typeFilter;
+            return matchesStatus && matchesType;
+        })
+    );
+
     // Analytics
     const activeSurveys = summary.total_available;
     const completedSurveys = summary.completed;
@@ -274,14 +378,15 @@ export default function SurveysPage() {
     if (loading) {
         return (
             <AppLayout>
-                <Flex justify="center" align="center" minH="60vh">
-                    <VStack gap={4}>
-                        <Spinner size="xl" color="purple.500" />
-                        <Text color="gray.600" fontSize="lg">
-                            Loading surveys...
-                        </Text>
-                    </VStack>
-                </Flex>
+                <Box w="full" h="100vh" bg="gray.50" overflow="auto">
+                    <Box px={{ base: 3, sm: 4, md: 6, lg: 8 }} py={{ base: 3, sm: 4, md: 5, lg: 6 }} maxW="1920px" mx="auto">
+                        <VStack gap={6} align="stretch" w="full">
+                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                                <SkeletonLoader type="survey" count={itemsToShow} />
+                            </SimpleGrid>
+                        </VStack>
+                    </Box>
+                </Box>
             </AppLayout>
         );
     }
@@ -291,7 +396,7 @@ export default function SurveysPage() {
             <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
-                        <Text color="red.600" fontSize="lg">
+                        <Text color="red.600" fontSize="1.125rem">
                             {error}
                         </Text>
                         <Button onClick={() => window.location.reload()} colorPalette="blue">
@@ -305,227 +410,433 @@ export default function SurveysPage() {
 
     return (
         <AppLayout>
-                {/* Header */}
-                {/* <Box bg="white" borderBottom="1px solid" borderColor="gray.200" px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
-                    <VStack align="start" gap={2}>
-                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="bold">
-                            Employee Surveys
-                        </Heading>
-                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }}>
-                            Create and manage employee surveys and feedback
-                        </Text>
-                    </VStack>
-                </Box> */}
-
-                {/* Content */}
-                <Box px={{ base: 4, md: 6, lg: 8 }} py={{ base: 4, md: 6 }}>
+            <Box w="full" h="100vh" bg="gradient-to-br from-blue.50 to-purple.50" overflow="auto">
+                {/* Enhanced Header Section */}
+                <Box px={8} py={6}>
                     <VStack gap={8} align="stretch" w="full">
-                        {/* Header with Search and Pagination Info */}
+                        {/* Modern Header with Gradient Background */}
                         {!loading && !error && (
-                            <VStack gap={4} align="stretch">
-                                <HStack justify="space-between" flexWrap="wrap">
-                                    <VStack align="start" gap={1}>
-                                        <Heading size="xl" color="gray.800">
-                                            Employee Surveys
-                                        </Heading>
-                                        <Text fontSize="sm" color="gray.600">
-                                            {searchQuery ? (
-                                                `Found ${filteredCount} of ${totalCount} surveys matching "${searchQuery}"`
-                                            ) : (
-                                                `Showing ${surveys.length} of ${totalCount} surveys`
-                                            )}
-                                        </Text>
-                                    </VStack>
+                            <Card.Root 
+                                bg="white" 
+                                shadow="sm" 
+                                borderRadius="2xl"
+                                border="1px solid"
+                                borderColor="gray.100"
+                                overflow="hidden"
+                            >
+                                <Box bg="gradient-to-r from-blue.600 to-purple.600" p={6}>
+                                    <HStack justify="space-between" flexWrap="wrap">
+                                        <VStack align="start" gap={2}>
+                                            <HStack gap={3}>
+                                                <Box p={3} bg="white" borderRadius="xl" shadow="lg">
+                                                    <BarChart3 size={32} color="#3182ce" />
+                                                </Box>
+                                                <VStack align="start" gap={1}>
+                                                    <Heading size="2xl" color="white" fontWeight="bold">
+                                                        Employee Surveys
+                                                    </Heading>
+                                                    <Text color="blue.500" fontSize="1.125rem">
+                                                        Gather insights and drive engagement
+                                                    </Text>
+                                                </VStack>
+                                            </HStack>
+                                            <Text fontSize="0.875rem" color="blue.500">
+                                                {searchQuery ? (
+                                                    `${filteredAndSortedSurveys.length} of ${totalCount} surveys matching "${searchQuery}"`
+                                                ) : (
+                                                    `Managing ${totalCount} surveys across your organization`
+                                                )}
+                                            </Text>
+                                        </VStack>
 
-                                    {/* Create Survey Button */}
-                                    <RequireSurveyCreate>
-                                        <Box>
-                                            <Button 
-                                                onClick={() => router.push('/surveys/create')}
-                                                colorPalette="purple"
+                                        {/* Enhanced Action Buttons */}
+                                        <VStack gap={3} align="end">
+                                            <RequireSurveyCreate>
+                                                <Button 
+                                                    onClick={() => router.push('/surveys/create')}
+                                                    bg="white"
+                                                    color="blue.600"
+                                                    _hover={{ 
+                                                        bg: "blue.50",
+                                                        transform: "translateY(-2px)",
+                                                        shadow: "xl"
+                                                    }}
+                                                    size="lg"
+                                                    borderRadius="xl"
+                                                    fontWeight="bold"
+                                                    px={6}
+                                                    transition="all 0.3s ease"
+                                                >
+                                                    <Plus size={20} />
+                                                    Create New Survey
+                                                </Button>
+                                            </RequireSurveyCreate>
+                                            <HStack gap={2}>
+                                                <Button
+                                                    aria-label="Export surveys data"
+                                                    bg="white"
+                                                    color="blue.600"
+                                                    _hover={{ bg: "blue.50" }}
+                                                    borderRadius="lg"
+                                                    size="sm"
+                                                    p={2}
+                                                    minW="auto"
+                                                >
+                                                    <Download size={16} />
+                                                </Button>
+                                                <Button
+                                                    aria-label="Share dashboard"
+                                                    bg="white"
+                                                    color="blue.600"
+                                                    _hover={{ bg: "blue.50" }}
+                                                    borderRadius="lg"
+                                                    size="sm"
+                                                    p={2}
+                                                    minW="auto"
+                                                >
+                                                    <Share2 size={16} />
+                                                </Button>
+                                            </HStack>
+                                        </VStack>
+                                    </HStack>
+                                </Box>
+                                
+                                {/* Enhanced Search and Filter Section */}
+                                <Box p={6} bg="gray.50">
+                                    <VStack gap={4} align="stretch">
+                                        <HStack gap={4} flexWrap="wrap">
+                                            {/* Advanced Search */}
+                                            <Box flex={1} minW="300px">
+                                                <Box position="relative">
+                                                    <Input
+                                                        placeholder="Search surveys by title, description, or status..."
+                                                        value={searchQuery}
+                                                        onChange={(e) => {
+                                                            setSearchQuery(e.target.value);
+                                                            setCurrentPage(1);
+                                                        }}
+                                                        pl={12}
+                                                        pr={searchQuery ? 12 : 4}
+                                                        size="lg"
+                                                        bg="white"
+                                                        border="2px solid"
+                                                        borderColor="gray.200"
+                                                        color="gray.900"
+                                                        borderRadius="xl"
+                                                        _placeholder={{ color: "gray.600" }}
+                                                        _focus={{
+                                                            borderColor: "blue.400",
+                                                            boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.1)"
+                                                        }}
+                                                        _hover={{ borderColor: "gray.300" }}
+                                                    />
+                                                    <Box
+                                                        position="absolute"
+                                                        left={4}
+                                                        top="50%"
+                                                        transform="translateY(-50%)"
+                                                        color="gray.400"
+                                                    >
+                                                        <Search size={20} />
+                                                    </Box>
+                                                    {searchQuery && (
+                                                        <Button
+                                                            aria-label="Clear search"
+                                                            position="absolute"
+                                                            right={2}
+                                                            top="50%"
+                                                            transform="translateY(-50%)"
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => {
+                                                                setSearchQuery('');
+                                                                setCurrentPage(1);
+                                                            }}
+                                                            color="gray.400"
+                                                            _hover={{ color: "gray.600", bg: "gray.100" }}
+                                                            p={1}
+                                                            minW="auto"
+                                                        >
+                                                            <X size={16} />
+                                                        </Button>
+                                                    )}
+                                                </Box>
+                                            </Box>
+
+                                            {/* Filter Button */}
+                                            <Button
+                                                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                                                variant="outline"
                                                 size="lg"
+                                                borderColor="gray.300"
+                                                color="gray.700"
+                                                bg="white"
+                                                _hover={{ 
+                                                    bg: "gray.50",
+                                                    borderColor: "gray.400"
+                                                }}
+                                                borderRadius="xl"
+                                                px={6}
                                             >
-                                                <Plus size={20} />
-                                                Create New Survey
+                                                <Filter size={20} />
+                                                Filters
+                                                {(statusFilter || typeFilter) && (
+                                                    <Badge colorPalette="blue" ml={2} borderRadius="full">
+                                                        {[statusFilter, typeFilter].filter(Boolean).length}
+                                                    </Badge>
+                                                )}
                                             </Button>
-                                        </Box>
-                                    </RequireSurveyCreate>
-                                    
-                                    
-                                </HStack>
-                            </VStack>
+
+                                            {/* View Mode Toggle */}
+                                            <HStack bg="white" borderRadius="xl" p={1} border="2px solid" borderColor="gray.200">
+                                                <Button
+                                                    size="sm"
+                                                    variant={viewMode === 'grid' ? 'solid' : 'ghost'}
+                                                    colorPalette={viewMode === 'grid' ? 'blue' : 'gray'}
+                                                    onClick={() => setViewMode('grid')}
+                                                    borderRadius="lg"
+                                                >
+                                                    Grid
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant={viewMode === 'list' ? 'solid' : 'ghost'}
+                                                    colorPalette={viewMode === 'list' ? 'blue' : 'gray'}
+                                                    onClick={() => setViewMode('list')}
+                                                    borderRadius="lg"
+                                                >
+                                                    List
+                                                </Button>
+                                            </HStack>
+                                        </HStack>
+
+                                        {/* Advanced Filters Panel */}
+                                        {isFilterOpen && (
+                                            <Card.Root bg="white" borderRadius="xl" shadow="md">
+                                                <Card.Body p={6}>
+                                                    <VStack gap={4} align="stretch">
+                                                        <HStack justify="space-between">
+                                                            <Heading size="md" color="gray.900">
+                                                                Advanced Filters
+                                                            </Heading>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => {
+                                                                    setStatusFilter('');
+                                                                    setTypeFilter('');
+                                                                }}
+                                                                color="gray.600"
+                                                            >
+                                                                Clear All
+                                                            </Button>
+                                                        </HStack>
+                                                        <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
+                                                            {/* Status Filter */}
+                                                            <VStack align="start" gap={2}>
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="1rem">
+                                                                    Status
+                                                                </Text>
+                                                                <VStack align="start" gap={2}>
+                                                                    {['active', 'draft', 'closed'].map(status => (
+                                                                        <Button
+                                                                            key={status}
+                                                                            size="sm"
+                                                                            variant={statusFilter === status ? 'solid' : 'outline'}
+                                                                            colorPalette={statusFilter === status ? 'blue' : 'gray'}
+                                                                            onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
+                                                                            justifyContent="start"
+                                                                            w="full"
+                                                                        >
+                                                                            {getStatusLabel(status)}
+                                                                        </Button>
+                                                                    ))}
+                                                                </VStack>
+                                                            </VStack>
+
+                                                            {/* Type Filter */}
+                                                            <VStack align="start" gap={2}>
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="1rem">
+                                                                    Survey Type
+                                                                </Text>
+                                                                <VStack align="start" gap={2}>
+                                                                    {['wellness', 'satisfaction', 'feedback', 'engagement'].map(type => (
+                                                                        <Button
+                                                                            key={type}
+                                                                            size="sm"
+                                                                            variant={typeFilter === type ? 'solid' : 'outline'}
+                                                                            colorPalette={typeFilter === type ? 'blue' : 'gray'}
+                                                                            onClick={() => setTypeFilter(typeFilter === type ? '' : type)}
+                                                                            justifyContent="start"
+                                                                            w="full"
+                                                                        >
+                                                                            {getSurveyTypeIcon(type)} {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                                        </Button>
+                                                                    ))}
+                                                                </VStack>
+                                                            </VStack>
+
+                                                            {/* Sort Options */}
+                                                            <VStack align="start" gap={2}>
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                    Sort By
+                                                                </Text>
+                                                                <VStack align="start" gap={2}>
+                                                                    {[
+                                                                        { value: 'created_at', label: 'Date Created' },
+                                                                        { value: 'title', label: 'Title' },
+                                                                        { value: 'status', label: 'Status' },
+                                                                        { value: 'responses', label: 'Response Count' }
+                                                                    ].map(option => (
+                                                                        <Button
+                                                                            key={option.value}
+                                                                            size="sm"
+                                                                            variant={sortBy === option.value ? 'solid' : 'outline'}
+                                                                            colorPalette={sortBy === option.value ? 'blue' : 'gray'}
+                                                                            onClick={() => setSortBy(option.value as any)}
+                                                                            justifyContent="start"
+                                                                            w="full"
+                                                                        >
+                                                                            {option.label}
+                                                                        </Button>
+                                                                    ))}
+                                                                    <HStack gap={2} mt={2}>
+                                                                        <Button
+                                                                            size="xs"
+                                                                            variant={sortOrder === 'asc' ? 'solid' : 'outline'}
+                                                                            colorPalette="blue"
+                                                                            onClick={() => setSortOrder('asc')}
+                                                                        >
+                                                                            Ascending
+                                                                        </Button>
+                                                                        <Button
+                                                                            size="xs"
+                                                                            variant={sortOrder === 'desc' ? 'solid' : 'outline'}
+                                                                            colorPalette="blue"
+                                                                            onClick={() => setSortOrder('desc')}
+                                                                        >
+                                                                            Descending
+                                                                        </Button>
+                                                                    </HStack>
+                                                                </VStack>
+                                                            </VStack>
+                                                        </SimpleGrid>
+                                                    </VStack>
+                                                </Card.Body>
+                                            </Card.Root>
+                                        )}
+                                    </VStack>
+                                </Box>
+                            </Card.Root>
                         )}
 
-                {/* Search Input */}
-                <HStack gap={2} w="full">
-                    <Box position="relative" flex="1">
-                        <Input
-                            placeholder="Search surveys by title, description, or status..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setCurrentPage(1); // Reset to first page on search
-                            }}
-                            pl={10}
-                            size="md"
-                            bg="white"
-                            border="1px solid"
-                            borderColor="gray.300"
-                            color="gray.800"
-                            _placeholder={{ color: "gray.500" }}
-                            _focus={{
-                                borderColor: "purple.500",
-                                boxShadow: "0 0 0 1px var(--chakra-colors-purple-500)"
-                            }}
-                        />
-                        <Box
-                            position="absolute"
-                            left={3}
-                            top="50%"
-                            transform="translateY(-50%)"
-                            color="gray.800"
-                        >
-                            <Search size={16} />
-                        </Box>
-                    </Box>
-                    {searchQuery && (
-                        <Button
-                            size="sm"
-                            // variant="ghost"
-                            onClick={() => {
-                                setSearchQuery('');
-                                setCurrentPage(1);
-                            }}
-                            colorPalette="purple"
-                            // color="gray.500"
-                        >
-                            Clear
-                        </Button>
-                    )}
-                </HStack>
-
-                {/* Analytics Cards */}
-                <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="green.100" borderRadius="lg">
-                                    <FileText size={20} color="#16a34a" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Active Surveys
+                        {/* Search Results Info */}
+                        {searchQuery && (
+                            <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+                                <Text fontSize="0.875rem" color="blue.700">
+                                    <strong>{filteredAndSortedSurveys.length}</strong> surveys found matching <strong>"{searchQuery}"</strong>
+                                    {filteredAndSortedSurveys.length !== totalCount && (
+                                        <span> (filtered from {totalCount} total surveys)</span>
+                                    )}
                                 </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="green.600">
-                                {activeSurveys}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
+                            </Box>
+                        )}
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="blue.100" borderRadius="lg">
-                                    <BarChart3 size={20} color="#3182ce" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Completed
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="blue.600">
-                                {completedSurveys}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
+                        {/* Stats Section - Compact Design */}
+                        {!loading && !error && (
+                        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={4} maxW="1000px">
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="green.100" p={2} borderRadius="lg">
+                                            <FileText color="#16a34a" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
+                                                Active Surveys
+                                            </Text>
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
+                                                {activeSurveys}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="blue.100" p={2} borderRadius="lg">
+                                            <BarChart3 color="#3182ce" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
+                                                Completed
+                                            </Text>
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
+                                                {completedSurveys}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="gray.100" p={2} borderRadius="lg">
+                                            <FileText color="#6b7280" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
+                                                Drafts
+                                            </Text>
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
+                                                {draftSurveys}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Body p={4}>
+                                    <HStack gap={3} align="center">
+                                        <Box bg="purple.100" p={2} borderRadius="lg">
+                                            <Users color="#9333ea" size={20} />
+                                        </Box>
+                                        <VStack align="start" gap={0} flex={1}>
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
+                                                Total Responses
+                                            </Text>
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
+                                                {totalResponses}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Body>
+                            </Card.Root>
+                        </SimpleGrid>
+                        )}
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="gray.100" borderRadius="lg">
-                                    <FileText size={20} color="#6b7280" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Drafts
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="gray.600">
-                                {draftSurveys}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
+                        {/* Loading State */}
+                        {loading && (
+                            <Box textAlign="center" py={12}>
+                                <Spinner size="xl" color="blue.500" mb={4} />
+                                <Text fontSize="1.125rem" color="gray.700">Loading surveys...</Text>
+                            </Box>
+                        )}
 
-                    <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                        <Card.Body p={6}>
-                            <HStack gap={3} mb={4}>
-                                <Box p={2} bg="purple.100" borderRadius="lg">
-                                    <Users size={20} color="#9333ea" />
-                                </Box>
-                                <Text fontWeight="semibold" color="gray.700">
-                                    Total Responses
-                                </Text>
-                            </HStack>
-                            <Text fontSize="3xl" fontWeight="bold" color="purple.600">
-                                {totalResponses}
-                            </Text>
-                        </Card.Body>
-                    </Card.Root>
-                </SimpleGrid>
+                        {/* Error State */}
+                        {error && (
+                            <Box textAlign="center" py={12}>
+                                <Text fontSize="1.125rem" color="red.600" mb={4}>{error}</Text>
+                                <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
+                                    Retry
+                                </Button>
+                            </Box>
+                        )}
 
-                {/* Pagination Controls */}
-                <HStack justify="center" gap={4} flexWrap="wrap" w="full">
-                    <HStack gap={2}>
-                        <Text fontSize="sm" color="gray.600">Page size:</Text>
-                        <select
-                            value={pageSize}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                                setPageSize(Number(e.target.value));
-                                setCurrentPage(1);
-                            }}
-                            style={{
-                                padding: '4px 8px',
-                                border: '1px solid #d1d5db',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                backgroundColor: 'white',
-                                color: '#4a5568',
-                                width: '120px'
-                            }}
-                        >
-                            <option value={5}>5 per page</option>
-                            <option value={10}>10 per page</option>
-                            <option value={20}>20 per page</option>
-                            <option value={50}>50 per page</option>
-                        </select>
-                    </HStack>
-                    
-                    <HStack gap={2}>
-                        <Button
-                            size="sm"
-                            // variant="outline"
-                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                            disabled={!hasPrevious || loading}
-                            colorPalette="purple"
-                        >
-                            Previous
-                        </Button>
-                        <Text fontSize="sm" color="gray.600" px={2}>
-                            Page {currentPage}
-                        </Text>
-                        <Button
-                            size="sm"
-                            // variant="outline"
-                            onClick={() => setCurrentPage(prev => prev + 1)}
-                            disabled={!hasNext || loading}
-                            colorPalette="purple"
-                        >
-                            Next
-                        </Button>
-                    </HStack>
-                </HStack>
-
-                {/* Create Form */}
-                <RequireSurveyCreate>
-                    {showCreateForm && (
+                        {/* Create Form */}
+                        <RequireSurveyCreate>
+                            {showCreateForm && (
                     <Card.Root 
                         bg="white" 
                         shadow="xl" 
@@ -1062,210 +1373,417 @@ export default function SurveysPage() {
                     )}
                 </RequireSurveyCreate>
 
-                {/* Surveys List */}
-                <Card.Root bg="white" shadow="sm" borderRadius="xl">
-                    <Card.Header p={6}>
-                        <HStack justify="space-between">
-                            <VStack align="start" gap={1}>
-                                <Heading size="lg" color="gray.800">
-                                    {isManager ? 'Survey Management' : 'Available Surveys'}
-                                </Heading>
-                                <Text color="gray.600" fontSize="sm">
-                                    {isManager ? 'Manage your employee surveys and feedback' : 'Complete assigned surveys'}
-                                </Text>
-                            </VStack>
-                            {loading && (
-                                <Spinner size="md" color="purple.500" />
-                            )}
-                        </HStack>
-                    </Card.Header>
-                    <Card.Body p={6}>
-                        <Box position="relative">
-                            {searchLoading && (
-                                <Box
-                                    position="absolute"
-                                    top={0}
-                                    left={0}
-                                    right={0}
-                                    bottom={0}
-                                    bg="white"
-                                    opacity={0.8}
-                                    zIndex={1}
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    borderRadius="xl"
-                                >
-                                    <VStack gap={2}>
-                                        <Spinner size="lg" color="purple.500" />
-                                        <Text fontSize="sm" color="gray.600">Searching surveys...</Text>
-                                    </VStack>
-                                </Box>
-                            )}
-                        <VStack gap={4} align="stretch">
-                            {surveys.length === 0 && !loading ? (
-                                <Box textAlign="center" py={8}>
-                                    <Text color="gray.500" fontSize="lg">
-                                        {searchQuery ? `No surveys found matching "${searchQuery}"` : 
-                                         isManager ? 'No surveys found. Create your first survey to get started.' : 'No surveys available at this time.'}
-                                    </Text>
-                                </Box>
-                            ) : loading ? (
-                                <Box textAlign="center" py={8}>
-                                    <Spinner size="lg" color="purple.500" mb={4} />
-                                    <Text color="gray.600" fontSize="md">
-                                        Loading surveys...
-                                    </Text>
-                                </Box>
-                            ) : (
-                                surveys.map((survey) => (
-                                    <Card.Root key={survey.id} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" shadow="sm">
-                                        <Card.Body p={6}>
-                                            <HStack justify="space-between" align="start">
-                                                <VStack align="start" gap={3} flex="1">
-                                                    <HStack justify="space-between" w="full" align="start">
-                                                        <VStack align="start" gap={2}>
-                                                            <HStack gap={3} align="center">
-                                                                <Heading size="md" color="gray.800">
-                                                                    {survey.title}
-                                                                </Heading>
-                                                                <Box
-                                                                    px={3}
-                                                                    py={1}
-                                                                    borderRadius="full"
-                                                                    fontSize="xs"
-                                                                    fontWeight="semibold"
-                                                                    bg={
-                                                                        survey.status === 'active' ? 'green.100' :
-                                                                        survey.status === 'draft' ? 'yellow.100' :
-                                                                        survey.status === 'closed' ? 'gray.100' : 'blue.100'
-                                                                    }
-                                                                    color={
-                                                                        survey.status === 'active' ? 'green.700' :
-                                                                        survey.status === 'draft' ? 'yellow.700' :
-                                                                        survey.status === 'closed' ? 'gray.700' : 'blue.700'
-                                                                    }
-                                                                >
-                                                                    {survey.status === 'active' ? 'Active' :
-                                                                     survey.status === 'draft' ? 'Draft' :
-                                                                     survey.status === 'closed' ? 'Closed' : 'Active'}
-                                                                </Box>
-                                                                {survey.survey_type && (
-                                                                    <Box
-                                                                        px={2}
-                                                                        py={1}
-                                                                        borderRadius="md"
-                                                                        fontSize="xs"
-                                                                        fontWeight="medium"
-                                                                        bg="purple.50"
-                                                                        color="purple.700"
-                                                                        border="1px solid"
-                                                                        borderColor="purple.200"
-                                                                    >
-                                                                        {survey.survey_type === 'wellness' ? '🧘 Wellness' :
-                                                                         survey.survey_type === 'feedback' ? '💬 Feedback' :
-                                                                         survey.survey_type === 'satisfaction' ? '😊 Satisfaction' :
-                                                                         survey.survey_type === 'skills' ? '🎯 Skills' :
-                                                                         survey.survey_type === 'goals' ? '🚀 Goals' :
-                                                                         survey.survey_type === 'engagement' ? '🤝 Engagement' :
-                                                                         survey.survey_type === 'leadership' ? '👑 Leadership' :
-                                                                         survey.survey_type === 'project_feedback' ? '📋 Project Feedback' :
-                                                                         '📊 Survey'}
-                                                                    </Box>
-                                                                )}
-                                                            </HStack>
-                                                            <Text color="gray.600" fontSize="sm" lineHeight="1.5">
-                                                                {survey.description}
+                        {/* Surveys List */}
+                        {!loading && !error && (
+                            <Card.Root bg="white" shadow="sm" borderRadius="xl">
+                                <Card.Header p={6}>
+                                    <HStack justify="space-between">
+                                        <VStack align="start" gap={1}>
+                                            <Heading size="lg" color="gray.800">
+                                                {isManager ? 'Survey Management' : 'Available Surveys'}
+                                            </Heading>
+                                            <Text color="gray.600" fontSize="sm">
+                                                {isManager ? 'Manage your employee surveys and feedback' : 'Complete assigned surveys'}
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Header>
+                                <Card.Body p={6}>
+                                    <Box position="relative">
+                                        {searchLoading && (
+                                            <Box
+                                                position="absolute"
+                                                top={0}
+                                                left={0}
+                                                right={0}
+                                                bottom={0}
+                                                bg="white"
+                                                opacity={0.8}
+                                                zIndex={1}
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                borderRadius="xl"
+                                            >
+                                                <VStack gap={2}>
+                                                    <Spinner size="lg" color="blue.500" />
+                                                    <Text fontSize="sm" color="gray.600">Searching surveys...</Text>
+                                                </VStack>
+                                            </Box>
+                                        )}
+                                        {/* Enhanced Surveys Display */}
+                                        {filteredAndSortedSurveys.length === 0 ? (
+                                            <Card.Root bg="white" borderRadius="xl" shadow="md">
+                                                <Card.Body p={12}>
+                                                    <VStack gap={4}>
+                                                        <Box p={4} bg="gray.100" borderRadius="full">
+                                                            <FileText size={48} color="#6b7280" />
+                                                        </Box>
+                                                        <VStack gap={2}>
+                                                            <Heading size="lg" color="gray.700">
+                                                                {searchQuery ? 'No surveys found' : 'No surveys yet'}
+                                                            </Heading>
+                                                            <Text color="gray.500" textAlign="center" maxW="400px">
+                                                                {searchQuery ? 
+                                                                    `No surveys match your search for "${searchQuery}". Try adjusting your filters or search terms.` : 
+                                                                    isManager ? 'Create your first survey to start gathering valuable employee feedback and insights.' : 'No surveys are available at this time. Check back later for new surveys.'}
                                                             </Text>
                                                         </VStack>
-                                                    </HStack>
-                                                    <HStack gap={6} fontSize="sm" color="gray.500" wrap="wrap">
-                                                        <HStack gap={2}>
-                                                            <Calendar size={16} />
-                                                            <Text>Created: {survey.created_at ? new Date(survey.created_at).toLocaleDateString('en-US', { 
-                                                                year: 'numeric', 
-                                                                month: 'short', 
-                                                                day: 'numeric' 
-                                                            }) : 'Unknown'}</Text>
-                                                        </HStack>
-                                                        <HStack gap={2}>
-                                                            <Users size={16} />
-                                                            <Text>{survey.responses_count || 0} responses</Text>
-                                                        </HStack>
-                                                        {survey.end_date && (
-                                                            <HStack gap={2}>
-                                                                <Calendar size={16} />
-                                                                <Text>Ends: {new Date(survey.end_date).toLocaleDateString('en-US', { 
-                                                                    year: 'numeric', 
-                                                                    month: 'short', 
-                                                                    day: 'numeric' 
-                                                                })}</Text>
-                                                            </HStack>
+                                                        {!searchQuery && isManager && (
+                                                            <Button
+                                                                onClick={() => router.push('/surveys/create')}
+                                                                bg="blue.600"
+                                                                color="white"
+                                                                _hover={{ bg: "blue.700" }}
+                                                                size="lg"
+                                                                mt={4}
+                                                            >
+                                                                <Plus size={20} />
+                                                                Create Your First Survey
+                                                            </Button>
                                                         )}
-                                                    </HStack>
-                                                </VStack>
-                                                <HStack gap={2}>
-                                                    {/* <select
-                                                        value={survey.status}
-                                                        onChange={(e) => handleStatusChange(survey.id, e.target.value as 'draft' | 'active' | 'closed')}
-                                                        style={{
-                                                            padding: '4px 8px',
-                                                            borderRadius: '4px',
-                                                            border: '1px solid #e2e8f0',
-                                                            // backgroundColor: 'white',
-                                                            fontSize: '14px'
-                                                        }}
+                                                    </VStack>
+                                                </Card.Body>
+                                            </Card.Root>
+                                        ) : viewMode === 'grid' ? (
+                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                                                {filteredAndSortedSurveys.map((survey) => {
+                                                    const priority = getSurveyPriority(survey);
+                                                    const priorityColor = getPriorityColor(priority);
+                                                    
+                                                    return (
+                                                        <Card.Root 
+                                                            key={survey.id} 
+                                                            bg="white" 
+                                                            borderRadius="xl" 
+                                                            border="1px solid" 
+                                                            borderColor="gray.200" 
+                                                            shadow="md"
+                                                            _hover={{ 
+                                                                transform: "translateY(-4px)", 
+                                                                shadow: "xl",
+                                                                borderColor: "blue.300"
+                                                            }}
+                                                            transition="all 0.3s ease"
+                                                            position="relative"
+                                                            overflow="hidden"
+                                                        >
+                                                            {/* Priority Indicator */}
+                                                            <Box
+                                                                position="absolute"
+                                                                top={0}
+                                                                right={0}
+                                                                w={3}
+                                                                h={12}
+                                                                bg={`${priorityColor}.500`}
+                                                            />
+                                                            
+                                                            <Card.Body p={6}>
+                                                                <VStack align="start" gap={4} h="full">
+                                                                    {/* Header */}
+                                                                    <VStack align="start" gap={2} w="full">
+                                                                        <HStack justify="space-between" w="full">
+                                                                            <Text fontSize="2xl">
+                                                                                {getSurveyTypeIcon(survey.survey_type)}
+                                                                            </Text>
+                                                                            <Badge
+                                                                                colorPalette={getStatusColor(survey.status)}
+                                                                                variant="solid"
+                                                                                px={3}
+                                                                                py={1}
+                                                                                borderRadius="full"
+                                                                                fontSize="xs"
+                                                                                fontWeight="bold"
+                                                                            >
+                                                                                {getStatusLabel(survey.status)}
+                                                                            </Badge>
+                                                                        </HStack>
+                                                                        <Heading size="md" color="gray.800" lineHeight="1.3">
+                                                                            {survey.title}
+                                                                        </Heading>
+                                                                        <Text color="gray.600" fontSize="sm" lineHeight="1.5" 
+                                                                              style={{ 
+                                                                                  display: '-webkit-box',
+                                                                                  WebkitLineClamp: 2,
+                                                                                  WebkitBoxOrient: 'vertical',
+                                                                                  overflow: 'hidden'
+                                                                              }}>
+                                                                            {survey.description}
+                                                                        </Text>
+                                                                    </VStack>
+
+                                                                    {/* Progress Bar */}
+                                                                    <Box w="full">
+                                                                        <HStack justify="space-between" mb={2}>
+                                                                            <Text fontSize="xs" color="gray.500">
+                                                                                Responses
+                                                                            </Text>
+                                                                            <Text fontSize="xs" color="gray.700" fontWeight="semibold">
+                                                                                {survey.responses_count || 0}
+                                                                            </Text>
+                                                                        </HStack>
+                                                                        <Box w="full" h="2" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                                            <Box 
+                                                                                h="full" 
+                                                                                bg="blue.500" 
+                                                                                borderRadius="full"
+                                                                                width={`${Math.min((survey.responses_count || 0) * 10, 100)}%`}
+                                                                                transition="width 0.3s ease"
+                                                                            />
+                                                                        </Box>
+                                                                    </Box>
+
+                                                                    {/* Footer */}
+                                                                    <VStack align="start" gap={2} w="full" mt="auto">
+                                                                        <HStack gap={4} fontSize="xs" color="gray.500" w="full">
+                                                                            <HStack gap={1}>
+                                                                                <Calendar size={12} />
+                                                                                <Text>{formatDate(survey.created_at)}</Text>
+                                                                            </HStack>
+                                                                            {survey.end_date && (
+                                                                                <HStack gap={1}>
+                                                                                    <Clock size={12} />
+                                                                                    <Text>Ends {formatDate(survey.end_date)}</Text>
+                                                                                </HStack>
+                                                                            )}
+                                                                        </HStack>
+                                                                        
+                                                                        {/* Action Buttons */}
+                                                                        <HStack gap={2} w="full" pt={2}>
+                                                                            <ManagerOnly>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    colorPalette="blue"
+                                                                                    onClick={() => handleViewSurveyStats(survey.id)}
+                                                                                    flex={1}
+                                                                                >
+                                                                                    <Eye size={14} />
+                                                                                    View Stats
+                                                                                </Button>
+                                                                            </ManagerOnly>
+                                                                            <AssociateOnly>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    bg="blue.600"
+                                                                                    color="white"
+                                                                                    _hover={{ bg: "blue.700" }}
+                                                                                    onClick={() => handleSubmitSurvey(survey.id)}
+                                                                                    flex={1}
+                                                                                >
+                                                                                    <Edit size={14} />
+                                                                                    Take Survey
+                                                                                </Button>
+                                                                            </AssociateOnly>
+                                                                        </HStack>
+                                                                    </VStack>
+                                                                </VStack>
+                                                            </Card.Body>
+                                                        </Card.Root>
+                                                    );
+                                                })}
+                                            </SimpleGrid>
+                                        ) : (
+                                            <VStack gap={4} align="stretch">
+                                                {filteredAndSortedSurveys.map((survey) => {
+                                                    const priority = getSurveyPriority(survey);
+                                                    const priorityColor = getPriorityColor(priority);
+                                                    
+                                                    return (
+                                                    <Card.Root key={survey.id} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" shadow="sm"
+                                                        _hover={{ transform: "translateY(-2px)", shadow: "md" }}
+                                                        transition="all 0.3s ease"
                                                     >
-                                                        <option value="draft">Draft</option>
-                                                        <option value="active">Active</option>
-                                                        <option value="closed">Completed</option>
-                                                    </select> */}
-                                                    {/* Role-based survey action buttons */}
-                                                    <ManagerOnly>
-                                                        <Button
-                                                            size="sm"
-                                                            colorPalette="blue"
-                                                            variant="solid"
-                                                            onClick={() => handleViewSurveyStats(survey.id)}
-                                                        >
-                                                            <BarChart3 size={16} />
-                                                            View Survey
-                                                        </Button>
-                                                    </ManagerOnly>
-                                                    <AssociateOnly>
-                                                        <Button
-                                                            size="sm"
-                                                            colorPalette="green"
-                                                            variant="solid"
-                                                            onClick={() => handleSubmitSurvey(survey.id)}
-                                                        >
-                                                            <FileText size={16} />
-                                                            Submit Survey
-                                                        </Button>
-                                                    </AssociateOnly>
-                                                    <RequireSurveyDelete>
-                                                        <Button
-                                                            size="sm"
-                                                            colorPalette="red"
-                                                            variant="outline"
-                                                            onClick={() => handleDeleteSurvey(survey.id)}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                            Delete
-                                                        </Button>
-                                                    </RequireSurveyDelete>
-                                                </HStack>
-                                            </HStack>
-                                        </Card.Body>
-                                    </Card.Root>
-                                ))
-                            )}
-                        </VStack>
-                        </Box>
-                    </Card.Body>
-                </Card.Root>
-            </VStack>
-        </Box>
+                                                        <Card.Body p={6}>
+                                                            <HStack justify="space-between" align="start">
+                                                                <VStack align="start" gap={3} flex="1">
+                                                                    <HStack justify="space-between" w="full" align="start">
+                                                                        <VStack align="start" gap={2}>
+                                                                            <HStack gap={3} align="center">
+                                                                                <Heading size="md" color="gray.800">
+                                                                                    {survey.title}
+                                                                                </Heading>
+                                                                                <Badge
+                                                                                    colorPalette={
+                                                                                        survey.status === 'active' ? 'green' :
+                                                                                        survey.status === 'draft' ? 'yellow' :
+                                                                                        survey.status === 'closed' ? 'gray' : 'blue'
+                                                                                    }
+                                                                                    variant="solid"
+                                                                                    px={3}
+                                                                                    py={1}
+                                                                                    borderRadius="full"
+                                                                                    fontSize="xs"
+                                                                                >
+                                                                                    {survey.status === 'active' ? 'Active' :
+                                                                                     survey.status === 'draft' ? 'Draft' :
+                                                                                     survey.status === 'closed' ? 'Closed' : 'Active'}
+                                                                                </Badge>
+                                                                                {survey.survey_type && (
+                                                                                    <Badge
+                                                                                        colorPalette="purple"
+                                                                                        variant="outline"
+                                                                                        px={2}
+                                                                                        py={1}
+                                                                                        borderRadius="md"
+                                                                                        fontSize="xs"
+                                                                                    >
+                                                                                        {survey.survey_type === 'wellness' ? '🧘 Wellness' :
+                                                                                         survey.survey_type === 'feedback' ? '💬 Feedback' :
+                                                                                         survey.survey_type === 'satisfaction' ? '😊 Satisfaction' :
+                                                                                         survey.survey_type === 'skills' ? '🎯 Skills' :
+                                                                                         survey.survey_type === 'goals' ? '🚀 Goals' :
+                                                                                         survey.survey_type === 'engagement' ? '🤝 Engagement' :
+                                                                                         survey.survey_type === 'leadership' ? '👑 Leadership' :
+                                                                                         survey.survey_type === 'project_feedback' ? '📋 Project Feedback' :
+                                                                                         '📊 Survey'}
+                                                                                    </Badge>
+                                                                                )}
+                                                                            </HStack>
+                                                                            <Text color="gray.600" fontSize="sm" lineHeight="1.5">
+                                                                                {survey.description}
+                                                                            </Text>
+                                                                        </VStack>
+                                                                    </HStack>
+                                                                    <HStack gap={6} fontSize="sm" color="gray.500" wrap="wrap">
+                                                                        <HStack gap={2}>
+                                                                            <Calendar size={16} />
+                                                                            <Text>Created: {survey.created_at ? new Date(survey.created_at).toLocaleDateString('en-US', { 
+                                                                                year: 'numeric', 
+                                                                                month: 'short', 
+                                                                                day: 'numeric' 
+                                                                            }) : 'Unknown'}</Text>
+                                                                        </HStack>
+                                                                        <HStack gap={2}>
+                                                                            <Users size={16} />
+                                                                            <Text>{survey.responses_count || 0} responses</Text>
+                                                                        </HStack>
+                                                                        {survey.end_date && (
+                                                                            <HStack gap={2}>
+                                                                                <Calendar size={16} />
+                                                                                <Text>Ends: {new Date(survey.end_date).toLocaleDateString('en-US', { 
+                                                                                    year: 'numeric', 
+                                                                                    month: 'short', 
+                                                                                    day: 'numeric' 
+                                                                                })}</Text>
+                                                                            </HStack>
+                                                                        )}
+                                                                    </HStack>
+                                                                </VStack>
+                                                                <HStack gap={2}>
+                                                                    <ManagerOnly>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            bg="blue.600"
+                                                                            color="white"
+                                                                            _hover={{ bg: "blue.700" }}
+                                                                            onClick={() => handleViewSurveyStats(survey.id)}
+                                                                        >
+                                                                            <BarChart3 size={16} />
+                                                                            View Survey
+                                                                        </Button>
+                                                                    </ManagerOnly>
+                                                                    <AssociateOnly>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            bg="green.600"
+                                                                            color="white"
+                                                                            _hover={{ bg: "green.700" }}
+                                                                            onClick={() => handleSubmitSurvey(survey.id)}
+                                                                        >
+                                                                            <FileText size={16} />
+                                                                            Submit Survey
+                                                                        </Button>
+                                                                    </AssociateOnly>
+                                                                    <RequireSurveyDelete>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="outline"
+                                                                            borderColor="red.600"
+                                                                            color="red.600"
+                                                                            _hover={{ bg: "red.50" }}
+                                                                            onClick={() => handleDeleteSurvey(survey.id)}
+                                                                        >
+                                                                            <Trash2 size={16} />
+                                                                            Delete
+                                                                        </Button>
+                                                                    </RequireSurveyDelete>
+                                                                </HStack>
+                                                            </HStack>
+                                                        </Card.Body>
+                                                    </Card.Root>
+                                                    );
+                                                })}
+                                            </VStack>
+                                        )}
+                                    </Box>
+                                </Card.Body>
+                            </Card.Root>
+                        )}
+
+                        {/* Pagination Footer */}
+                        {!loading && !error && surveys.length > 0 && (
+                            <Box mt={8}>
+                                <HStack justify="center" gap={4} flexWrap="wrap" w="full">
+                                    <HStack gap={2}>
+                                        <Text fontSize="sm" color="gray.600">Page size:</Text>
+                                        <select
+                                            value={pageSize}
+                                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                                setPageSize(Number(e.target.value));
+                                                setCurrentPage(1);
+                                            }}
+                                            style={{
+                                                padding: '6px 12px',
+                                                border: '1px solid #d1d5db',
+                                                borderRadius: '6px',
+                                                fontSize: '14px',
+                                                backgroundColor: 'white',
+                                                color: '#4a5568',
+                                                outline: 'none',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            <option value={5}>5 per page</option>
+                                            <option value={10}>10 per page</option>
+                                            <option value={20}>20 per page</option>
+                                            <option value={50}>50 per page</option>
+                                        </select>
+                                    </HStack>
+                                    
+                                    <HStack gap={2}>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                            disabled={!hasPrevious || loading}
+                                            borderColor="blue.600"
+                                            color="blue.600"
+                                            _hover={{ bg: "blue.50" }}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Text fontSize="sm" color="gray.600" px={2}>
+                                            Page {currentPage}
+                                        </Text>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setCurrentPage(prev => prev + 1)}
+                                            disabled={!hasNext || loading}
+                                            borderColor="blue.600"
+                                            color="blue.600"
+                                            _hover={{ bg: "blue.50" }}
+                                        >
+                                            Next
+                                        </Button>
+                                    </HStack>
+                                </HStack>
+                            </Box>
+                        )}
+                    </VStack>
+                </Box>
+            </Box>
         </AppLayout>
     );
 }

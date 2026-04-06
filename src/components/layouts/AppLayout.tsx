@@ -72,21 +72,25 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }, []);
 
   return (
-    <Flex w="full" h="100vh" bg="gray.50">
-      <Sidebar 
-        onSendMessage={(message) => handleSendMessage(message)}
-        onResetView={resetView}
-        disabled={false}
-        enableAsync={true}
-        enableStreaming={true}
-      />
+    <Flex w="full" h="100vh" bg="gray.50" direction={{ base: 'column', lg: 'row' }} overflow="hidden">
+      <Box display={{ base: 'none', lg: 'block' }} flexShrink={0}>
+        <Sidebar 
+          onSendMessage={(message) => handleSendMessage(message)}
+          onResetView={resetView}
+          disabled={false}
+          enableAsync={true}
+          enableStreaming={true}
+        />
+      </Box>
       
       {/* Main Content Area */}
       <Box 
-        h="100vh" 
-        w="calc(100vw - 80px)"
-        overflow="hidden"
+        h="100vh"
+        w={{ base: '100%', lg: 'calc(100vw - 230px)', xl: 'calc(100vw - 250px)' }}
+        overflow="auto"
         position="relative"
+        pt={{ base: '56px', sm: '64px', md: '68px', lg: 0 }}
+        flex={1}
       >
         {!hasQueried ? 
             children

@@ -1,301 +1,238 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   VStack, 
   HStack, 
   Text, 
   Box, 
   Heading,
-  Badge,
   SimpleGrid,
+  Flex,
+  Spinner,
 } from '@chakra-ui/react';
+import { Badge } from '@/components/ui/badge';
+import { AlertCircle, TrendingUp } from 'lucide-react';
+import { MOCK_EMPLOYEES } from '@/constants/mockData';
 
 interface CriticalityVsRiskProps {
   userId?: string;
 }
 
-// Removed getAvatarColor function - colors are now directly assigned in data
-
-// Pre-sorted data by priority with reliable avatar images
-const CriticalTeamMembersData = [
-  // High Criticality + High Attrition Risk (Priority 1)
-  {
-    name: 'Alice Brown',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/1.jpg'
-  },
-  {
-    name: 'David Martinez',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/1.jpg'
-  },
-  {
-    name: 'Maya Patel',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/2.jpg'
-  },
-  {
-    name: 'Marcus Thompson',
-    criticality: 'High',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/2.jpg'
-  },
-  // High Criticality + Medium Attrition Risk (Priority 2)
-  {
-    name: 'Jane Smith',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/3.jpg'
-  },
-  {
-    name: 'Lisa Chen',
-    criticality: 'High',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/4.jpg'
-  },
-  // High Criticality + Low Attrition Risk (Priority 3)
-  {
-    name: 'Sarah Davis',
-    criticality: 'High',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/5.jpg'
-  },
-  {
-    name: 'Olivia Taylor',
-    criticality: 'High',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/6.jpg'
-  },
-  // Medium Criticality + High Attrition Risk (Priority 4)
-  {
-    name: 'John Doe',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/3.jpg'
-  },
-  {
-    name: 'Tom Garcia',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/4.jpg'
-  },
-  // Medium Criticality + Medium Attrition Risk (Priority 5)
-  {
-    name: 'Mike Wilson',
-    criticality: 'Medium',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/5.jpg'
-  },
-  {
-    name: 'Alex Johnson',
-    criticality: 'Medium',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/6.jpg'
-  },
-  // Medium Criticality + Low Attrition Risk (Priority 6)
-  {
-    name: 'Emma Thompson',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/7.jpg'
-  },
-  {
-    name: 'Amy Foster',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/women/8.jpg'
-  },
-  {
-    name: 'Tyler Brooks',
-    criticality: 'Medium',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/men/7.jpg'
-  },
-  // Low Criticality + High Attrition Risk (Priority 7)
-  {
-    name: 'James Rodriguez',
-    criticality: 'Low',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/8.jpg'
-  },
-  {
-    name: 'Ian Mitchell',
-    criticality: 'Low',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/men/9.jpg'
-  },
-  {
-    name: 'Kevin White',
-    criticality: 'Low',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/men/10.jpg'
-  },
-  // Low Criticality + Medium Attrition Risk (Priority 8)
-  {
-    name: 'Nina Williams',
-    criticality: 'Low',
-    attritionRisk: 'Medium',
-    avatarImage: 'https://randomuser.me/api/portraits/women/9.jpg'
-  },
-  {
-    name: 'Bob Johnson',
-    criticality: 'Low',
-    attritionRisk: 'Low',
-    avatarImage: 'https://randomuser.me/api/portraits/men/11.jpg'
-  },
-  {
-    name: 'Rachel Green',
-    criticality: 'Medium',
-    attritionRisk: 'High',
-    avatarImage: 'https://randomuser.me/api/portraits/women/10.jpg'
-  }
-];
-
-// Total members count for "view more" display
-const totalMembersCount = 50;  
+// Map mock employees to critical team members format and sort by priority
+const CriticalTeamMembersData = MOCK_EMPLOYEES.map((employee, index) => ({
+  name: employee.name || `${employee.first_name} ${employee.last_name}`,
+  criticality: employee.project_criticality,
+  attritionRisk: employee.manager_assessment_risk,
+  avatarImage: `https://randomuser.me/api/portraits/${index % 2 === 0 ? 'women' : 'men'}/${(index % 50) + 1}.jpg`
+})).sort((a, b) => {
+  // Priority sorting: High criticality + High risk first
+  const getPriority = (member: typeof CriticalTeamMembersData[0]) => {
+    if (member.criticality === 'High' && member.attritionRisk === 'High') return 1;
+    if (member.criticality === 'High' && member.attritionRisk === 'Medium') return 2;
+    if (member.criticality === 'High' && member.attritionRisk === 'Low') return 3;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'High') return 4;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'Medium') return 5;
+    if (member.criticality === 'Medium' && member.attritionRisk === 'Low') return 6;
+    if (member.criticality === 'Low' && member.attritionRisk === 'High') return 7;
+    if (member.criticality === 'Low' && member.attritionRisk === 'Medium') return 8;
+    return 9;
+  };
+  return getPriority(a) - getPriority(b);
+});  
 
 const CriticalTeamMember = ({ name, criticality, attritionRisk, avatarImage }: { name: string; criticality: string; attritionRisk: string; avatarImage: string }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const getCriticalityColor = (level: string) => {
+    switch(level) {
+      case 'High': return { bg: 'red.50', border: 'red.300', text: 'red.600', icon: '#EF4444' };
+      case 'Medium': return { bg: 'orange.50', border: 'orange.300', text: 'orange.600', icon: '#F97316' };
+      default: return { bg: 'green.50', border: 'green.300', text: 'green.600', icon: '#10B981' };
+    }
+  };
+  
+  const colors = getCriticalityColor(criticality);
+  
   return (
-    <HStack py={1} w="full" minH="2px" gap={1.0}>
-      <HStack gap={2} flex="1" minW="0">
+    <Box
+      p={3}
+      borderRadius="xl"
+      border="1px solid"
+      borderColor={isHovered ? colors.border : 'gray.200'}
+      bg={isHovered ? colors.bg : 'white'}
+      transition="all 0.2s ease"
+      cursor="pointer"
+      shadow="sm"
+      _hover={{
+        shadow: 'md',
+        transform: 'translateY(-2px)',
+        borderColor: colors.border
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <HStack gap={3} align="center">
+        {/* Avatar */}
         <Box
           w="40px"
           h="40px"
           borderRadius="full"
           overflow="hidden"
           flexShrink={0}
+          border="2px solid"
+          borderColor={isHovered ? colors.border : 'gray.300'}
+          transition="all 0.2s ease"
+          shadow="sm"
         >
-          <img
-            src={avatarImage}
-            alt={name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const parent = target.parentElement;
-              if (parent) {
-                parent.innerHTML = `
-                  <div style="
-                    width: 100%;
-                    height: 100%;
-                    background: #CBD5E0;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    font-weight: bold;
-                    color: white;
-                  ">
-                    ${name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-                  </div>
-                `;
-              }
-            }}
-          />
+            <img
+              src={avatarImage}
+              alt={name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.innerHTML = `
+                    <div style="
+                      width: 100%;
+                      height: 100%;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      font-size: 14px;
+                      font-weight: bold;
+                      color: white;
+                    ">
+                      ${name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                    </div>
+                  `;
+                }
+              }}
+            />
         </Box>
-
-        <Text
-          fontSize="xs" 
-          color="gray.700" 
-          fontWeight="medium"
-          lineClamp={1}
-          flex="1"
-        >{name}</Text>
+        
+        {/* Name and Info */}
+        <VStack align="start" gap={1} flex="1" minW="0">
+          <Text
+            fontSize="sm"
+            color="gray.900"
+            fontWeight="600"
+            lineClamp={1}
+            letterSpacing="-0.01em"
+          >
+            {name}
+          </Text>
+          <HStack gap={2} w="full" flexWrap="wrap">
+            <Badge
+              colorScheme={criticality === 'High' ? 'red' : criticality === 'Medium' ? 'orange' : 'green'}
+              fontSize="2xs"
+              px={2}
+              py={0.5}
+              borderRadius="md"
+              fontWeight="600"
+              textTransform="uppercase"
+            >
+              {criticality}
+            </Badge>
+            <Badge
+              colorScheme={attritionRisk === 'High' ? 'red' : attritionRisk === 'Medium' ? 'orange' : 'green'}
+              fontSize="2xs"
+              px={2}
+              py={0.5}
+              borderRadius="md"
+              fontWeight="600"
+              variant="outline"
+            >
+              {attritionRisk} Risk
+            </Badge>
+          </HStack>
+        </VStack>
       </HStack>
-      <Text
-        fontSize="xs"
-        fontWeight="medium"
-        color={
-          criticality === 'High' ? 'red.500' :
-          criticality === 'Medium' ? 'yellow.500' :
-          'green.500'
-        }
-      >
-        {criticality}
-      </Text>
-    </HStack>
+    </Box>
   );
 };
 
-
-
 export const CriticalTeamMembers: React.FC<CriticalityVsRiskProps> = () => {
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleViewAllMembers = () => {
+    setIsNavigating(true);
+    router.push('/team');
+  };
+
   return (
-    <Box 
-     bg="#ffffff"
-      shadow="xs" 
-      borderRadius="3xl" 
-      h="full" 
-      display="flex" 
-      flexDirection="column" 
-      border="1px solid" 
-      borderColor="gray.200"
-      transition="all 0.2s ease"
-      w="full"
-      suppressHydrationWarning
-    >
-      <Box px={2} py={2}>
-        <VStack gap={1}>
-          <Heading 
-            size="md"
-            color="gray.900"
-            textAlign="center"
-            fontWeight="normal"
-          >
-            Top 5% Critical Members
-          </Heading>
-          <Box 
-                          w="80%" 
-                          h="0.9px" 
-                          bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                      />
-        </VStack>
-      </Box>
-      <Box h="full" display="flex" flexDirection="column" w="full" px={10} py={2} position="center">
-        <SimpleGrid columns={2} gap={2} w="95%" h="98%">
-          {CriticalTeamMembersData.slice(0, 10).map((member, index) => (
-            <Box key={index} w="98%">
-              <CriticalTeamMember 
-                name={member.name}
-                criticality={member.criticality}
-                attritionRisk={member.attritionRisk}
-                avatarImage={member.avatarImage}
-              />
-            </Box>
-          ))}
-        </SimpleGrid>
-        
-        {/* View More Link */}
-        <Box 
-          mt={-1}
-          display="flex"
-          justifyContent="flex-end"
-          w="full"
-        >
+    <VStack h="full" align="stretch" gap={4}>
+      {/* Header */}
+      <HStack justify="space-between" align="start" pb={3} borderBottom="2px solid" borderColor="gray.200">
+        <HStack gap={3} align="start">
+          <Box p={2} bg="red.50" borderRadius="lg" border="1px solid" borderColor="red.100">
+            <AlertCircle size={20} color="#EF4444" strokeWidth={2.5} />
+          </Box>
+          <VStack align="start" gap={0.5}>
+            <Heading size="md" color="gray.900" fontWeight="700" letterSpacing="-0.02em">
+              Top Critical Members
+            </Heading>
+            <Text fontSize="xs" color="gray.500" fontWeight="500">
+              High priority team members requiring attention
+            </Text>
+          </VStack>
+        </HStack>
+        <Badge colorScheme="red" fontSize="xs" px={3} py={1} borderRadius="full" fontWeight="700">
+          {CriticalTeamMembersData.length} Members
+        </Badge>
+      </HStack>
+
+      {/* Grid of Members */}
+      <SimpleGrid columns={3} gap={3} flex="1" alignItems="start">
+        {CriticalTeamMembersData.slice(0, 6).map((member, index) => (
+          <CriticalTeamMember 
+            key={index}
+            name={member.name}
+            criticality={member.criticality}
+            attritionRisk={member.attritionRisk}
+            avatarImage={member.avatarImage}
+          />
+        ))}
+      </SimpleGrid>
+      
+      {/* View More Footer */}
+      <Box 
+        pt={3}
+        borderTop="1px solid"
+        borderColor="gray.200"
+        textAlign="center"
+      >
+        {isNavigating ? (
+          <HStack justify="center" gap={2}>
+            <Spinner size="sm" color="blue.600" />
+            <Text fontSize="sm" color="blue.600" fontWeight="600">
+              Loading...
+            </Text>
+          </HStack>
+        ) : (
           <Text 
-            fontSize="xs" 
-            color="teal.500" 
+            fontSize="sm" 
+            color="blue.600" 
             cursor="pointer" 
-            fontWeight="sm"
-            _hover={{ color: "teal.600" }}
-            // bg="white"
-            px={0}
-            py={0}
-            // borderRadius="md"
-            // shadow="sm"
+            fontWeight="600"
+            _hover={{ color: "blue.700", textDecoration: "underline" }}
+            transition="all 0.2s"
+            letterSpacing="-0.01em"
+            onClick={handleViewAllMembers}
           >
-            View More..
+            View All {CriticalTeamMembersData.length} Members →
           </Text>
-        </Box>
+        )}
       </Box>
-    </Box>
+    </VStack>
   );
 };

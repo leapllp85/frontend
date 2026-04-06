@@ -10,11 +10,12 @@ interface PaginationProps {
   totalItems: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
-  onItemsPerPageChange: (itemsPerPage: number) => void;
+  onItemsPerPageChange?: (itemsPerPage: number) => void;
   loading?: boolean;
   showFirstLast?: boolean;
   showPageNumbers?: boolean;
   maxPageNumbers?: number;
+  hideItemCount?: boolean;
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
@@ -27,7 +28,8 @@ export const Pagination: React.FC<PaginationProps> = ({
   loading = false,
   showFirstLast = true,
   showPageNumbers = true,
-  maxPageNumbers = 5
+  maxPageNumbers = 5,
+  hideItemCount = false
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -63,20 +65,21 @@ export const Pagination: React.FC<PaginationProps> = ({
           {totalItems === 0 ? 'No items found' : `Showing ${totalItems} item${totalItems !== 1 ? 's' : ''}`}
         </Text>
         
-        <HStack gap={2}>
-          <Text fontSize="sm" color="gray.600">Items per page:</Text>
-          <select
-            value={itemsPerPage}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onItemsPerPageChange(Number(e.target.value))}
-            style={{
-              padding: '4px 8px',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              fontSize: '14px',
-              backgroundColor: 'white',
-              color: '#4a5568',
-              outline: 'none',
-              cursor: 'pointer',
+        {onItemsPerPageChange && (
+          <HStack gap={2}>
+            <Text fontSize="sm" color="gray.600">Items per page:</Text>
+            <select
+              value={itemsPerPage}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onItemsPerPageChange(Number(e.target.value))}
+              style={{
+                padding: '4px 8px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                color: '#4a5568',
+                outline: 'none',
+                cursor: 'pointer',
               minWidth: '80px'
             }}
           >
@@ -87,16 +90,19 @@ export const Pagination: React.FC<PaginationProps> = ({
             <option value={100}>100</option>
           </select>
         </HStack>
+        )}
       </HStack>
     );
   }
 
   return (
-    <HStack justify="space-between" align="center" flexWrap="wrap" gap={4}>
+    <HStack justify={hideItemCount ? "flex-start" : "space-between"} align="center" flexWrap="wrap" gap={4}>
       {/* Items info */}
-      <Text fontSize="sm" color="gray.600">
-        Showing {startItem}-{endItem} of {totalItems} items
-      </Text>
+      {!hideItemCount && (
+        <Text fontSize="sm" color="gray.600">
+          Showing {startItem}-{endItem} of {totalItems} items
+        </Text>
+      )}
 
       {/* Pagination controls */}
       <HStack gap={1}>
@@ -165,11 +171,12 @@ export const Pagination: React.FC<PaginationProps> = ({
       </HStack>
 
       {/* Items per page selector */}
-      <HStack gap={2}>
-        <Text fontSize="sm" color="gray.600">Items per page:</Text>
-        <select
-          value={itemsPerPage}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onItemsPerPageChange(Number(e.target.value))}
+      {onItemsPerPageChange && (
+        <HStack gap={2}>
+          <Text fontSize="sm" color="gray.600">Items per page:</Text>
+          <select
+            value={itemsPerPage}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => onItemsPerPageChange(Number(e.target.value))}
           style={{
             padding: '4px 8px',
             border: '1px solid #d1d5db',
@@ -189,6 +196,7 @@ export const Pagination: React.FC<PaginationProps> = ({
           <option value={100}>100</option>
         </select>
       </HStack>
+      )}
     </HStack>
   );
 };

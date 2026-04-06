@@ -141,7 +141,7 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
 
   return (
     <Card.Root 
-       bg="#ffffff"
+      bg="#ffffff"
       shadow="xs" 
       borderRadius="3xl" 
       h="full" 
@@ -149,54 +149,60 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
       flexDirection="column" 
       border="1px solid" 
       borderColor="gray.200"
+      w="full"
+      overflow="hidden"
       transition="all 0.2s ease"
       suppressHydrationWarning
     >
-      <Card.Header px={4} py={2} >
-        <VStack gap={1}>
+      <Card.Header px={2} py={1} overflow="hidden">
+        <VStack gap={0}>
           <Heading 
-            size="md" 
+            size="xs" 
             color="gray.900" 
             textAlign="center"
-            fontWeight="normal"
+            fontWeight="medium"
+            fontSize="xs"
+            lineHeight="1"
+            lineClamp={1}
           >
-          Attrition Risks Distribution
+          Risk Distribution
           </Heading>
           <Box 
-                          w="80%" 
-                          h="0.9px" 
-                          bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
-                      />
+            w="full" 
+            h="0.5px" 
+            bg="linear-gradient(90deg, transparent 0%, red 50%, transparent 100%)"
+          />
         </VStack>
       </Card.Header>
-      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={2} overflow="hidden">
+      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={0} overflow="hidden">
         <VStack 
           align="center" 
           justify="center" 
           h="full" 
           w="full"
-          gap={2}
+          gap={1}
           flex="1"
           minH="0"
+          py={0.5}
         >
           {/* Clean Minimalist Pie Chart */}
           <Box 
             position="relative" 
-            w="220px"
-            h="220px"
+            w="140px"
+            h="140px"
             flex="none"
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
             <svg
-              width="220px"
-              height="220px"
+              width="140px"
+              height="140px"
               viewBox="-80 -80 160 160"
               style={{
                 filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
-                maxWidth: "220px",
-                maxHeight: "220px"
+                maxWidth: "140px",
+                maxHeight: "140px"
               }}
             >
               {/* Pie slices */}
@@ -242,38 +248,25 @@ export const CriticalityVsRisk: React.FC<CriticalityVsRiskProps> = ({ userId }) 
           </Box>
 
           {/* Clean Legend - Bottom */}
-          <VStack align="left" gap={0} w="full" maxW="300px">
-            <Grid templateColumns="repeat(3, 1fr)" gap={2} w="full">
-              {pieData.map((item, index) => (
-                <Flex key={index} align="center" gap={2} minH="30px">
-                  <Box
-                    w="8px"
-                    h="8px"
-                    borderRadius="full"
-                    bg={item.color}
-                    flexShrink={0}
-                  />
-                  <Text fontSize="xs" fontWeight="500" color="gray.700" lineClamp={1}>
-                    {item.label}
-                  </Text>
-                  <Text fontSize="xs" fontWeight="700" color="gray.700" ml="auto">
-                    {item.value}
-                  </Text>
-                </Flex>
-              ))}
-            </Grid>
-            
-            {/* Summary */}
-            {/* <Box w="full" h="0.5px" bg="gray.200" my={1} /> */}
-            <Flex align="center" justify="center" w="full" minH="16px">
-              {/* <Text fontSize="xs" fontWeight="600" color="gray.600" mr={2}>
-                Total Users:
-              </Text>
-              <Text fontSize="xs" fontWeight="700" color="gray.900">
-                {total} */}
-              {/* </Text> */}
-            </Flex>
-          </VStack>
+          <HStack justify="center" gap={2} w="full" px={1} overflow="hidden" flexWrap="nowrap">
+            {pieData.map((item, index) => (
+              <Flex key={index} align="center" gap={1} minH="16px" overflow="hidden">
+                <Box
+                  w="6px"
+                  h="6px"
+                  borderRadius="full"
+                  bg={item.color}
+                  flexShrink={0}
+                />
+                <Text fontSize="8px" fontWeight="500" color="gray.700" whiteSpace="nowrap">
+                  {item.label}
+                </Text>
+                <Text fontSize="8px" fontWeight="700" color="gray.700" flexShrink={0}>
+                  {item.value}
+                </Text>
+              </Flex>
+            ))}
+          </HStack>
         </VStack>
       </Card.Body>
     </Card.Root>
