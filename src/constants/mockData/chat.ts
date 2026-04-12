@@ -1,6 +1,8 @@
 import { RAGApiResponse, AsyncComponent, AsyncLayout } from '@/types/ragApi';
 import { MOCK_EMPLOYEES } from './team';
 import { MOCK_PROJECTS } from './projects';
+import { PERFORMANCE_CHAT_PROMPTS } from './chatPerformance';
+import { COST_OPTIMIZATION_PROMPTS } from './chatCostOptimization';
 
 /**
  * Mock Chat/RAG Data - Pre-defined prompts and AI responses
@@ -871,6 +873,8 @@ export const MOCK_CHAT_PROMPTS: MockChatPrompt[] = [
       }
     ),
   },
+  ...PERFORMANCE_CHAT_PROMPTS,
+  ...COST_OPTIMIZATION_PROMPTS,
 ];
 
 // Helper to find response by prompt using keyword matching
