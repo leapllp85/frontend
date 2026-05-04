@@ -33,7 +33,14 @@ import {
     Video,
     MessageCircle,
     CheckCircle,
-    AlertCircleIcon
+    AlertCircleIcon,
+    Database,
+    FileText,
+    Clock,
+    ClipboardCheck,
+    Lightbulb,
+    Activity,
+    Award
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
@@ -62,7 +69,7 @@ export default function Teams() {
     const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<TeamMember | null>(null);
-    const [activeTab, setActiveTab] = useState<'work' | 'mental'>('work');
+    const [activeTab, setActiveTab] = useState<'insights' | 'pulse'>('insights');
 
     // Fetch quick data first for immediate dashboard display
     useEffect(() => {
@@ -972,9 +979,16 @@ export default function Teams() {
                                                                     {member.name.charAt(0).toUpperCase()}
                                                                 </Box>
                                                                 <VStack align="start" gap={0}>
-                                                                    <Text fontWeight="semibold" color="gray.800" fontSize="xs">
-                                                                        {member.name}
-                                                                    </Text>
+                                                                    <HStack gap={1.5} align="center">
+                                                                        <Text fontWeight="semibold" color="gray.800" fontSize="xs">
+                                                                            {member.name}
+                                                                        </Text>
+                                                                        {member.attritionRisk === 'High' && (
+                                                                            <Box title="High attrition risk" display="flex" alignItems="center">
+                                                                                <AlertTriangle size={12} color="#dc2626" fill="#fef2f2" />
+                                                                            </Box>
+                                                                        )}
+                                                                    </HStack>
                                                                     <Text color="gray.500" fontSize="2xs" truncate>
                                                                         {member.email}
                                                                     </Text>
@@ -1288,21 +1302,21 @@ export default function Teams() {
                                                 textAlign="center"
                                                 py={3}
                                                 cursor="pointer"
-                                                borderBottom={activeTab === 'work' ? '3px solid' : 'none'}
-                                                borderColor={activeTab === 'work' ? 'blue.500' : 'transparent'}
-                                                bg={activeTab === 'work' ? 'white' : 'transparent'}
-                                                onClick={() => setActiveTab('work')}
+                                                borderBottom={activeTab === 'insights' ? '3px solid' : 'none'}
+                                                borderColor={activeTab === 'insights' ? 'purple.500' : 'transparent'}
+                                                bg={activeTab === 'insights' ? 'white' : 'transparent'}
+                                                onClick={() => setActiveTab('insights')}
                                                 transition="all 0.2s"
-                                                _hover={{ bg: activeTab === 'work' ? 'white' : 'gray.100' }}
+                                                _hover={{ bg: activeTab === 'insights' ? 'white' : 'gray.100' }}
                                             >
                                                 <HStack justify="center" gap={2}>
-                                                    <Briefcase size={16} color={activeTab === 'work' ? '#2563eb' : '#6b7280'} />
-                                                    <Text 
-                                                        fontSize="xs" 
-                                                        fontWeight={activeTab === 'work' ? 'bold' : 'medium'}
-                                                        color={activeTab === 'work' ? 'blue.600' : 'gray.600'}
+                                                    <Brain size={16} color={activeTab === 'insights' ? '#9333ea' : '#6b7280'} />
+                                                    <Text
+                                                        fontSize="xs"
+                                                        fontWeight={activeTab === 'insights' ? 'bold' : 'medium'}
+                                                        color={activeTab === 'insights' ? 'purple.600' : 'gray.600'}
                                                     >
-                                                        Work & Performance
+                                                        Insights
                                                     </Text>
                                                 </HStack>
                                             </Box>
@@ -1311,30 +1325,36 @@ export default function Teams() {
                                                 textAlign="center"
                                                 py={3}
                                                 cursor="pointer"
-                                                borderBottom={activeTab === 'mental' ? '3px solid' : 'none'}
-                                                borderColor={activeTab === 'mental' ? 'pink.500' : 'transparent'}
-                                                bg={activeTab === 'mental' ? 'white' : 'transparent'}
-                                                onClick={() => setActiveTab('mental')}
+                                                borderBottom={activeTab === 'pulse' ? '3px solid' : 'none'}
+                                                borderColor={activeTab === 'pulse' ? 'orange.500' : 'transparent'}
+                                                bg={activeTab === 'pulse' ? 'white' : 'transparent'}
+                                                onClick={() => setActiveTab('pulse')}
                                                 transition="all 0.2s"
-                                                _hover={{ bg: activeTab === 'mental' ? 'white' : 'gray.100' }}
+                                                _hover={{ bg: activeTab === 'pulse' ? 'white' : 'gray.100' }}
                                             >
                                                 <HStack justify="center" gap={2}>
-                                                    <Heart size={16} color={activeTab === 'mental' ? '#ec4899' : '#6b7280'} />
-                                                    <Text 
-                                                        fontSize="xs" 
-                                                        fontWeight={activeTab === 'mental' ? 'bold' : 'medium'}
-                                                        color={activeTab === 'mental' ? 'pink.600' : 'gray.600'}
+                                                    <Activity size={16} color={activeTab === 'pulse' ? '#ea580c' : '#6b7280'} />
+                                                    <Text
+                                                        fontSize="xs"
+                                                        fontWeight={activeTab === 'pulse' ? 'bold' : 'medium'}
+                                                        color={activeTab === 'pulse' ? 'orange.600' : 'gray.600'}
                                                     >
-                                                        Mental Health
+                                                        Pulse Response
                                                     </Text>
                                                 </HStack>
                                             </Box>
                                         </HStack>
 
                                         {/* Tab Content */}
-                                        <Box p={3}>
-                                            {activeTab === 'work' ? (
-                                                <VStack align="stretch" gap={3}>
+                                        <Box p={3} maxH="calc(100vh - 320px)" overflowY="auto">
+                                            {activeTab === 'insights' ? (
+                                                <VStack align="stretch" gap={4} key="insights-tab">
+                                                    {/* === Section: Work & Performance (visual order 2) === */}
+                                                    <HStack gap={2} pb={1} mt={2} borderBottom="2px solid" borderColor="blue.200" order={2}>
+                                                        <Box p={1.5} bg="blue.100" borderRadius="md"><Briefcase size={14} color="#2563eb" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="blue.700">Work & Performance</Text>
+                                                    </HStack>
+                                                    <VStack align="stretch" gap={3} key="work-tab" order={2}>
                                                     {/* AI Work Insight - First */}
                                                     <Box p={3} bg="gradient-to-r from-blue-50 to-cyan-50" borderRadius="lg" border="1px solid" borderColor="blue.200">
                                                         <HStack gap={2} mb={2}>
@@ -1428,8 +1448,12 @@ export default function Teams() {
                                                         </Box>
                                                     </SimpleGrid>
                                                 </VStack>
-                                            ) : (
-                                                <VStack align="stretch" gap={3}>
+                                                    {/* === Section: Mental Health (visual order 3) === */}
+                                                    <HStack gap={2} pb={1} mt={2} borderBottom="2px solid" borderColor="pink.200" order={3}>
+                                                        <Box p={1.5} bg="pink.100" borderRadius="md"><Heart size={14} color="#ec4899" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="pink.700">Mental Health</Text>
+                                                    </HStack>
+                                                    <VStack align="stretch" gap={3} key="mental-tab" order={3}>
                                                     {/* AI Mental Health Insight */}
                                                     <Box p={3} bg="gradient-to-r from-pink-50 to-rose-50" borderRadius="lg" border="1px solid" borderColor="pink.200">
                                                         <HStack gap={2} mb={2}>
@@ -1543,6 +1567,357 @@ export default function Teams() {
                                                         </SimpleGrid>
                                                     </Box>
                                                 </VStack>
+                                                    {/* === Section: System Data (visual order 1) === */}
+                                                    <HStack gap={2} pb={1} borderBottom="2px solid" borderColor="teal.200" order={1}>
+                                                        <Box p={1.5} bg="teal.100" borderRadius="md"><Database size={14} color="#0d9488" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="teal.700">System Data</Text>
+                                                    </HStack>
+                                                    <Box order={1}>
+                                                    {(() => {
+                                                    // ===== System Data Tab: Mock deterministic metrics + risk flag =====
+                                                    const nameHash = (hoveredMember.name || 'x').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                                                    // Deterministic 6-month delivery trend: one count per month (oldest → latest)
+                                                    const monthLabels = (() => {
+                                                        const now = new Date();
+                                                        const arr: string[] = [];
+                                                        for (let i = 5; i >= 0; i--) {
+                                                            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                                                            arr.push(d.toLocaleString('en-US', { month: 'short' }));
+                                                        }
+                                                        return arr;
+                                                    })();
+                                                    const deliveryTrend = monthLabels.map((_, i) => 1 + ((nameHash + i * 13) % 6)); // 1-6 per month
+                                                    const deliverySlips = deliveryTrend.reduce((a, b) => a + b, 0);
+                                                    const expectedSlips = 18; // baseline: ~3/month
+                                                    const deliveryPct = Math.min(100, Math.round((deliverySlips / expectedSlips) * 100));
+                                                    const skillUpdatedRecently = nameHash % 3 !== 0; // ~66% yes
+                                                    // Deterministic skill-update events within last 60 days (day offset from today, going back)
+                                                    const skillUpdateDays = skillUpdatedRecently
+                                                        ? [3, 17, 41].filter((_, i) => ((nameHash >> i) & 1) === 1 || i === 0).slice(0, 3)
+                                                        : [];
+                                                    const monthsInPosition = 4 + (nameHash % 36); // 4-39 months
+                                                    const surveyParticipation = nameHash % 4 === 0 ? 0 : nameHash % 4 === 1 ? 1 : 2; // 0,1, or 2 surveys (last 2 months)
+
+                                                    // Risk scoring: higher = riskier
+                                                    let riskScore = 0;
+                                                    if (deliveryPct < 50) riskScore += 2; else if (deliveryPct < 75) riskScore += 1;
+                                                    if (!skillUpdatedRecently) riskScore += 2;
+                                                    if (monthsInPosition >= 30) riskScore += 2; else if (monthsInPosition >= 18) riskScore += 1;
+                                                    if (surveyParticipation === 0) riskScore += 2; else if (surveyParticipation === 1) riskScore += 1;
+
+                                                    const riskLevel = riskScore >= 5 ? 'At Risk' : riskScore >= 3 ? 'Medium Risk' : 'No Risk';
+                                                    const riskColor = riskScore >= 5 ? 'red' : riskScore >= 3 ? 'orange' : 'green';
+                                                    const riskBg = riskScore >= 5 ? 'red.50' : riskScore >= 3 ? 'orange.50' : 'green.50';
+                                                    const riskBorder = riskScore >= 5 ? 'red.300' : riskScore >= 3 ? 'orange.300' : 'green.300';
+
+                                                    // Build recommendations based on triggers
+                                                    const recommendations: string[] = [];
+                                                    if (deliveryPct < 75) recommendations.push(`Delivery output below target (${deliverySlips}/${expectedSlips}). Review project allocation and remove blockers.`);
+                                                    if (!skillUpdatedRecently) recommendations.push('No skill update in the last 2 months. Schedule a learning plan review and enroll in a relevant course.');
+                                                    if (monthsInPosition >= 30) recommendations.push(`In current position for ${monthsInPosition} months. Discuss growth path, rotation, or stretch assignment.`);
+                                                    else if (monthsInPosition >= 18) recommendations.push(`${monthsInPosition} months in current role. Begin career-conversation and identify next role.`);
+                                                    if (surveyParticipation === 0) recommendations.push('Did not participate in any survey in the last 2 months. Schedule a 1-on-1 to gather direct feedback.');
+                                                    else if (surveyParticipation === 1) recommendations.push('Low survey participation. Encourage engagement via manager check-in.');
+                                                    if (recommendations.length === 0) recommendations.push('All system signals are healthy. Continue current support and recognition cadence.');
+
+                                                    return (
+                                                <VStack align="stretch" gap={3} key="system-tab">
+                                                    {/* Risk Flag Banner */}
+                                                    <Box p={3} bg={riskBg} borderRadius="lg" border="2px solid" borderColor={riskBorder}>
+                                                        <HStack justify="space-between" align="center">
+                                                            <HStack gap={2}>
+                                                                <Box p={1.5} bg="white" borderRadius="md">
+                                                                    <AlertTriangle size={16} color={riskScore >= 5 ? '#dc2626' : riskScore >= 3 ? '#ea580c' : '#16a34a'} />
+                                                                </Box>
+                                                                <VStack align="start" gap={0}>
+                                                                    <Text fontSize="2xs" color="gray.600" fontWeight="600">System-Signal Risk Assessment</Text>
+                                                                    <Text fontSize="sm" fontWeight="800" color={`${riskColor}.700`}>{riskLevel}</Text>
+                                                                </VStack>
+                                                            </HStack>
+                                                            <Badge colorPalette={riskColor} fontSize="xs" px={3} py={1.5} borderRadius="md">
+                                                                Score {riskScore}/8
+                                                            </Badge>
+                                                        </HStack>
+                                                    </Box>
+
+                                                    {/* Metric Cards */}
+                                                    <SimpleGrid columns={2} gap={2}>
+                                                        {/* Delivery Slips (6 months) — Line trend */}
+                                                        <Box p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200">
+                                                            <HStack justify="space-between" mb={1.5}>
+                                                                <HStack gap={1.5}>
+                                                                    <FileText size={14} color="#2563eb" />
+                                                                    <Text fontSize="2xs" color="gray.700" fontWeight="600">Delivery Slips Trend (6 mo)</Text>
+                                                                </HStack>
+                                                                <Text fontSize="2xs" color="gray.500">Total: <Text as="span" fontWeight="bold" color="blue.600">{deliverySlips}</Text>/~{expectedSlips}</Text>
+                                                            </HStack>
+                                                            {(() => {
+                                                                const W = 200, H = 60, pad = 6;
+                                                                const maxV = Math.max(...deliveryTrend, 6);
+                                                                const stepX = (W - pad * 2) / (deliveryTrend.length - 1);
+                                                                const points = deliveryTrend.map((v, i) => {
+                                                                    const x = pad + i * stepX;
+                                                                    const y = H - pad - ((v / maxV) * (H - pad * 2));
+                                                                    return { x, y, v };
+                                                                });
+                                                                const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                                                                const area = `${path} L${points[points.length - 1].x},${H - pad} L${points[0].x},${H - pad} Z`;
+                                                                const lineColor = deliveryPct < 50 ? '#dc2626' : deliveryPct < 75 ? '#ea580c' : '#2563eb';
+                                                                return (
+                                                                    <Box>
+                                                                        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                                                                            <defs>
+                                                                                <linearGradient id={`dlvGrad-${nameHash}`} x1="0" y1="0" x2="0" y2="1">
+                                                                                    <stop offset="0%" stopColor={lineColor} stopOpacity={0.3} />
+                                                                                    <stop offset="100%" stopColor={lineColor} stopOpacity={0.02} />
+                                                                                </linearGradient>
+                                                                            </defs>
+                                                                            {[0.25, 0.5, 0.75].map(t => (
+                                                                                <line key={t} x1={pad} x2={W - pad} y1={pad + t * (H - pad * 2)} y2={pad + t * (H - pad * 2)} stroke="#cbd5e1" strokeWidth="0.5" strokeDasharray="2,2" />
+                                                                            ))}
+                                                                            <path d={area} fill={`url(#dlvGrad-${nameHash})`} />
+                                                                            <path d={path} fill="none" stroke={lineColor} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+                                                                            {points.map((p, i) => (
+                                                                                <g key={i}>
+                                                                                    <circle cx={p.x} cy={p.y} r={2.5} fill="white" stroke={lineColor} strokeWidth="1.5" />
+                                                                                    <text x={p.x} y={p.y - 5} fontSize="6" fill="#475569" textAnchor="middle" fontWeight="600">{p.v}</text>
+                                                                                </g>
+                                                                            ))}
+                                                                        </svg>
+                                                                        <HStack justify="space-between" mt={0.5} px={1}>
+                                                                            {monthLabels.map(m => (
+                                                                                <Text key={m} fontSize="2xs" color="gray.500" fontWeight="500">{m}</Text>
+                                                                            ))}
+                                                                        </HStack>
+                                                                    </Box>
+                                                                );
+                                                            })()}
+                                                        </Box>
+
+                                                        {/* Skill Updated (2 months) — Dot timeline */}
+                                                        <Box p={3} bg="purple.50" borderRadius="lg" border="1px solid" borderColor="purple.200">
+                                                            <HStack justify="space-between" mb={1.5}>
+                                                                <HStack gap={1.5}>
+                                                                    <Award size={14} color="#7c3aed" />
+                                                                    <Text fontSize="2xs" color="gray.700" fontWeight="600">Skill Updates (last 60 days)</Text>
+                                                                </HStack>
+                                                                <Badge colorPalette={skillUpdatedRecently ? 'green' : 'red'} fontSize="2xs" px={1.5}>
+                                                                    {skillUpdateDays.length} {skillUpdateDays.length === 1 ? 'update' : 'updates'}
+                                                                </Badge>
+                                                            </HStack>
+                                                            {(() => {
+                                                                const W = 200, H = 60, pad = 6, axisY = H - 18;
+                                                                const totalDays = 60;
+                                                                const dots = skillUpdateDays.map(d => {
+                                                                    const x = pad + ((totalDays - d) / totalDays) * (W - pad * 2);
+                                                                    return { x, daysAgo: d };
+                                                                });
+                                                                return (
+                                                                    <Box>
+                                                                        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                                                                            {/* Axis line */}
+                                                                            <line x1={pad} x2={W - pad} y1={axisY} y2={axisY} stroke="#c4b5fd" strokeWidth="1" />
+                                                                            {/* Tick marks at 0, 30, 60 days */}
+                                                                            {[0, 30, 60].map(d => {
+                                                                                const x = pad + ((totalDays - d) / totalDays) * (W - pad * 2);
+                                                                                return (
+                                                                                    <g key={d}>
+                                                                                        <line x1={x} x2={x} y1={axisY - 2} y2={axisY + 2} stroke="#a78bfa" strokeWidth="0.8" />
+                                                                                        <text x={x} y={H - 4} fontSize="6" fill="#6b7280" textAnchor="middle" fontWeight="500">
+                                                                                            {d === 0 ? 'Today' : `${d}d ago`}
+                                                                                        </text>
+                                                                                    </g>
+                                                                                );
+                                                                            })}
+                                                                            {/* Update dots */}
+                                                                            {dots.map((dot, i) => (
+                                                                                <g key={i}>
+                                                                                    <circle cx={dot.x} cy={axisY} r={5} fill="#7c3aed" opacity={0.2} />
+                                                                                    <circle cx={dot.x} cy={axisY} r={3} fill="#7c3aed" stroke="white" strokeWidth="1" />
+                                                                                    <text x={dot.x} y={axisY - 8} fontSize="6" fill="#5b21b6" textAnchor="middle" fontWeight="700">
+                                                                                        -{dot.daysAgo}d
+                                                                                    </text>
+                                                                                </g>
+                                                                            ))}
+                                                                            {dots.length === 0 && (
+                                                                                <text x={W / 2} y={axisY - 6} fontSize="7" fill="#dc2626" textAnchor="middle" fontWeight="600">No updates in 60 days</text>
+                                                                            )}
+                                                                        </svg>
+                                                                    </Box>
+                                                                );
+                                                            })()}
+                                                        </Box>
+
+                                                        {/* Time in Current Position */}
+                                                        <Box p={3} bg="orange.50" borderRadius="lg" border="1px solid" borderColor="orange.200">
+                                                            <HStack gap={1.5} mb={1.5}>
+                                                                <Clock size={14} color="#ea580c" />
+                                                                <Text fontSize="2xs" color="gray.700" fontWeight="600">Time in Position</Text>
+                                                            </HStack>
+                                                            <HStack justify="space-between" align="baseline">
+                                                                <Text fontSize="xl" fontWeight="bold" color="orange.600">{monthsInPosition}</Text>
+                                                                <Text fontSize="2xs" color="gray.500">months</Text>
+                                                            </HStack>
+                                                            <Text fontSize="2xs" color="gray.500" mt={1}>
+                                                                {monthsInPosition >= 30 ? 'Long tenure — growth check due' : monthsInPosition >= 18 ? 'Approaching review window' : 'Within healthy range'}
+                                                            </Text>
+                                                        </Box>
+
+                                                        {/* Survey Participation (2 months) */}
+                                                        <Box p={3} bg="green.50" borderRadius="lg" border="1px solid" borderColor="green.200">
+                                                            <HStack gap={1.5} mb={1.5}>
+                                                                <ClipboardCheck size={14} color="#16a34a" />
+                                                                <Text fontSize="2xs" color="gray.700" fontWeight="600">Survey Participation (2 mo)</Text>
+                                                            </HStack>
+                                                            <HStack justify="space-between" align="baseline">
+                                                                <Text fontSize="xl" fontWeight="bold" color={surveyParticipation === 0 ? 'red.600' : surveyParticipation === 1 ? 'orange.600' : 'green.600'}>
+                                                                    {surveyParticipation}/2
+                                                                </Text>
+                                                                <Text fontSize="2xs" color="gray.500">surveys</Text>
+                                                            </HStack>
+                                                            <HStack gap={1} mt={1.5}>
+                                                                {[1, 2].map(i => (
+                                                                    <Box key={i} flex={1} h="5px" bg={i <= surveyParticipation ? 'green.500' : 'gray.200'} borderRadius="full" />
+                                                                ))}
+                                                            </HStack>
+                                                        </Box>
+                                                    </SimpleGrid>
+
+                                                    {/* Recommendations */}
+                                                    <Box p={3} bg="gradient-to-r from-yellow-50 to-amber-50" borderRadius="lg" border="1px solid" borderColor="yellow.200">
+                                                        <HStack gap={2} mb={2}>
+                                                            <Box p={1.5} bg="yellow.100" borderRadius="md">
+                                                                <Lightbulb size={16} color="#ca8a04" />
+                                                            </Box>
+                                                            <Text fontSize="xs" fontWeight="700" color="gray.800">Recommendations to Reduce Risk</Text>
+                                                        </HStack>
+                                                        <VStack align="stretch" gap={1.5}>
+                                                            {recommendations.map((rec, idx) => (
+                                                                <HStack key={idx} gap={2} align="start">
+                                                                    <Box mt={1} w="6px" h="6px" borderRadius="full" bg={`${riskColor}.500`} flexShrink={0} />
+                                                                    <Text fontSize="xs" color="gray.700" lineHeight="1.5">{rec}</Text>
+                                                                </HStack>
+                                                            ))}
+                                                        </VStack>
+                                                    </Box>
+                                                </VStack>
+                                                    );
+                                                })()}
+                                                    </Box>
+                                                </VStack>
+                                            ) : (
+                                                (() => {
+                                                    // ===== Pulse Response Tab: Survey completion + sentiment per question =====
+                                                    const nameHash = (hoveredMember.name || 'x').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+                                                    const totalSurveys = 5;
+                                                    const completedSurveys = 1 + (nameHash % totalSurveys); // 1-5
+                                                    const completionPct = Math.round((completedSurveys / totalSurveys) * 100);
+
+                                                    // 5 mock questions with deterministic sentiment scores (0-100, higher = more positive)
+                                                    const questions = [
+                                                        { q: 'I feel valued for my contributions at work.', score: 40 + ((nameHash + 7) % 60) },
+                                                        { q: 'My workload is manageable in a typical week.', score: 30 + ((nameHash + 13) % 70) },
+                                                        { q: 'I have clarity on my career growth path.', score: 35 + ((nameHash + 19) % 65) },
+                                                        { q: 'My manager supports my professional development.', score: 50 + ((nameHash + 23) % 50) },
+                                                        { q: 'I would recommend this company as a great place to work.', score: 30 + ((nameHash + 29) % 70) },
+                                                    ];
+                                                    const avgSentiment = Math.round(questions.reduce((s, x) => s + x.score, 0) / questions.length);
+                                                    const sentimentLabel = avgSentiment >= 70 ? 'Positive' : avgSentiment >= 50 ? 'Neutral' : 'Negative';
+                                                    const sentimentColor = avgSentiment >= 70 ? 'green' : avgSentiment >= 50 ? 'orange' : 'red';
+                                                    const sentimentEmoji = avgSentiment >= 70 ? '😊' : avgSentiment >= 50 ? '😐' : '😟';
+                                                    const scoreColor = (s: number) => s >= 70 ? '#16a34a' : s >= 50 ? '#ea580c' : '#dc2626';
+                                                    const scoreBg = (s: number) => s >= 70 ? 'green.100' : s >= 50 ? 'orange.100' : 'red.100';
+
+                                                    return (
+                                                        <VStack align="stretch" gap={3} key="pulse-tab">
+                                                            {/* Completion + aggregated sentiment */}
+                                                            <SimpleGrid columns={2} gap={2}>
+                                                                <Box p={3} bg="blue.50" borderRadius="lg" border="1px solid" borderColor="blue.200">
+                                                                    <HStack gap={1.5} mb={1.5}>
+                                                                        <ClipboardCheck size={14} color="#2563eb" />
+                                                                        <Text fontSize="2xs" color="gray.700" fontWeight="600">Survey Completion</Text>
+                                                                    </HStack>
+                                                                    <HStack justify="space-between" align="baseline" mb={1.5}>
+                                                                        <Text fontSize="2xl" fontWeight="bold" color="blue.600">{completedSurveys}/{totalSurveys}</Text>
+                                                                        <Text fontSize="2xs" color="gray.500">{completionPct}% complete</Text>
+                                                                    </HStack>
+                                                                    <Box h="6px" bg="blue.100" borderRadius="full" overflow="hidden">
+                                                                        <Box w={`${completionPct}%`} h="full" bg="blue.500" />
+                                                                    </Box>
+                                                                </Box>
+                                                                <Box p={3} bg={`${sentimentColor}.50`} borderRadius="lg" border="1px solid" borderColor={`${sentimentColor}.200`}>
+                                                                    <HStack gap={1.5} mb={1.5}>
+                                                                        <Brain size={14} color={scoreColor(avgSentiment)} />
+                                                                        <Text fontSize="2xs" color="gray.700" fontWeight="600">Aggregated Sentiment</Text>
+                                                                    </HStack>
+                                                                    <HStack justify="space-between" align="center">
+                                                                        <HStack gap={1.5} align="baseline">
+                                                                            <Text fontSize="2xl">{sentimentEmoji}</Text>
+                                                                            <Text fontSize="2xl" fontWeight="bold" color={`${sentimentColor}.600`}>{avgSentiment}</Text>
+                                                                            <Text fontSize="2xs" color="gray.500">/100</Text>
+                                                                        </HStack>
+                                                                        <Badge colorPalette={sentimentColor} fontSize="2xs" px={2} py={1}>
+                                                                            {sentimentLabel}
+                                                                        </Badge>
+                                                                    </HStack>
+                                                                </Box>
+                                                            </SimpleGrid>
+
+                                                            {/* Questionnaire breakdown */}
+                                                            <Box p={3} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200">
+                                                                <HStack gap={2} mb={2}>
+                                                                    <Box p={1.5} bg="gray.100" borderRadius="md">
+                                                                        <FileText size={14} color="#475569" />
+                                                                    </Box>
+                                                                    <Text fontSize="xs" fontWeight="700" color="gray.800">Questionnaire Sentiment Breakdown</Text>
+                                                                </HStack>
+                                                                <VStack align="stretch" gap={2}>
+                                                                    {questions.map((item, idx) => (
+                                                                        <Box key={idx} p={2} bg="gray.50" borderRadius="md" border="1px solid" borderColor="gray.200">
+                                                                            <HStack justify="space-between" align="start" mb={1.5}>
+                                                                                <HStack gap={1.5} flex={1} align="start">
+                                                                                    <Box
+                                                                                        w="18px"
+                                                                                        h="18px"
+                                                                                        borderRadius="full"
+                                                                                        bg={scoreBg(item.score)}
+                                                                                        color={scoreColor(item.score)}
+                                                                                        display="flex"
+                                                                                        alignItems="center"
+                                                                                        justifyContent="center"
+                                                                                        fontSize="2xs"
+                                                                                        fontWeight="bold"
+                                                                                        flexShrink={0}
+                                                                                    >
+                                                                                        Q{idx + 1}
+                                                                                    </Box>
+                                                                                    <Text fontSize="xs" color="gray.700" lineHeight="1.4">{item.q}</Text>
+                                                                                </HStack>
+                                                                                <Text fontSize="xs" fontWeight="bold" color={scoreColor(item.score)} flexShrink={0} ml={2}>
+                                                                                    {item.score}
+                                                                                </Text>
+                                                                            </HStack>
+                                                                            <Box h="4px" bg="gray.200" borderRadius="full" overflow="hidden">
+                                                                                <Box w={`${item.score}%`} h="full" bg={scoreColor(item.score)} />
+                                                                            </Box>
+                                                                        </Box>
+                                                                    ))}
+                                                                </VStack>
+                                                            </Box>
+
+                                                            {/* Footnote / context */}
+                                                            <Box p={2.5} bg="orange.50" borderRadius="lg" border="1px dashed" borderColor="orange.200">
+                                                                <HStack gap={2} align="start">
+                                                                    <AlertCircleIcon size={14} color="#ea580c" />
+                                                                    <Text fontSize="2xs" color="gray.700" lineHeight="1.5">
+                                                                        Sentiment is aggregated from <strong>{completedSurveys} of {totalSurveys}</strong> recent pulse surveys.
+                                                                        Scores below 50 indicate areas needing manager attention.
+                                                                    </Text>
+                                                                </HStack>
+                                                            </Box>
+                                                        </VStack>
+                                                    );
+                                                })()
                                             )}
                                         </Box>
                                     </Card.Body>

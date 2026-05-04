@@ -120,9 +120,17 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
         );
     }
 
+    // For embedded chat mode, render children directly without wrapper
+    if (pathname === "/chat" && typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("embed") === "true" || window.self !== window.top) {
+            return <>{children}</>;
+        }
+    }
+
     // For authenticated pages, show header
     return (
-        <VStack w="full" p={0} gap={0}>
+        <VStack w="full" p={0} gap={0} align="stretch">
             {/* <Header /> */}
             {children}
         </VStack>

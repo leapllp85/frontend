@@ -370,9 +370,16 @@ export default function MyTeam() {
                                                 >
                                                     <td style={{ padding: '16px' }}>
                                                         <VStack align="start" gap={1}>
-                                                            <Text fontWeight="semibold" color="gray.800" fontSize="sm">
-                                                                {member.name}
-                                                            </Text>
+                                                            <HStack gap={1.5} align="center">
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                    {member.name}
+                                                                </Text>
+                                                                {(member.managerAssessmentRisk === 'High' || calculateSuggestedRisk(member) === 'High') && (
+                                                                    <Box title="High attrition risk" display="flex" alignItems="center">
+                                                                        <AlertTriangle size={14} color="#dc2626" fill="#fef2f2" />
+                                                                    </Box>
+                                                                )}
+                                                            </HStack>
                                                             <Text color="gray.600" fontSize="xs">
                                                                 {member.email}
                                                             </Text>

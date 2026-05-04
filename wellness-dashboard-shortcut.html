@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Wellness Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            color: white;
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .btn {
+            background: white;
+            color: #667eea;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Team Wellness Dashboard</h1>
+        <p>Opening your team wellness metrics...</p>
+        <button class="btn" onclick="openWellnessDashboard()">Open Dashboard</button>
+    </div>
+
+    <script>
+        function openWellnessDashboard() {
+            const width = 1200;
+            const height = 800;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            
+            // Open window without browser chrome (no address bar, tabs, bookmarks, etc.)
+            window.open(
+                '/wellness-dashboard',
+                'wellnessDashboard',
+                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes,location=no,menubar=no,toolbar=no,status=no,directories=no`
+            );
+            
+            // Close this launcher window after opening the dashboard
+            window.close();
+        }
+
+        // Auto-open after 1 second
+        setTimeout(openWellnessDashboard, 1000);
+    </script>
+</body>
+</html>

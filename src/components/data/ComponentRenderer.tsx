@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import { DataVisualization } from './DataVisualization';
 import { DataTable } from './DataTable';
 import { MetricCard } from './MetricCard';
+import { CandidateCVTemplate } from '../common/CandidateCVTemplate';
 import { ComponentConfig, DatasetResult } from '../../types/ragApi';
 
 interface ComponentRendererProps {
@@ -114,6 +115,26 @@ export const ComponentRenderer: React.FC<ComponentRendererProps> = ({ config, da
       );
     }
 
+    // CV Template component
+    if (type.includes('cv_template') || type.includes('candidate_cv') || type.includes('employee_cv')) {
+      const employeeData = dataset[0]?.data[0] || {};
+      return (
+        <CandidateCVTemplate
+          name={employeeData.name || config.title}
+          photo={employeeData.photo}
+          summary={employeeData.summary || employeeData.description || 'No summary available'}
+          projectsWorked={employeeData.projects_worked || employeeData.projects || 0}
+          skills={employeeData.skills || []}
+          concerns={employeeData.concerns || []}
+          attritionRisk={employeeData.attrition_risk || 'Low'}
+          projectImpact={employeeData.project_impact || employeeData.impact || 'Not specified'}
+          role={employeeData.role || employeeData.position}
+          department={employeeData.department}
+        />
+      );
+    }
+
+    // 
     // List component (render as simple list)
     if (type.includes('list')) {
       return (

@@ -39,20 +39,13 @@ export default function Home() {
       });
       
       notification.onclick = (event) => {
-        console.log('📊 Desktop notification clicked - opening wellness dashboard in popup window');
+        console.log('📊 Desktop notification clicked - opening wellness dashboard modal');
         event.preventDefault();
         
-        // Open wellness dashboard in popup window with modal-like dimensions
-        const width = 1200;
-        const height = 800;
-        const left = (screen.width - width) / 2;
-        const top = (screen.height - height) / 2;
-        
-        window.open(
-          '/wellness-dashboard',
-          'wellnessDashboard',
-          `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-        );
+        // Focus the window and set flag to open modal
+        window.focus();
+        localStorage.setItem('openWellnessDashboard', 'true');
+        localStorage.setItem('wellnessDashboardTimestamp', Date.now().toString());
         
         notification.close();
       };
@@ -151,69 +144,118 @@ export default function Home() {
     }
   }, [user, isLoading, showLoadingScreen, router]);
 
+  // Listen for notification click to open wellness dashboard modal
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'openWellnessDashboard' && e.newValue === 'true') {
+        console.log('📊 Notification click detected - opening wellness dashboard modal');
+        setShowWellnessDashboard(true);
+        
+        // Clear the flag after opening
+        localStorage.removeItem('openWellnessDashboard');
+        localStorage.removeItem('wellnessDashboardTimestamp');
+      }
+    };
+
+    // Also check on mount in case the flag was set while the page was in background
+    const checkExistingFlag = () => {
+      const flag = localStorage.getItem('openWellnessDashboard');
+      if (flag === 'true') {
+        console.log('📊 Existing notification flag detected - opening wellness dashboard modal');
+        setShowWellnessDashboard(true);
+        localStorage.removeItem('openWellnessDashboard');
+        localStorage.removeItem('wellnessDashboardTimestamp');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    checkExistingFlag();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   // Request notification permission and setup periodic desktop notifications
   useEffect(() => {
     if (!isLoading && user && !showLoadingScreen) {
       const userRole = getUserRole(user);
+      console.log('🔔 Notification setup check - User role:', userRole);
       
       // Only for managers
       if (userRole === 'Manager') {
+        console.log('✅ User is a manager, setting up notifications');
+        
+        // Check if notifications are supported
+        if (!('Notification' in window)) {
+          console.error('❌ This browser does not support desktop notifications');
+          return;
+        }
+        
+        console.log('🔔 Current notification permission:', Notification.permission);
+        
         // Request notification permission
-        if ('Notification' in window && Notification.permission === 'default') {
+        if (Notification.permission === 'default') {
           console.log('🔔 Requesting notification permission...');
           Notification.requestPermission().then(permission => {
-            console.log('Notification permission:', permission);
+            console.log('✅ Notification permission result:', permission);
+            if (permission === 'granted') {
+              console.log('🎉 Permission granted, notifications will work!');
+            } else if (permission === 'denied') {
+              console.error('❌ Permission denied. Please enable notifications in browser settings.');
+              alert('Notification permission was denied. Please enable notifications in your browser settings to receive wellness alerts.');
+            }
           });
         }
         
         // Setup periodic notifications if permission granted
-        if ('Notification' in window && Notification.permission === 'granted') {
+        if (Notification.permission === 'granted') {
           console.log('🔔 Starting periodic desktop notification system (every 5 minutes)');
           
           const showDesktopNotification = () => {
-            console.log('⏰ 5-minute desktop notification triggered');
+            console.log('⏰ Desktop notification triggered at:', new Date().toLocaleTimeString());
             
-            const notification = new Notification('Team Wellness Dashboard', {
-              body: 'Check your team\'s wellness metrics and identify members who may need support.',
-              icon: '/favicon.ico',
-              badge: '/favicon.ico',
-              tag: 'wellness-dashboard',
-              requireInteraction: false,
-              silent: false,
-              data: {
-                action: 'open-wellness-dashboard',
-                timestamp: Date.now()
-              }
-            });
-            
-            // Handle notification click
-            notification.onclick = (event) => {
-              console.log('📊 Desktop notification clicked - opening wellness dashboard in popup window');
-              event.preventDefault();
+            try {
+              const notification = new Notification('Team Wellness Dashboard', {
+                body: 'Check your team\'s wellness metrics and identify members who may need support.',
+                icon: '/favicon.ico',
+                badge: '/favicon.ico',
+                tag: 'wellness-dashboard',
+                requireInteraction: false,
+                silent: false,
+                data: {
+                  action: 'open-wellness-dashboard',
+                  timestamp: Date.now()
+                }
+              });
               
-              // Open wellness dashboard in popup window with modal-like dimensions
-              const width = 1200;
-              const height = 800;
-              const left = (screen.width - width) / 2;
-              const top = (screen.height - height) / 2;
+              console.log('✅ Notification created successfully');
               
-              window.open(
-                '/wellness-dashboard',
-                'wellnessDashboard',
-                `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-              );
+              // Handle notification click
+              notification.onclick = (event) => {
+                console.log('📊 Desktop notification clicked - opening wellness dashboard modal');
+                event.preventDefault();
+                
+                // Focus the window and set flag to open modal
+                window.focus();
+                localStorage.setItem('openWellnessDashboard', 'true');
+                localStorage.setItem('wellnessDashboardTimestamp', Date.now().toString());
+                
+                notification.close();
+              };
               
-              notification.close();
-            };
-            
-            // Auto-close after 10 seconds
-            setTimeout(() => {
-              notification.close();
-            }, 10000);
+              // Auto-close after 10 seconds
+              setTimeout(() => {
+                notification.close();
+              }, 10000);
+            } catch (error) {
+              console.error('❌ Error creating notification:', error);
+            }
           };
           
-          // Show first notification after 5 seconds (for testing)
-          const initialTimer = setTimeout(showDesktopNotification, 5000);
+          // Show first notification after 2 seconds (for easier testing)
+          console.log('⏱️  First notification will show in 2 seconds...');
+          const initialTimer = setTimeout(showDesktopNotification, 2000);
           
           // Then show every 5 minutes (300000ms)
           const interval = setInterval(showDesktopNotification, 300000);
@@ -224,9 +266,12 @@ export default function Home() {
             clearInterval(interval);
             console.log('🔕 Stopped periodic desktop notification system');
           };
-        } else if ('Notification' in window && Notification.permission === 'denied') {
+        } else if (Notification.permission === 'denied') {
           console.warn('⚠️ Notification permission denied. Desktop notifications will not work.');
+          alert('Notifications are blocked. Please enable them in your browser settings to receive wellness alerts.');
         }
+      } else {
+        console.log('❌ User is not a manager, skipping notification setup');
       }
     }
   }, [user, isLoading, showLoadingScreen]);
