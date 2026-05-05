@@ -40,7 +40,9 @@ import {
     ClipboardCheck,
     Lightbulb,
     Activity,
-    Award
+    Award,
+    X as XIcon,
+    ChevronDown
 } from 'lucide-react';
 import { getRiskColor } from '@/utils/riskColors';
 import { dashboardApi, teamApi, DashboardQuickData, EmployeeProfile } from '@/services';
@@ -70,6 +72,12 @@ export default function Teams() {
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<TeamMember | null>(null);
     const [activeTab, setActiveTab] = useState<'insights' | 'pulse'>('insights');
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+    const toggleSec = (k: string) => setExpandedSections(prev => {
+        const s = new Set(prev);
+        if (s.has(k)) s.delete(k); else s.add(k);
+        return s;
+    });
 
     // Fetch quick data first for immediate dashboard display
     useEffect(() => {
@@ -716,9 +724,9 @@ export default function Teams() {
                         </Box>
 
                         {/* Team Members Management Section */}
-                        {!quickDataLoading && !error && (
-                            <HStack align="stretch" gap={1} h="calc(100vh - 300px)">
-                            <Card.Root bg="white" shadow="sm" borderRadius="3xl" w="70%" h="120%" display="flex" flexDirection="column">
+                        {!quickDataLoading && !error && (<>
+                            <Box h="calc(100vh - 300px)">
+                            <Card.Root bg="white" shadow="sm" borderRadius="3xl" w="100%" h="100%" display="flex" flexDirection="column">
                                 <Card.Header p={4}>
                                     <HStack justify="space-between">
                                         <VStack align="start" gap={1}>
@@ -949,7 +957,6 @@ export default function Teams() {
                                             {teamMembers.map((member, index) => (
                                                 <tr 
                                                     key={member.id}
-                                                    onMouseEnter={() => setHoveredMember(member)}
                                                     style={{ 
                                                         borderBottom: '1px solid #f3f4f6',
                                                         backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb',
@@ -957,11 +964,16 @@ export default function Teams() {
                                                     }}
                                                     className={`table-row ${index % 2 === 1 ? 'table-row-alt' : ''}`}
                                                 >
-                                                    <td style={{ 
-                                                        padding: '8px 12px',
-                                                        borderRight: '1px solid #f3f4f6',
-                                                        width: '200px'
-                                                    }}>
+                                                    <td
+                                                        style={{ 
+                                                            padding: '8px 12px',
+                                                            borderRight: '1px solid #f3f4f6',
+                                                            width: '200px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        onClick={() => setHoveredMember(member)}
+                                                        title="Click to view details"
+                                                    >
                                                         <VStack align="start" gap={0}>
                                                             <HStack gap={2} align="center">
                                                                 <Box
@@ -1209,92 +1221,187 @@ export default function Teams() {
                                 />
                             </Card.Footer>
                         </Card.Root>
-                        
-                        {/* Profile Panel - 30% */}
-                        <Box w="30%" h="120%">
-                            {hoveredMember ? (
+                        </Box>
+                        {/* Member Detail Modal */}
+                        {hoveredMember && (
+                            <Box
+                                position="fixed"
+                                top={0}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                bg="rgba(0, 0, 0, 0.55)"
+                                backdropFilter="blur(6px)"
+                                zIndex={9998}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                onClick={() => setHoveredMember(null)}
+                                p={4}
+                            >
                                 <Card.Root 
                                     bg="white" 
                                     shadow="2xl" 
-                                    borderRadius="3xl" 
+                                    borderRadius="2xl" 
                                     border="1px solid" 
                                     borderColor="gray.200" 
-                                    h="100%" 
+                                    w="100%"
+                                    maxW="1200px"
+                                    maxH="90vh"
                                     display="flex" 
                                     flexDirection="column" 
                                     overflow="hidden"
-                                    transform="translateY(-8px)"
-                                    transition="all 0.3s ease"
-                                    style={{
-                                        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.18), 0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.08), inset 0 -3px 6px rgba(0, 0, 0, 0.06)'
-                                    }}
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    {/* Centered Profile Picture */}
-                                    <Box 
-                                        p={4} 
-                                        borderBottom="1px solid" 
-                                        borderColor="blue.100"
-                                        position="relative"
-                                        bg="linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)"
-                                        _before={{
-                                            content: '""',
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundImage: `
-                                                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.6) 0%, transparent 50%),
-                                                radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.08) 0%, transparent 50%),
-                                                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.4) 0%, transparent 50%),
-                                                repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(96, 165, 250, 0.02) 10px, rgba(96, 165, 250, 0.02) 20px)
-                                            `,
-                                            opacity: 1,
-                                            pointerEvents: 'none'
-                                        }}
+                                    {/* Floating close button */}
+                                    <Box
+                                        position="absolute"
+                                        top={3}
+                                        right={3}
+                                        zIndex={5}
+                                        w="32px"
+                                        h="32px"
+                                        borderRadius="full"
+                                        bg="white"
+                                        border="1px solid"
+                                        borderColor="gray.200"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        cursor="pointer"
+                                        boxShadow="sm"
+                                        _hover={{ bg: 'gray.100' }}
+                                        onClick={() => setHoveredMember(null)}
+                                        title="Close"
                                     >
-                                        <VStack gap={2} align="center" position="relative" zIndex={1}>
+                                        <XIcon size={16} color="#4b5563" />
+                                    </Box>
+                                    {/* Full-width Header */}
+                                    <Box
+                                        px={5}
+                                        py={3}
+                                        borderBottom="1px solid"
+                                        borderColor="blue.100"
+                                        bg="linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)"
+                                        flexShrink={0}
+                                    >
+                                        <HStack gap={3} align="center" pr={10}>
                                             <Box
-                                                w="80px"
-                                                h="80px"
+                                                w="48px"
+                                                h="48px"
                                                 borderRadius="full"
                                                 overflow="hidden"
-                                                border="3px solid"
+                                                border="2px solid"
                                                 borderColor="blue.200"
                                                 bg="white"
-                                                position="relative"
-                                                boxShadow="0 4px 12px rgba(96, 165, 250, 0.2)"
+                                                boxShadow="0 2px 8px rgba(96, 165, 250, 0.18)"
+                                                flexShrink={0}
                                             >
-                                                <img 
+                                                <img
                                                     src={`https://ui-avatars.com/api/?name=${encodeURIComponent(hoveredMember.name)}&size=200&background=667eea&color=fff&bold=true`}
                                                     alt={hoveredMember.name}
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                                 />
                                             </Box>
-                                            <VStack gap={0} align="center">
-                                                <Text fontWeight="bold" fontSize="md" color="gray.800">
+                                            <VStack align="start" gap={0} flex={1} minW={0}>
+                                                <Text fontWeight="bold" fontSize="md" color="gray.800" lineHeight="1.2" truncate>
                                                     {hoveredMember.name}
                                                 </Text>
-                                                <Text fontSize="xs" color="gray.600">
+                                                <Text fontSize="xs" color="gray.600" lineHeight="1.3" truncate>
                                                     {hoveredMember.email}
                                                 </Text>
                                             </VStack>
-                                            <Badge 
-                                                colorPalette={getRiskColor(hoveredMember.attritionRisk || 'Medium')} 
-                                                size="sm" 
+                                            <Badge
+                                                colorPalette={getRiskColor(hoveredMember.attritionRisk || 'Medium')}
+                                                size="sm"
                                                 fontWeight="semibold"
                                                 variant="solid"
                                                 px={3}
                                                 py={1}
                                                 borderRadius="full"
                                                 fontSize="xs"
+                                                flexShrink={0}
                                             >
                                                 {hoveredMember.attritionRisk || 'Medium'} Risk
                                             </Badge>
-                                        </VStack>
+                                        </HStack>
                                     </Box>
-                                    
-                                    <Card.Body p={0} overflowY="auto" flex="1">
+                                    <Card.Body p={0} overflow="hidden" flex="1" display="flex" minH={0}>
+                                        <HStack gap={0} align="stretch" flex={1} minH={0} w="100%">
+                                            {/* Left: Field dropdowns */}
+                                            <Box w="260px" flexShrink={0} bg="gray.50" borderRight="1px solid" borderColor="gray.200" overflowY="auto">
+                                                <Box p={4}>
+                                                <Text fontSize="xs" fontWeight="700" color="gray.700" mb={3} textTransform="uppercase" letterSpacing="wider">Assessment Fields</Text>
+                                                <VStack align="stretch" gap={3}>
+                                                    {([
+                                                        { label: 'Mental',     key: 'mentalHealth',         value: hoveredMember.mentalHealth },
+                                                        { label: 'Motivation', key: 'motivationFactor',     value: hoveredMember.motivationFactor },
+                                                        { label: 'Career',     key: 'careerOpportunities',  value: hoveredMember.careerOpportunities },
+                                                        { label: 'Personal',   key: 'personalReason',       value: hoveredMember.personalReason },
+                                                        { label: 'AI Risk',    key: 'aiRisk',               value: (hoveredMember as any).aiRisk || calculateSuggestedRisk(hoveredMember) },
+                                                        { label: 'Assessment', key: 'attritionRisk',        value: hoveredMember.attritionRisk || 'Medium' },
+                                                    ] as const).map(field => (
+                                                        <Box key={field.key}>
+                                                            <Text fontSize="2xs" fontWeight="600" color="gray.600" mb={1} textTransform="uppercase" letterSpacing="wide">{field.label}</Text>
+                                                            <select
+                                                                value={field.value}
+                                                                onChange={(e) => {
+                                                                    if (!hoveredMember) return;
+                                                                    const next = e.target.value as 'High' | 'Medium' | 'Low';
+                                                                    const persistedKeys = ['mentalHealth','motivationFactor','careerOpportunities','personalReason','attritionRisk'];
+                                                                    if (persistedKeys.includes(field.key)) {
+                                                                        setTeamMembers(prev => prev.map(m => m.id === hoveredMember.id ? { ...m, [field.key]: next } : m));
+                                                                        setChangedMembers(prev => new Set(prev).add(hoveredMember.id));
+                                                                    }
+                                                                    setHoveredMember({ ...hoveredMember, [field.key]: next } as any);
+                                                                }}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    padding: '6px 10px',
+                                                                    border: '1px solid #d1d5db',
+                                                                    borderRadius: '6px',
+                                                                    fontSize: '12px',
+                                                                    backgroundColor: 'white',
+                                                                    color: '#374151',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                <option value="High">High</option>
+                                                                <option value="Medium">Medium</option>
+                                                                <option value="Low">Low</option>
+                                                            </select>
+                                                        </Box>
+                                                    ))}
+                                                    {/* Trigger dropdown */}
+                                                    <Box>
+                                                        <Text fontSize="2xs" fontWeight="600" color="gray.600" mb={1} textTransform="uppercase" letterSpacing="wide">Trigger</Text>
+                                                        <select
+                                                            defaultValue=""
+                                                            style={{
+                                                                width: '100%',
+                                                                padding: '6px 10px',
+                                                                border: '1px solid #d1d5db',
+                                                                borderRadius: '6px',
+                                                                fontSize: '12px',
+                                                                backgroundColor: 'white',
+                                                                color: '#374151',
+                                                                cursor: 'pointer',
+                                                            }}
+                                                        >
+                                                            <option value="">Select Trigger</option>
+                                                            <option value="Career growth">Career growth</option>
+                                                            <option value="Salary concerns">Salary concerns</option>
+                                                            <option value="Higher education">Higher education</option>
+                                                            <option value="Relocating">Relocating</option>
+                                                            <option value="Work-life balance">Work-life balance</option>
+                                                            <option value="Team conflicts">Team conflicts</option>
+                                                        </select>
+                                                    </Box>
+                                                </VStack>
+                                                </Box>
+                                            </Box>
+                                            {/* Right: Tabs + content */}
+                                            <VStack align="stretch" gap={0} flex={1} minH={0} minW={0} overflow="hidden">
                                         {/* Tab Navigation */}
                                         <HStack gap={0} borderBottom="2px solid" borderColor="gray.200" bg="gray.50">
                                             <Box
@@ -1346,14 +1453,19 @@ export default function Teams() {
                                         </HStack>
 
                                         {/* Tab Content */}
-                                        <Box p={3} maxH="calc(100vh - 320px)" overflowY="auto">
+                                        <Box p={3} overflowY="auto" flex="1">
                                             {activeTab === 'insights' ? (
-                                                <VStack align="stretch" gap={4} key="insights-tab">
+                                                <VStack align="stretch" gap={3} key="insights-tab">
                                                     {/* === Section: Work & Performance (visual order 2) === */}
-                                                    <HStack gap={2} pb={1} mt={2} borderBottom="2px solid" borderColor="blue.200" order={2}>
-                                                        <Box p={1.5} bg="blue.100" borderRadius="md"><Briefcase size={14} color="#2563eb" /></Box>
-                                                        <Text fontSize="sm" fontWeight="700" color="blue.700">Work & Performance</Text>
+                                                    <HStack gap={2} align="center" mt={2} pb={1.5} borderBottom="1px solid" borderColor="gray.200" order={2} cursor="pointer" onClick={() => toggleSec('work')} _hover={{ bg: 'gray.50' }}>
+                                                        <Box w="3px" h="18px" bg="blue.500" borderRadius="full" />
+                                                        <Box p={1} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.100"><Briefcase size={12} color="#2563eb" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="gray.800" letterSpacing="tight">Work & Performance</Text>
+                                                        <Box ml="auto" style={{ transform: expandedSections.has('work') ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+                                                            <ChevronDown size={14} color="#6b7280" />
+                                                        </Box>
                                                     </HStack>
+                                                    {expandedSections.has('work') && (
                                                     <VStack align="stretch" gap={3} key="work-tab" order={2}>
                                                     {/* AI Work Insight - First */}
                                                     <Box p={3} bg="gradient-to-r from-blue-50 to-cyan-50" borderRadius="lg" border="1px solid" borderColor="blue.200">
@@ -1448,11 +1560,17 @@ export default function Teams() {
                                                         </Box>
                                                     </SimpleGrid>
                                                 </VStack>
+                                                    )}
                                                     {/* === Section: Mental Health (visual order 3) === */}
-                                                    <HStack gap={2} pb={1} mt={2} borderBottom="2px solid" borderColor="pink.200" order={3}>
-                                                        <Box p={1.5} bg="pink.100" borderRadius="md"><Heart size={14} color="#ec4899" /></Box>
-                                                        <Text fontSize="sm" fontWeight="700" color="pink.700">Mental Health</Text>
+                                                    <HStack gap={2} align="center" mt={2} pb={1.5} borderBottom="1px solid" borderColor="gray.200" order={3} cursor="pointer" onClick={() => toggleSec('mental')} _hover={{ bg: 'gray.50' }}>
+                                                        <Box w="3px" h="18px" bg="pink.500" borderRadius="full" />
+                                                        <Box p={1} bg="pink.50" borderRadius="md" border="1px solid" borderColor="pink.100"><Heart size={12} color="#ec4899" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="gray.800" letterSpacing="tight">Mental Health</Text>
+                                                        <Box ml="auto" style={{ transform: expandedSections.has('mental') ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+                                                            <ChevronDown size={14} color="#6b7280" />
+                                                        </Box>
                                                     </HStack>
+                                                    {expandedSections.has('mental') && (
                                                     <VStack align="stretch" gap={3} key="mental-tab" order={3}>
                                                     {/* AI Mental Health Insight */}
                                                     <Box p={3} bg="gradient-to-r from-pink-50 to-rose-50" borderRadius="lg" border="1px solid" borderColor="pink.200">
@@ -1567,11 +1685,17 @@ export default function Teams() {
                                                         </SimpleGrid>
                                                     </Box>
                                                 </VStack>
+                                                    )}
                                                     {/* === Section: System Data (visual order 1) === */}
-                                                    <HStack gap={2} pb={1} borderBottom="2px solid" borderColor="teal.200" order={1}>
-                                                        <Box p={1.5} bg="teal.100" borderRadius="md"><Database size={14} color="#0d9488" /></Box>
-                                                        <Text fontSize="sm" fontWeight="700" color="teal.700">System Data</Text>
+                                                    <HStack gap={2} align="center" pb={1.5} borderBottom="1px solid" borderColor="gray.200" order={1} cursor="pointer" onClick={() => toggleSec('system')} _hover={{ bg: 'gray.50' }}>
+                                                        <Box w="3px" h="18px" bg="teal.500" borderRadius="full" />
+                                                        <Box p={1} bg="teal.50" borderRadius="md" border="1px solid" borderColor="teal.100"><Database size={12} color="#0d9488" /></Box>
+                                                        <Text fontSize="sm" fontWeight="700" color="gray.800" letterSpacing="tight">System Data</Text>
+                                                        <Box ml="auto" style={{ transform: expandedSections.has('system') ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }}>
+                                                            <ChevronDown size={14} color="#6b7280" />
+                                                        </Box>
                                                     </HStack>
+                                                    {expandedSections.has('system') && (
                                                     <Box order={1}>
                                                     {(() => {
                                                     // ===== System Data Tab: Mock deterministic metrics + risk flag =====
@@ -1665,7 +1789,7 @@ export default function Teams() {
                                                                 const lineColor = deliveryPct < 50 ? '#dc2626' : deliveryPct < 75 ? '#ea580c' : '#2563eb';
                                                                 return (
                                                                     <Box>
-                                                                        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                                                                        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', height: 'auto', maxWidth: '260px', maxHeight: '78px', margin: '0 auto', fontSize: '7px', overflow: 'visible' }}>
                                                                             <defs>
                                                                                 <linearGradient id={`dlvGrad-${nameHash}`} x1="0" y1="0" x2="0" y2="1">
                                                                                     <stop offset="0%" stopColor={lineColor} stopOpacity={0.3} />
@@ -1680,7 +1804,7 @@ export default function Teams() {
                                                                             {points.map((p, i) => (
                                                                                 <g key={i}>
                                                                                     <circle cx={p.x} cy={p.y} r={2.5} fill="white" stroke={lineColor} strokeWidth="1.5" />
-                                                                                    <text x={p.x} y={p.y - 5} fontSize="6" fill="#475569" textAnchor="middle" fontWeight="600">{p.v}</text>
+                                                                                    <text x={p.x} y={p.y - 4} fill="#475569" textAnchor="middle" fontWeight="500" style={{ fontSize: '7px' }}>{p.v}</text>
                                                                                 </g>
                                                                             ))}
                                                                         </svg>
@@ -1714,17 +1838,18 @@ export default function Teams() {
                                                                 });
                                                                 return (
                                                                     <Box>
-                                                                        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+                                                                        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', height: 'auto', maxWidth: '260px', maxHeight: '78px', margin: '0 auto', fontSize: '7px', overflow: 'visible' }}>
                                                                             {/* Axis line */}
                                                                             <line x1={pad} x2={W - pad} y1={axisY} y2={axisY} stroke="#c4b5fd" strokeWidth="1" />
                                                                             {/* Tick marks at 0, 30, 60 days */}
                                                                             {[0, 30, 60].map(d => {
                                                                                 const x = pad + ((totalDays - d) / totalDays) * (W - pad * 2);
+                                                                                const anchor = d === 60 ? 'start' : d === 0 ? 'end' : 'middle';
                                                                                 return (
                                                                                     <g key={d}>
                                                                                         <line x1={x} x2={x} y1={axisY - 2} y2={axisY + 2} stroke="#a78bfa" strokeWidth="0.8" />
-                                                                                        <text x={x} y={H - 4} fontSize="6" fill="#6b7280" textAnchor="middle" fontWeight="500">
-                                                                                            {d === 0 ? 'Today' : `${d}d ago`}
+                                                                                        <text x={x} y={H - 4} fill="#6b7280" textAnchor={anchor} fontWeight="500" style={{ fontSize: '7px' }}>
+                                                                                            {d === 0 ? 'Now' : `${d}d`}
                                                                                         </text>
                                                                                     </g>
                                                                                 );
@@ -1732,15 +1857,15 @@ export default function Teams() {
                                                                             {/* Update dots */}
                                                                             {dots.map((dot, i) => (
                                                                                 <g key={i}>
-                                                                                    <circle cx={dot.x} cy={axisY} r={5} fill="#7c3aed" opacity={0.2} />
-                                                                                    <circle cx={dot.x} cy={axisY} r={3} fill="#7c3aed" stroke="white" strokeWidth="1" />
-                                                                                    <text x={dot.x} y={axisY - 8} fontSize="6" fill="#5b21b6" textAnchor="middle" fontWeight="700">
+                                                                                    <circle cx={dot.x} cy={axisY} r={3.5} fill="#7c3aed" opacity={0.2} />
+                                                                                    <circle cx={dot.x} cy={axisY} r={2.2} fill="#7c3aed" stroke="white" strokeWidth="0.8" />
+                                                                                    <text x={dot.x} y={axisY - 6} fill="#5b21b6" textAnchor="middle" fontWeight="600" style={{ fontSize: '7px' }}>
                                                                                         -{dot.daysAgo}d
                                                                                     </text>
                                                                                 </g>
                                                                             ))}
                                                                             {dots.length === 0 && (
-                                                                                <text x={W / 2} y={axisY - 6} fontSize="7" fill="#dc2626" textAnchor="middle" fontWeight="600">No updates in 60 days</text>
+                                                                                <text x={W / 2} y={axisY - 5} fill="#dc2626" textAnchor="middle" fontWeight="600" style={{ fontSize: '8px' }}>No updates in 60 days</text>
                                                                             )}
                                                                         </svg>
                                                                     </Box>
@@ -1804,6 +1929,7 @@ export default function Teams() {
                                                     );
                                                 })()}
                                                     </Box>
+                                                    )}
                                                 </VStack>
                                             ) : (
                                                 (() => {
@@ -1920,25 +2046,13 @@ export default function Teams() {
                                                 })()
                                             )}
                                         </Box>
+                                            </VStack>
+                                        </HStack>
                                     </Card.Body>
                                 </Card.Root>
-                            ) : (
-                                <Card.Root bg="gray.50" shadow="sm" borderRadius="3xl" border="1px dashed" borderColor="gray.300" h="100%" display="flex" alignItems="center" justifyContent="center">
-                                    <Card.Body p={8}>
-                                        <VStack gap={3} align="center">
-                                            <Box p={4} bg="gray.200" borderRadius="full">
-                                                <Users size={32} color="#9ca3af" />
-                                            </Box>
-                                            <Text fontSize="sm" color="gray.500" textAlign="center">
-                                                Hover over a team member row to see their profile
-                                            </Text>
-                                        </VStack>
-                                    </Card.Body>
-                                </Card.Root>
-                            )}
-                        </Box>
-                        </HStack>
+                            </Box>
                         )}
+                        </>)}
                     </VStack>
                 </Box>
 
