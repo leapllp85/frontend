@@ -52,7 +52,9 @@ import {
     Users,
     AlertTriangle,
     Target,
-    Zap
+    Zap,
+    Trash2,
+    Check
 } from 'lucide-react';
 import { Line, Pie, Scatter } from 'react-chartjs-2';
 import {
@@ -120,6 +122,7 @@ interface Skill {
     name: string;
     level: number; // 1-5 rating
     category: 'frontend' | 'backend' | 'database' | 'tools' | 'other';
+    validationStatus: 'self_declared' | 'has_knowledge' | 'project_experience';
 }
 
 interface CalendarEvent {
@@ -140,24 +143,64 @@ interface CalendarEvent {
 
 export default function TeamMemberView() {
     console.log('🚀 TeamMemberView component loaded');
-    
+
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [showLoadingScreen, setShowLoadingScreen] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [selectedAspiration, setSelectedAspiration] = useState('');
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const getAspirationLabel = (value: string) => {
+        const labels: Record<string, string> = {
+            'tech-lead': 'Tech Lead',
+            'engineering-manager': 'Engineering Manager',
+            'architect': 'Software Architect',
+            'senior-architect': 'Senior Architect',
+            'principal-engineer': 'Principal Engineer',
+            'cto': 'CTO',
+            'product-manager': 'Product Manager',
+            'devops-engineer': 'DevOps Engineer'
+        };
+        return labels[value] || 'Tech Lead';
+    };
+
+    const getSkillsForAspiration = (aspiration: string) => {
+        const skillsMap: Record<string, string[]> = {
+            'tech-lead': ['Team Leadership', 'System Design', 'Code Review', 'Mentoring', 'Agile'],
+            'engineering-manager': ['People Management', 'Strategic Planning', 'Budget Management', 'Stakeholder Communication', 'Team Building'],
+            'architect': ['System Design', 'Cloud Architecture', 'Microservices', 'API Design', 'Security'],
+            'senior-architect': ['Enterprise Architecture', 'Technology Strategy', 'Solution Design', 'Performance Optimization', 'Scalability'],
+            'principal-engineer': ['Technical Strategy', 'Innovation', 'Cross-team Collaboration', 'Research & Development', 'Standards'],
+            'cto': ['Business Strategy', 'Technology Vision', 'Executive Leadership', 'Vendor Management', 'Board Communication'],
+            'product-manager': ['Product Strategy', 'User Research', 'Roadmap Planning', 'Stakeholder Management', 'Analytics'],
+            'devops-engineer': ['CI/CD', 'Cloud Infrastructure', 'Containerization', 'Monitoring', 'Automation']
+        };
+        return skillsMap[aspiration] || skillsMap['tech-lead'];
+    };
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isConcernModalOpen, setIsConcernModalOpen] = useState(false);
     const [concernText, setConcernText] = useState('');
     const [isSkillAnalysisOpen, setIsSkillAnalysisOpen] = useState(false);
+    const [isSkillEditModalOpen, setIsSkillEditModalOpen] = useState(false);
+    const [newSkillName, setNewSkillName] = useState('');
+    const [newSkillCategory, setNewSkillCategory] = useState<'frontend' | 'backend' | 'database' | 'tools' | 'other'>('frontend');
+    const [newSkillLevel, setNewSkillLevel] = useState(3);
     const [activeTab, setActiveTab] = useState<'overview' | 'recommendations' | 'market' | 'learning' | 'wellness'>('overview');
     const [skillModalTab, setSkillModalTab] = useState<'skills' | 'wellness'>('skills');
     const [bookmarkedSkills, setBookmarkedSkills] = useState<string[]>([]);
+    const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
     const [isExpertChatOpen, setIsExpertChatOpen] = useState(false);
     const [isAnonymous, setIsAnonymous] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
     const [isSurveyModalOpen, setIsSurveyModalOpen] = useState(false);
     const [isContentModalOpen, setIsContentModalOpen] = useState(false);
+    const [isAspirationDropdownOpen, setIsAspirationDropdownOpen] = useState(false);
     const [projects, setProjects] = useState<Project[]>([]);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -168,6 +211,20 @@ export default function TeamMemberView() {
     const [selectedCategory, setSelectedCategory] = useState<'all' | 'csr' | 'yoga' | 'wellness'>('all');
     const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
     const [showTrendModal, setShowTrendModal] = useState(false);
+    
+    // Raise Concern drawer state
+    const [isConcernDrawerOpen, setIsConcernDrawerOpen] = useState(false);
+    const [concernCategory, setConcernCategory] = useState('');
+    const [concernSubject, setConcernSubject] = useState('');
+    const [concernDescription, setConcernDescription] = useState('');
+    const [concernPriority, setConcernPriority] = useState<'Low' | 'Medium' | 'High'>('Medium');
+    const [concernAnonymous, setConcernAnonymous] = useState(false);
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+    const [referenceId, setReferenceId] = useState('');
+    
+    // Nav link hover state
+    const [hoveredNavLink, setHoveredNavLink] = useState<string | null>(null);
     
     console.log('📊 State initialized, showDailyCheckIn:', showDailyCheckIn);
     
@@ -820,49 +877,29 @@ export default function TeamMemberView() {
                         id: '1',
                         name: 'React',
                         level: 5,
-                        category: 'frontend'
+                        category: 'frontend',
+                        validationStatus: 'project_experience'
                     },
                     {
                         id: '2',
                         name: 'TypeScript',
                         level: 5,
-                        category: 'frontend'
+                        category: 'frontend',
+                        validationStatus: 'project_experience'
                     },
                     {
                         id: '3',
                         name: 'Next.js',
                         level: 4,
-                        category: 'frontend'
+                        category: 'frontend',
+                        validationStatus: 'has_knowledge'
                     },
                     {
                         id: '4',
                         name: 'Node.js',
                         level: 4,
-                        category: 'backend'
-                    },
-                    {
-                        id: '5',
-                        name: 'PostgreSQL',
-                        level: 3,
-                        category: 'database'
-                    },
-                    {
-                        id: '6',
-                        name: 'MongoDB',
-                        level: 4,
-                        category: 'database'
-                    },
-                    {
-                        id: '7',
-                        name: 'Git',
-                        level: 5,
-                        category: 'tools'
-                    },
-                    {
-                        id: '8',
-                        name: 'Docker',
-                        level: 3,
-                        category: 'tools'
+                        category: 'backend',
+                        validationStatus: 'has_knowledge'
                     }
                 ]);
 
@@ -1077,6 +1114,85 @@ export default function TeamMemberView() {
                 read: false
             };
             setNotifications([newNotification, ...notifications]);
+        }
+    };
+
+    const handleAddSkill = () => {
+        if (!newSkillName.trim()) return;
+        
+        const newSkill: Skill = {
+            id: Date.now().toString(),
+            name: newSkillName,
+            level: newSkillLevel,
+            category: newSkillCategory,
+            validationStatus: 'self_declared'
+        };
+        
+        setSkills([...skills, newSkill]);
+        setNewSkillName('');
+        setNewSkillLevel(3);
+        
+        // Add notification
+        const notification: Notification = {
+            id: Date.now().toString(),
+            type: 'success',
+            title: 'Skill Added',
+            message: `${newSkillName} has been added to your skills`,
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        setNotifications([notification, ...notifications]);
+    };
+
+    const handleSubmitConcern = () => {
+        // Generate mock reference ID
+        const mockRefId = `CNR-2026-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+        setReferenceId(mockRefId);
+        
+        // Close drawer
+        setIsConcernDrawerOpen(false);
+        
+        // Reset form
+        setConcernCategory('');
+        setConcernSubject('');
+        setConcernDescription('');
+        setConcernPriority('Medium');
+        setConcernAnonymous(false);
+        
+        // Show success toast
+        setShowSuccessToast(true);
+        
+        // Auto-hide toast after 5 seconds
+        setTimeout(() => {
+            setShowSuccessToast(false);
+        }, 5000);
+        
+        // Add notification
+        const notification: Notification = {
+            id: Date.now().toString(),
+            type: 'success',
+            title: 'Concern Submitted',
+            message: `Your concern has been submitted successfully. Reference ID: ${mockRefId}`,
+            timestamp: new Date().toISOString(),
+            read: false
+        };
+        setNotifications([notification, ...notifications]);
+    };
+
+    const handleRemoveSkill = (skillId: string) => {
+        const skill = skills.find(s => s.id === skillId);
+        setSkills(skills.filter(s => s.id !== skillId));
+        
+        if (skill) {
+            const notification: Notification = {
+                id: Date.now().toString(),
+                type: 'info',
+                title: 'Skill Removed',
+                message: `${skill.name} has been removed from your skills`,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            setNotifications([notification, ...notifications]);
         }
     };
 
@@ -1328,764 +1444,1109 @@ export default function TeamMemberView() {
         <Box
             w="full"
             h="100vh"
-            bg="linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)"
+            bg="gray.50"
             overflow="hidden"
             display="flex"
             flexDirection="column"
-            style={{ animation: 'fadeIn 0.5s ease-out' }}
         >
-            {/* Main Content with Employee Info Card */}
+            {/* Top Navigation Bar */}
+            <Box
+                bg="white"
+                borderBottom="1px solid"
+                borderColor="gray.200"
+                px={6}
+                py={3}
+            >
+                <HStack justify="space-between" align="center">
+                    <HStack gap={8} align="center">
+                        {/* Logo */}
+                        <Text fontSize="lg" fontWeight="700" color="gray.900">
+                            CLyra
+                        </Text>
+                    </HStack>
+                    <HStack gap={4} align="center">
+                        {/* Nav Links */}
+                        <HStack gap={6}>
+                            <VStack spacing={0} align="start">
+                                <Text 
+                                    fontSize="sm" 
+                                    fontWeight="600" 
+                                    color="gray.600" 
+                                    cursor="pointer" 
+                                    _hover={{ color: "gray.900" }}
+                                    onMouseEnter={() => setHoveredNavLink('content')}
+                                    onMouseLeave={() => setHoveredNavLink(null)}
+                                    onClick={() => setIsContentModalOpen(true)}
+                                >
+                                    Content Library
+                                </Text>
+                                <Box 
+                                    h="2px" 
+                                    bg="#4F46E5" 
+                                    w={hoveredNavLink === 'content' ? '100%' : '0'} 
+                                    transition="width 0.3s ease-in-out"
+                                />
+                            </VStack>
+                            <VStack spacing={0} align="start">
+                                <Text 
+                                    fontSize="sm" 
+                                    fontWeight="600" 
+                                    color="gray.600" 
+                                    cursor="pointer" 
+                                    _hover={{ color: "gray.900" }}
+                                    onMouseEnter={() => setHoveredNavLink('calendar')}
+                                    onMouseLeave={() => setHoveredNavLink(null)}
+                                    onClick={() => setIsCalendarOpen(true)}
+                                >
+                                    Event Calendar
+                                </Text>
+                                <Box 
+                                    h="2px" 
+                                    bg="#4F46E5" 
+                                    w={hoveredNavLink === 'calendar' ? '100%' : '0'} 
+                                    transition="width 0.3s ease-in-out"
+                                />
+                            </VStack>
+                            <VStack spacing={0} align="start">
+                                <Text 
+                                    fontSize="sm" 
+                                    fontWeight="600" 
+                                    color="gray.600" 
+                                    cursor="pointer" 
+                                    _hover={{ color: "gray.900" }}
+                                    onMouseEnter={() => setHoveredNavLink('health')}
+                                    onMouseLeave={() => setHoveredNavLink(null)}
+                                    onClick={() => setIsSkillAnalysisOpen(true)}
+                                >
+                                    Health&Growth
+                                </Text>
+                                <Box 
+                                    h="2px" 
+                                    bg="#4F46E5" 
+                                    w={hoveredNavLink === 'health' ? '100%' : '0'} 
+                                    transition="width 0.3s ease-in-out"
+                                />
+                            </VStack>
+                            <VStack spacing={0} align="start">
+                                <Text 
+                                    fontSize="sm" 
+                                    fontWeight="600" 
+                                    color="gray.600" 
+                                    cursor="pointer" 
+                                    _hover={{ color: "gray.900" }}
+                                    onMouseEnter={() => setHoveredNavLink('reports')}
+                                    onMouseLeave={() => setHoveredNavLink(null)}
+                                    onClick={() => setIsSurveyModalOpen(true)}
+                                >
+                                    Reports
+                                </Text>
+                                <Box 
+                                    h="2px" 
+                                    bg="#4F46E5" 
+                                    w={hoveredNavLink === 'reports' ? '100%' : '0'} 
+                                    transition="width 0.3s ease-in-out"
+                                />
+                            </VStack>
+                        </HStack>
+                        {/* Notification */}
+                        <Box cursor="pointer">
+                            <Bell size={20} color="gray.600" />
+                        </Box>
+                        {/* Raise Concern Button */}
+                        <HStack
+                            gap={2}
+                            px={3}
+                            py={2}
+                            border="1px solid"
+                            borderColor="#E5E7EB"
+                            borderRadius="6px"
+                            cursor="pointer"
+                            _hover={{ bg: "#F3F4F6" }}
+                            onClick={() => setIsConcernDrawerOpen(true)}
+                        >
+                            <AlertTriangle size={16} color="#F59E0B" />
+                            <Text fontSize="sm" fontWeight="500" color="#6B7280">
+                                Raise Concern
+                            </Text>
+                        </HStack>
+                        {/* Logout */}
+                        <Text fontSize="sm" fontWeight="500" color="gray.600" cursor="pointer" _hover={{ color: "gray.900" }}>
+                            Logout
+                        </Text>
+                        {/* User Avatar */}
+                        <Box
+                            w="8"
+                            h="8"
+                            borderRadius="full"
+                            overflow="hidden"
+                            border="2px solid"
+                            borderColor="gray.200"
+                        >
+                            <img
+                                src={userProfile.avatar}
+                                alt={userProfile.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                        </Box>
+                    </HStack>
+                </HStack>
+            </Box>
+
+            {/* Main Content */}
             <Box 
                 flex="1"
-                overflow="auto" 
-                p={{ base: 3, md: 4 }}
-                style={{ animation: 'fadeInUp 0.7s ease-out' }}
+                overflow="hidden" 
+                p={4}
             >
                 <SimpleGrid 
-                    columns={{ base: 1, md: 2, lg: 3 }} 
-                    gap={{ base: 3, md: 4 }}
+                    columns={{ base: 1, lg: 3 }} 
+                    gap={4}
+                    gridTemplateColumns={{ lg: "25% 50% 25%" }}
                     h="full"
-                    gridTemplateRows={{ lg: "1fr 1fr" }}
                 >
-                    {/* Quadrant 1: Employee Details + My Space (Larger - spans 2 columns on large screens) */}
+                    {/* First Column (25%): Employee Profile Only */}
                     <Card.Root
-                        gridColumn={{ base: "1", lg: "1 / 3" }}
+                        gridColumn={{ base: "1", lg: "1" }}
                         bg="white"
                         border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="xl"
-                        shadow="md"
+                        borderColor="#E5E7EB"
+                        borderRadius="lg"
+                        shadow="sm"
                         overflow="hidden"
                         h="full"
                         display="flex"
                         flexDirection="column"
                     >
                         <Card.Header 
-                            p={{ base: 3, md: 4 }} 
-                            pb={3} 
+                            p={6} 
+                            pb={4} 
                             borderBottom="1px solid" 
-                            borderColor="gray.100"
-                            bg="gradient-to-r from-teal.50 to-blue.50"
+                            borderColor="#E5E7EB"
+                            bg="white"
                         >
-                            <HStack justify="space-between">
-                                <HStack gap={3}>
-                                    <Box p={2} bg="teal.500" borderRadius="lg">
-                                        <User size={20} color="white" />
-                                    </Box>
-                                    <VStack align="start" gap={0}>
-                                        <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
-                                            Employee Profile
-                                        </Heading>
-                                        <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                            Your information & quick actions
-                                        </Text>
-                                    </VStack>
-                                </HStack>
-                                <HStack gap={2}>
-                                    
-                                    {/* My Concern Icon Button */}
-                                    <IconButton
-                                        aria-label="Raise Concern"
-                                        size="lg"
-                                        bg="linear-gradient(135deg, #fb923c 0%, #f97316 100%)"
-                                        color="white"
-                                        borderRadius="xl"
-                                        shadow="md"
-                                        _hover={{
-                                            transform: "translateY(-2px) scale(1.05)",
-                                            shadow: "xl",
-                                            bg: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)"
-                                        }}
-                                        _active={{
-                                            transform: "translateY(0px)"
-                                        }}
-                                        transition="all 0.3s ease"
-                                        title="Raise a Concern"
-                                        onClick={() => setIsConcernModalOpen(true)}
-                                    >
-                                        <AlertCircle size={22} />
-                                    </IconButton>
-                                    {/* Logout Icon Button */}
-                                    <IconButton
-                                        aria-label="Logout"
-                                        size="lg"
-                                        bg="linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
-                                        color="white"
-                                        borderRadius="xl"
-                                        shadow="md"
-                                        _hover={{
-                                            transform: "translateY(-2px) scale(1.05)",
-                                            shadow: "xl",
-                                            bg: "linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)"
-                                        }}
-                                        _active={{
-                                            transform: "translateY(0px)"
-                                        }}
-                                        transition="all 0.3s ease"
-                                        onClick={() => {
-                                            localStorage.clear();
-                                            sessionStorage.clear();
-                                            window.location.href = '/login';
-                                        }}
-                                        title="Logout"
-                                    >
-                                        <LogOut size={22} />
-                                    </IconButton>
-                                </HStack>
+                            <HStack gap={2}>
+                                <Box p={1.5} bg="#4F46E5" borderRadius="md">
+                                    <User size={16} color="white" />
+                                </Box>
+                                <VStack align="start" gap={0}>
+                                    <Heading size="xs" color="#111827" fontWeight="600">
+                                        Employee Profile
+                                    </Heading>
+                                    <Text fontSize="2xs" color="#6B7280">
+                                        Personal information
+                                    </Text>
+                                </VStack>
                             </HStack>
                         </Card.Header>
-                        <Card.Body p={{ base: 3, md: 4 }} flex={1} overflow="auto">
-                            <VStack gap={3} align="stretch">
-                                {/* Employee Info Section with Engagement Meter */}
-                                <HStack gap={4} align="start" flexWrap={{ base: "wrap", lg: "nowrap" }}>
-                                    {/* Profile Picture - Bigger */}
+                        <Card.Body p={6} flex={1} overflow="auto">
+                            <VStack gap={6} align="stretch">
+                                {/* Profile Picture and Name */}
+                                <VStack gap={3} align="center" mt="85px">
                                     <Box
-                                        w={{ base: "160px", md: "180px" }}
-                                        h={{ base: "160px", md: "180px" }}
-                                        borderRadius="2xl"
+                                        w="160px"
+                                        h="160px"
+                                        borderRadius="full"
                                         overflow="hidden"
-                                        border="5px solid"
-                                        borderColor="teal.400"
-                                        shadow="2xl"
-                                        flexShrink={0}
-                                        position="relative"
-                                        _hover={{
-                                            transform: "scale(1.02)",
-                                            borderColor: "teal.500"
-                                        }}
-                                        transition="all 0.3s ease"
+                                        border="1px solid"
+                                        borderColor="#E5E7EB"
+                                        shadow="sm"
                                     >
-                                        <img 
-                                            src={userProfile.avatar} 
+                                        <img
+                                            src={userProfile.avatar}
                                             alt={userProfile.name}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
                                     </Box>
-                                    
-                                    {/* Employee Details */}
-                                    <VStack align="start" gap={1.5} flex={1} minW="200px">
-                                        <Heading size={{ base: "lg", md: "xl" }} color="gray.800" fontWeight="700">
+
+                                    <VStack align="center" gap={1}>
+                                        <Text fontSize="md" color="#111827" fontWeight="600">
                                             {userProfile.name}
-                                        </Heading>
-                                        <Badge 
-                                            bg="teal.100" 
-                                            color="teal.700" 
-                                            px={3} 
-                                            py={1} 
+                                        </Text>
+                                        <Badge
+                                            bg="white"
+                                            color="#6B7280"
+                                            border="1px solid"
+                                            borderColor="#E5E7EB"
+                                            px={3}
+                                            py={1}
                                             borderRadius="full"
-                                            fontSize="sm"
-                                            fontWeight="600"
+                                            fontSize="xs"
+                                            fontWeight="500"
                                         >
                                             Active
                                         </Badge>
-                                        <Text color="gray.600" fontSize={{ base: "md", md: "lg" }} fontWeight="500">
+                                        <Text color="#6B7280" fontSize="sm">
                                             {userProfile.designation}
                                         </Text>
-                                        <HStack gap={2} mt={1}>
-                                            <Box p={1.5} bg="blue.50" borderRadius="md">
-                                                <User size={16} color="#3182CE" />
-                                            </Box>
-                                            <Text color="gray.700" fontSize="md" fontWeight="600">
-                                                Employee ID: <Text as="span" fontWeight="400">EMP-2024-001</Text>
-                                            </Text>
-                                        </HStack>
-                                    </VStack>
-
-                                    {/* Engagement Meter - Half Donut */}
-                                    <VStack gap={2} align="center" minW="600px" flexShrink={0}>
-                                        <Text fontSize="sm" fontWeight="700" color="gray.700">
-                                            Engagement Meter
+                                        <Text color="#6B7280" fontSize="sm">
+                                            Engineering
                                         </Text>
-                                        
-                                        {/* Half Donut Chart */}
-                                        <Box position="relative" w="180px" h="100px">
-                                            <svg width="180" height="100" viewBox="0 0 180 100">
-                                                {/* Background Arc */}
-                                                <path
-                                                    d="M 20 90 A 70 70 0 0 1 160 90"
-                                                    fill="none"
-                                                    stroke="#e5e7eb"
-                                                    strokeWidth="20"
-                                                    strokeLinecap="round"
-                                                />
-                                                {/* Progress Arc */}
-                                                <path
-                                                    d="M 20 90 A 70 70 0 0 1 160 90"
-                                                    fill="none"
-                                                    stroke="url(#halfGradient)"
-                                                    strokeWidth="20"
-                                                    strokeLinecap="round"
-                                                    strokeDasharray={`${(projects.reduce((sum, p) => sum + p.allocation, 0) / 100) * 220} 220`}
-                                                    style={{ transition: 'stroke-dasharray 1s ease' }}
-                                                />
-                                                <defs>
-                                                    <linearGradient id="halfGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                        <stop offset="0%" style={{ stopColor: '#a855f7', stopOpacity: 1 }} />
-                                                        <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
-                                                    </linearGradient>
-                                                </defs>
-                                            </svg>
-                                            {/* Center Text */}
-                                            <VStack
-                                                position="absolute"
-                                                bottom="-15px"
-                                                left="52%"
-                                                transform="translateX(-50%)"
-                                                gap={0}
-                                            >
-                                                <Text fontSize="3xl" fontWeight="800" color="purple.600" lineHeight="1">
-                                                    {projects.reduce((sum, p) => sum + p.allocation, 0)}%
-                                                </Text>
-                                                <Text fontSize="xs" color="gray.600" fontWeight="600">
-                                                    Occupied
-                                                </Text>
-                                            </VStack>
-                                        </Box>
-
-                                        {/* Legend */}
-                                        <HStack gap={3} justify="center" mt={3}>
-                                            <HStack gap={1.5}>
-                                                <Box w={2.5} h={2.5} bg="linear-gradient(90deg, #a855f7 0%, #3b82f6 100%)" borderRadius="sm" />
-                                                <Text fontSize="xs" color="gray.700" fontWeight="600">
-                                                    {projects.reduce((sum, p) => sum + p.allocation, 0)}%
-                                                </Text>
-                                            </HStack>
-                                            <HStack gap={1.5}>
-                                                <Box w={2.5} h={2.5} bg="gray.300" borderRadius="sm" />
-                                                <Text fontSize="xs" color="gray.700" fontWeight="600">
-                                                    {100 - projects.reduce((sum, p) => sum + p.allocation, 0)}%
-                                                </Text>
-                                            </HStack>
-                                        </HStack>
                                     </VStack>
-                                </HStack>
+                                </VStack>
 
-                                {/* My Space Quick Actions */}
-                                <Box>
-                                    <Text fontSize="sm" fontWeight="700" color="gray.700" mb={2}>
-                                        Quick Actions
-                                    </Text>
-                                    <SimpleGrid columns={{ base: 2, md: 4 }} gap={2} w="full">
-                                        {/* View Survey */}
-                                        <Button
-                                            variant="outline"
-                                            minH="70px"
-                                            h="auto"
-                                            borderRadius="lg"
-                                            border="2px solid"
-                                            borderColor="purple.200"
-                                            bg="purple.100"
-                                            transform="translateY(-4px)"
-                                            boxShadow="0 8px 20px rgba(128, 90, 213, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
-                                            _hover={{ bg: "purple.200", borderColor: "purple.300", transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(128, 90, 213, 0.3), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
-                                            display="flex"
-                                            flexDirection="column"
-                                            gap={2}
-                                            p={3}
-                                            onClick={() => setIsSurveyModalOpen(true)}
-                                            transition="all 0.3s ease"
-                                        >
-                                            <Box p={1.5} bg="purple.100" borderRadius="md">
-                                                <FileText size={20} color="#805AD5" />
-                                            </Box>
-                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                View Survey
-                                            </Text>
-                                        </Button>
+                                {/* Divider */}
+                                <Box h="1px" bg="#E5E7EB" w="full" />
 
-                                        {/* Access Offering */}
-                                        <Button
-                                            variant="outline"
-                                            minH="70px"
-                                            h="auto"
-                                            borderRadius="lg"
-                                            border="2px solid"
-                                            borderColor="blue.200"
-                                            bg="blue.100"
-                                            transform="translateY(-4px)"
-                                            boxShadow="0 8px 20px rgba(49, 130, 206, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
-                                            _hover={{ bg: "blue.200", borderColor: "blue.300", transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(49, 130, 206, 0.3), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
-                                            display="flex"
-                                            flexDirection="column"
-                                            gap={2}
-                                            p={3}
-                                            onClick={() => setIsContentModalOpen(true)}
-                                            transition="all 0.3s ease"
-                                        >
-                                            <Box p={1.5} bg="blue.100" borderRadius="md">
-                                                <Package size={20} color="#3182CE" />
-                                            </Box>
-                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                Content Library
+                                {/* Employee Information - Two Column Layout */}
+                                <Box px={6}>
+                                    <SimpleGrid columns={2} gap={5} templateColumns="45% 55%">
+                                        <VStack gap={3} align="stretch">
+                                            <HStack justify="flex-end" gap={2}>
+                                                <Text fontSize="xs" color="#6B7280" textAlign="right">
+                                                    Employee ID
+                                                </Text>
+                                                <ClipboardList size={12} color="#6B7280" />
+                                            </HStack>
+                                            <HStack justify="flex-end" gap={2}>
+                                                <Text fontSize="xs" color="#6B7280" textAlign="right">
+                                                    Date Joined
+                                                </Text>
+                                                <Calendar size={12} color="#6B7280" />
+                                            </HStack>
+                                            <HStack justify="flex-end" gap={2}>
+                                                <Text fontSize="xs" color="#6B7280" textAlign="right">
+                                                    Location
+                                                </Text>
+                                                <MapPinIcon size={12} color="#6B7280" />
+                                            </HStack>
+                                            <HStack justify="flex-end" gap={2}>
+                                                <Text fontSize="xs" color="#6B7280" textAlign="right">
+                                                    Manager
+                                                </Text>
+                                                <Users size={12} color="#6B7280" />
+                                            </HStack>
+                                        </VStack>
+                                        <VStack gap={3} align="stretch">
+                                            <Text fontSize="xs" color="#111827" fontWeight="500">
+                                                EMP-2024-001
                                             </Text>
-                                        </Button>
-
-                                        {/* Event Calendar */}
-                                        <Button
-                                            variant="outline"
-                                            minH="70px"
-                                            h="auto"
-                                            borderRadius="lg"
-                                            border="2px solid"
-                                            borderColor="green.200"
-                                            bg="green.100"
-                                            transform="translateY(-4px)"
-                                            boxShadow="0 8px 20px rgba(56, 161, 105, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
-                                            _hover={{ bg: "green.200", borderColor: "green.300", transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(56, 161, 105, 0.3), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
-                                            display="flex"
-                                            flexDirection="column"
-                                            gap={2}
-                                            p={3}
-                                            onClick={() => setIsCalendarOpen(true)}
-                                            transition="all 0.3s ease"
-                                        >
-                                            <Box p={1.5} bg="green.100" borderRadius="md">
-                                                <Calendar size={20} color="#38A169" />
-                                            </Box>
-                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                Event Calendar
+                                            <Text fontSize="xs" color="#111827" fontWeight="500">
+                                                15 Jan 2022
                                             </Text>
-                                        </Button>
-
-                                        {/* Analyze Skill */}
-                                        <Button
-                                            variant="outline"
-                                            minH="70px"
-                                            h="auto"
-                                            borderRadius="lg"
-                                            border="2px solid"
-                                            borderColor="teal.200"
-                                            bg="teal.100"
-                                            transform="translateY(-4px)"
-                                            boxShadow="0 8px 20px rgba(56, 178, 172, 0.2), 0 4px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)"
-                                            _hover={{ bg: "teal.200", borderColor: "teal.300", transform: "translateY(-8px)", boxShadow: "0 12px 30px rgba(56, 178, 172, 0.3), 0 6px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 4px rgba(0, 0, 0, 0.05)" }}
-                                            display="flex"
-                                            flexDirection="column"
-                                            gap={2}
-                                            p={3}
-                                            onClick={() => setIsSkillAnalysisOpen(true)}
-                                            style={{
-                                                animation: 'growthPulse 3s ease-in-out infinite'
-                                            }}
-                                        >
-                                            <Box p={1.5} bg="teal.100" borderRadius="md">
-                                                <TrendingUp size={20} color="#0D9488" />
-                                            </Box>
-                                            <Text fontWeight="600" color="gray.800" fontSize="sm">
-                                                My Growth & Health
+                                            <Text fontSize="xs" color="#111827" fontWeight="500">
+                                                Bangalore, India
                                             </Text>
-                                        </Button>
+                                            <Text fontSize="xs" color="#111827" fontWeight="500">
+                                                Priya Sharma
+                                            </Text>
+                                        </VStack>
                                     </SimpleGrid>
                                 </Box>
+
+                                {/* View Full Profile Button */}
+                                <Button
+                                    w="full"
+                                    bg="white"
+                                    border="1px solid"
+                                    borderColor="#E5E7EB"
+                                    borderRadius="md"
+                                    color="#4F46E5"
+                                    fontSize="sm"
+                                    fontWeight="500"
+                                    rightIcon={<ArrowRight size={16} />}
+                                    mt={2}
+                                >
+                                    View Full Profile
+                                </Button>
                             </VStack>
                         </Card.Body>
                     </Card.Root>
 
-                    {/* Quadrant 2: My Projects */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="xl"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                        overflow="hidden"
-                    >
-                        <Card.Header 
-                            p={{ base: 2, md: 3 }} 
-                            pb={2} 
-                            borderBottom="1px solid" 
-                            borderColor="gray.100"
-                            bg="gradient-to-r from-purple.50 to-purple.100"
+                    {/* Middle Column (50%): Career + Immediate Focus + Notifications */}
+                    <VStack gap={3} h="full" gridColumn={{ base: "1", lg: "2" }}>
+                        {/* Career Overview Card */}
+                        <Card.Root
+                            bg="white"
+                            border="1px solid"
+                            borderColor="#E5E7EB"
+                            borderRadius="12px"
+                            shadow="sm"
+                            display="flex"
+                            flexDirection="column"
+                            overflow="hidden"
+                            style={{ width:"102%" }}
                         >
-                            <HStack gap={3}>
-                                <Box p={2} bg="purple.500" borderRadius="lg">
-                                    <FolderKanban size={18} color="white" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
-                                        My Projects
-                                    </Heading>
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                        Active assignments
-                                    </Text>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {projects.length} active
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="auto">
-                            <VStack gap={2} align="stretch">
-                                {projects.map((project, index) => {
-                                    const colorSchemes = [
-                                        { bg: 'purple.50', border: 'purple.200', bar: 'purple.500', text: 'purple.700' },
-                                        { bg: 'blue.50', border: 'blue.200', bar: 'blue.500', text: 'blue.700' },
-                                        { bg: 'green.50', border: 'green.200', bar: 'green.500', text: 'green.700' },
-                                        { bg: 'orange.50', border: 'orange.200', bar: 'orange.500', text: 'orange.700' },
-                                        { bg: 'pink.50', border: 'pink.200', bar: 'pink.500', text: 'pink.700' }
-                                    ];
-                                    const scheme = colorSchemes[index];
-                                    return (
-                                        <Box
-                                            key={project.id}
-                                            p={2.5}
-                                            bg={scheme.bg}
-                                            borderRadius="lg"
+                            <Card.Header 
+                                p={6} 
+                                pb={4} 
+                                borderBottom="1px solid" 
+                                borderColor="#E5E7EB"
+                                bg="white"
+                            >
+                                <HStack justify="space-between" align="center">
+                                    <VStack align="start" gap={0}>
+                                        <Heading size="sm" color="#111827" fontWeight="600">
+                                            Career Overview
+                                        </Heading>
+                                        <Text fontSize="xs" color="#6B7280">
+                                            Plan your growth and track your journey
+                                        </Text>
+                                    </VStack>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        borderColor="#E5E7EB"
+                                        color="#4F46E5"
+                                        fontWeight="500"
+                                    >
+                                        View Career Path
+                                    </Button>
+                                </HStack>
+                            </Card.Header>
+                            <Card.Body p={4}>
+                                <VStack gap={4} align="stretch">
+                                    {/* Aspiration Section */}
+                                    <Box position="relative">
+                                        <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
+                                            Aspiration
+                                        </Text>
+                                        <HStack
+                                            h="40px"
                                             border="1px solid"
-                                            borderColor={scheme.border}
-                                            transition="all 0.2s ease"
-                                            _hover={{
-                                                shadow: "sm",
-                                                borderColor: scheme.bar
-                                            }}
-                                        >
-                                            <HStack justify="space-between" mb={1.5}>
-                                                <Text fontSize="sm" color="gray.800" fontWeight="600">
-                                                    {project.name}
-                                                </Text>
-                                                <Badge bg={scheme.bar} color="white" px={2} py={0.5} borderRadius="md" fontSize="xs" fontWeight="700">
-                                                    {project.allocation}%
-                                                </Badge>
-                                            </HStack>
-                                            <Box
-                                                w="full"
-                                                h="6px"
-                                                bg="white"
-                                                borderRadius="full"
-                                                overflow="hidden"
-                                            >
-                                                <Box
-                                                    w={`${project.allocation}%`}
-                                                    h="full"
-                                                    bg={scheme.bar}
-                                                    borderRadius="full"
-                                                    transition="width 0.8s ease"
-                                                />
-                                            </Box>
-                                        </Box>
-                                    );
-                                })}
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-
-                    {/* Quadrant 3: Immediate Focus */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                    >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="red.100" borderRadius="md">
-                                    <AlertTriangle size={16} color="#DC2626" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        Immediate Focus
-                                    </Heading>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        4 priority actions
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
-                            <VStack gap={2} align="stretch">
-                                {/* Skills Priority Actions */}
-                                <Box
-                                    p={{ base: 2, md: 3 }}
-                                    bg="blue.50"
-                                    borderRadius="md"
-                                    border="1px solid"
-                                    borderColor="blue.200"
-                                    transition="all 0.2s"
-                                    _hover={{ bg: "blue.100", transform: "translateY(-2px)", shadow: "md" }}
-                                    cursor="pointer"
-                                >
-                                    <HStack gap={2} align="start">
-                                        <Box mt={0.5}>
-                                            <BookOpen size={14} color="#2563EB" />
-                                        </Box>
-                                        <VStack align="start" gap={0.5} flex={1}>
-                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                Complete React Advanced Course
-                                            </Text>
-                                            <Text fontSize="2xs" color="gray.600">
-                                                Module 3: State Management - Due in 2 days
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </Box>
-
-                                <Box
-                                    p={{ base: 2, md: 3 }}
-                                    bg="blue.50"
-                                    borderRadius="md"
-                                    border="1px solid"
-                                    borderColor="blue.200"
-                                    transition="all 0.2s"
-                                    _hover={{ bg: "blue.100", transform: "translateY(-2px)", shadow: "md" }}
-                                    cursor="pointer"
-                                >
-                                    <HStack gap={2} align="start">
-                                        <Box mt={0.5}>
-                                            <Target size={14} color="#2563EB" />
-                                        </Box>
-                                        <VStack align="start" gap={0.5} flex={1}>
-                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                Practice TypeScript Exercises
-                                            </Text>
-                                            <Text fontSize="2xs" color="gray.600">
-                                                Complete 5 coding challenges this week
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </Box>
-
-                                {/* Mental Health Priority Actions */}
-                                <Box
-                                    p={{ base: 2, md: 3 }}
-                                    bg="pink.50"
-                                    borderRadius="md"
-                                    border="1px solid"
-                                    borderColor="pink.200"
-                                    transition="all 0.2s"
-                                    _hover={{ bg: "pink.100", transform: "translateY(-2px)", shadow: "md" }}
-                                    cursor="pointer"
-                                >
-                                    <HStack gap={2} align="start">
-                                        <Box mt={0.5}>
-                                            <Heart size={14} color="#EC4899" />
-                                        </Box>
-                                        <VStack align="start" gap={0.5} flex={1}>
-                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                Schedule 1-on-1 with Manager
-                                            </Text>
-                                            <Text fontSize="2xs" color="gray.600">
-                                                Discuss workload concerns - This week
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </Box>
-
-                                <Box
-                                    p={{ base: 2, md: 3 }}
-                                    bg="pink.50"
-                                    borderRadius="md"
-                                    border="1px solid"
-                                    borderColor="pink.200"
-                                    transition="all 0.2s"
-                                    _hover={{ bg: "pink.100", transform: "translateY(-2px)", shadow: "md" }}
-                                    cursor="pointer"
-                                >
-                                    <HStack gap={2} align="start">
-                                        <Box mt={0.5}>
-                                            <Zap size={14} color="#EC4899" />
-                                        </Box>
-                                        <VStack align="start" gap={0.5} flex={1}>
-                                            <Text fontWeight="bold" color="gray.800" fontSize={{ base: "xs", md: "sm" }}>
-                                                Join Wellness Session
-                                            </Text>
-                                            <Text fontSize="2xs" color="gray.600">
-                                                Stress Management Workshop - Tomorrow 2 PM
-                                            </Text>
-                                        </VStack>
-                                    </HStack>
-                                </Box>
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
-
-                    {/* Quadrant 4: Notifications */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="xl"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                        overflow="hidden"
-                    >
-                        <Card.Header 
-                            p={{ base: 2, md: 3 }} 
-                            pb={2} 
-                            borderBottom="1px solid" 
-                            borderColor="gray.100"
-                            bg="gradient-to-r from-blue.50 to-blue.100"
-                        >
-                            <HStack gap={3}>
-                                <Box p={2} bg="blue.500" borderRadius="lg">
-                                    <Bell size={18} color="white" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "sm", md: "md" }} color="gray.800" fontWeight="700">
-                                        Notifications
-                                    </Heading>
-                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                        Stay updated
-                                    </Text>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {notifications.filter(n => !n.read).length} unread
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="hidden">
-                            <VStack gap={1} align="stretch">
-                                {notifications.map((notification) => {
-                                    const Icon = getNotificationIcon(notification.type);
-                                    return (
-                                        <Box
-                                            key={notification.id}
-                                            p={{ base: 2, md: 3 }}
-                                            bg={notification.read ? "white" : "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)"}
-                                            borderRadius="xl"
-                                            border="1px solid"
-                                            borderColor={notification.read ? "gray.200" : "blue.300"}
+                                            borderColor="#E5E7EB"
+                                            borderRadius="12px"
+                                            px={4}
+                                            bg="white"
                                             cursor="pointer"
-                                            onClick={() => markAsRead(notification.id)}
-                                            shadow="none"
-                                            position="relative"
-                                            overflow="hidden"
-                                            _before={!notification.read ? {
-                                                content: '""',
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                w: "4px",
-                                                h: "full",
-                                                bg: "blue.500",
-                                                borderRadius: "0 4px 4px 0"
-                                            } : {}}
+                                            boxShadow="0 1px 3px rgba(0, 0, 0, 0.1)"
+                                            _hover={{ boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)", borderColor: "#D1D5DB" }}
+                                            _focus={{ boxShadow: "0 0 0 3px rgba(79, 70, 229, 0.1)", borderColor: "#4F46E5" }}
+                                            onClick={() => setIsAspirationDropdownOpen(!isAspirationDropdownOpen)}
                                         >
-                                            <HStack align="start" gap={3}>
-                                                <Box
-                                                    p={2}
-                                                    bg={`${getNotificationColor(notification.type)}.500`}
-                                                    borderRadius="lg"
-                                                    flexShrink={0}
-                                                    display="flex"
-                                                    alignItems="center"
-                                                    justifyContent="center"
-                                                >
-                                                    <Icon size={14} color="white" />
+                                            <Target size={20} color="#6B7280" />
+                                            <Text fontSize="sm" color="#111827" flex={1} fontWeight="500">
+                                                {getAspirationLabel(selectedAspiration) || 'Select aspiration'}
+                                            </Text>
+                                            <ArrowRight size={20} color="#6B7280" />
+                                        </HStack>
+                                        
+                                        {/* Dropdown Menu */}
+                                        {isAspirationDropdownOpen && (
+                                            <Box
+                                                position="absolute"
+                                                top="100%"
+                                                left={0}
+                                                right={0}
+                                                mt={2}
+                                                bg="white"
+                                                border="1px solid"
+                                                borderColor="#E5E7EB"
+                                                borderRadius="12px"
+                                                boxShadow="0 4px 12px rgba(0, 0, 0, 0.15)"
+                                                zIndex={10}
+                                                py={2}
+                                            >
+                                                {[
+                                                    { value: 'tech-lead', label: 'Tech Lead' },
+                                                    { value: 'engineering-manager', label: 'Engineering Manager' },
+                                                    { value: 'architect', label: 'Software Architect' },
+                                                    { value: 'senior-architect', label: 'Senior Architect' },
+                                                    { value: 'principal-engineer', label: 'Principal Engineer' }
+                                                ].map((option) => (
+                                                    <Box
+                                                        key={option.value}
+                                                        px={4}
+                                                        py={3}
+                                                        cursor="pointer"
+                                                        _hover={{ bg: "#F9FAFB" }}
+                                                        transition="background-color 0.2s"
+                                                        onClick={() => {
+                                                            setSelectedAspiration(option.value);
+                                                            setIsAspirationDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        <Text fontSize="sm" color="#111827" fontWeight="500">
+                                                            {option.label}
+                                                        </Text>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {/* Career Progress Section */}
+                                    <Box>
+                                        <HStack align="center" gap={4} position="relative">
+                                            {/* Dotted line connecting cards */}
+                                            <Box
+                                                position="absolute"
+                                                left="50%"
+                                                top="50%"
+                                                transform="translate(-50%, -50%)"
+                                                w="calc(100% - 200px)"
+                                                h="2px"
+                                                bg="transparent"
+                                                borderBottom="2px dashed"
+                                                borderColor="#E5E7EB"
+                                                zIndex={0}
+                                            />
+
+                                            {/* Left - Current Role Card */}
+                                            <Box
+                                                flex={1}
+                                                bg="white"
+                                                border="1px solid"
+                                                borderColor="#E5E7EB"
+                                                borderRadius="12px"
+                                                p={3}
+                                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.08)"
+                                                zIndex={1}
+                                            >
+                                                <VStack align="start" gap={1}>
+                                                    <Badge
+                                                        bg="gray.100"
+                                                        color="#6B7280"
+                                                        px={2}
+                                                        py={0.5}
+                                                        borderRadius="md"
+                                                        fontSize="xs"
+                                                        fontWeight="500"
+                                                    >
+                                                        Current Role
+                                                    </Badge>
+                                                    <Text fontSize="sm" color="#111827" fontWeight="600">
+                                                        Senior Developer
+                                                    </Text>
+                                                    <Text fontSize="xs" color="#6B7280">
+                                                        Since Jan 2022
+                                                    </Text>
+                                                </VStack>
+                                            </Box>
+
+                                            {/* Center - Circular Arrow Button */}
+                                            <Box
+                                                w="8"
+                                                h="8"
+                                                borderRadius="full"
+                                                bg="#4F46E5"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                boxShadow="0 2px 8px rgba(79, 70, 229, 0.3)"
+                                                zIndex={2}
+                                                cursor="pointer"
+                                                _hover={{ bg: "#4338CA", boxShadow: "0 4px 12px rgba(79, 70, 229, 0.4)" }}
+                                                transition="all 0.2s"
+                                            >
+                                                <ArrowRight size={14} color="white" />
+                                            </Box>
+
+                                            {/* Right - Target Role Card */}
+                                            <Box
+                                                flex={1}
+                                                bg="white"
+                                                border="1px solid"
+                                                borderColor="#E5E7EB"
+                                                borderRadius="12px"
+                                                p={3}
+                                                boxShadow="0 2px 8px rgba(0, 0, 0, 0.08)"
+                                                zIndex={1}
+                                            >
+                                                <VStack align="start" gap={1}>
+                                                    <Badge
+                                                        bg="green.50"
+                                                        color="green.700"
+                                                        px={2}
+                                                        py={0.5}
+                                                        borderRadius="md"
+                                                        fontSize="xs"
+                                                        fontWeight="500"
+                                                    >
+                                                        Target Role
+                                                    </Badge>
+                                                    <Text fontSize="sm" color="#111827" fontWeight="600">
+                                                        {getAspirationLabel(selectedAspiration) || 'Tech Lead'}
+                                                    </Text>
+                                                    <Text fontSize="xs" color="#6B7280">
+                                                        Target: Dec 2025
+                                                    </Text>
+                                                </VStack>
+                                            </Box>
+                                        </HStack>
+                                    </Box>
+
+                                    {/* Divider */}
+                                    <Box h="1px" bg="#E5E7EB" w="full" />
+
+                                    {/* Bottom Section - Two Columns */}
+                                    <HStack gap={6} align="stretch">
+                                        {/* Left - Growth Timeline */}
+                                        <VStack align="start" gap={3} flex={1}>
+                                            <Text fontSize="sm" fontWeight="600" color="#111827">
+                                                Growth Timeline
+                                            </Text>
+                                            <VStack gap={3} align="stretch" w="full">
+                                                {/* Horizontal Timeline Line */}
+                                                <Box position="relative" h="2">
+                                                    <Box
+                                                        position="absolute"
+                                                        left={0}
+                                                        right={0}
+                                                        top="50%"
+                                                        transform="translateY(-50%)"
+                                                        h="2px"
+                                                        bg="#E5E7EB"
+                                                    />
+                                                    {/* Milestone Points */}
+                                                    <Box
+                                                        position="absolute"
+                                                        left="0"
+                                                        top="50%"
+                                                        transform="translate(-50%, -50%)"
+                                                        w="3"
+                                                        h="3"
+                                                        borderRadius="full"
+                                                        bg="#4F46E5"
+                                                        boxShadow="0 0 0 3px rgba(79, 70, 229, 0.1)"
+                                                    />
+                                                    <Box
+                                                        position="absolute"
+                                                        left="50%"
+                                                        top="50%"
+                                                        transform="translate(-50%, -50%)"
+                                                        w="3"
+                                                        h="3"
+                                                        borderRadius="full"
+                                                        bg="#10B981"
+                                                        boxShadow="0 0 0 3px rgba(16, 185, 129, 0.1)"
+                                                    />
+                                                    <Box
+                                                        position="absolute"
+                                                        right="0"
+                                                        top="50%"
+                                                        transform="translate(50%, -50%)"
+                                                        w="3"
+                                                        h="3"
+                                                        borderRadius="full"
+                                                        bg="#F59E0B"
+                                                        boxShadow="0 0 0 3px rgba(245, 158, 11, 0.1)"
+                                                    />
+                                                </Box>
+
+                                                {/* Milestone Cards */}
+                                                <HStack gap={3} justify="space-between">
+                                                    {/* Milestone 1 */}
+                                                    <Box
+                                                        flex={1}
+                                                        bg="white"
+                                                        border="1px solid"
+                                                        borderColor="#E5E7EB"
+                                                        borderRadius="8px"
+                                                        p={2}
+                                                        boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
+                                                    >
+                                                        <VStack align="start" gap={0.5}>
+                                                            <Text fontSize="xs" color="#4F46E5" fontWeight="600">
+                                                                2022
+                                                            </Text>
+                                                            <Text fontSize="2xs" color="#6B7280">
+                                                                Joined
+                                                            </Text>
+                                                        </VStack>
+                                                    </Box>
+
+                                                    {/* Milestone 2 */}
+                                                    <Box
+                                                        flex={1}
+                                                        bg="white"
+                                                        border="1px solid"
+                                                        borderColor="#E5E7EB"
+                                                        borderRadius="8px"
+                                                        p={2}
+                                                        boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
+                                                    >
+                                                        <VStack align="start" gap={0.5}>
+                                                            <Text fontSize="xs" color="#10B981" fontWeight="600">
+                                                                2023
+                                                            </Text>
+                                                            <Text fontSize="2xs" color="#6B7280">
+                                                                Senior Dev
+                                                            </Text>
+                                                        </VStack>
+                                                    </Box>
+
+                                                    {/* Milestone 3 */}
+                                                    <Box
+                                                        flex={1}
+                                                        bg="white"
+                                                        border="1px solid"
+                                                        borderColor="#E5E7EB"
+                                                        borderRadius="8px"
+                                                        p={2}
+                                                        boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
+                                                    >
+                                                        <VStack align="start" gap={0.5}>
+                                                            <Text fontSize="xs" color="#F59E0B" fontWeight="600">
+                                                                2025
+                                                            </Text>
+                                                            <Text fontSize="2xs" color="#6B7280">
+                                                                Tech Lead
+                                                            </Text>
+                                                        </VStack>
+                                                    </Box>
+                                                </HStack>
+                                            </VStack>
+                                        </VStack>
+
+                                        {/* Vertical Divider */}
+                                        <Box w="1px" bg="#E5E7EB" />
+
+                                        {/* Right - Top Skills to Focus */}
+                                        <VStack align="start" gap={3} flex={1}>
+                                            <Text fontSize="sm" fontWeight="600" color="#111827">
+                                                Top Skills to Focus
+                                            </Text>
+                                            <Flex gap={3} flexWrap="wrap">
+                                                {getSkillsForAspiration(selectedAspiration).map((skill, index) => (
+                                                    <Badge
+                                                        key={index}
+                                                        bg="#F3F4F6"
+                                                        color="#374151"
+                                                        px={3}
+                                                        py={1}
+                                                        borderRadius="full"
+                                                        fontSize="xs"
+                                                        fontWeight="500"
+                                                        border="none"
+                                                        h="32px"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                    >
+                                                        {skill}
+                                                    </Badge>
+                                                ))}
+                                            </Flex>
+                                        </VStack>
+                                    </HStack>
+                                </VStack>
+                            </Card.Body>
+                        </Card.Root>
+
+                        {/* Immediate Focus and Notifications Side by Side - 40% height */}
+                        <Box style={{ height: "40%" }}>
+                            <SimpleGrid columns={2} gap={3} h="full">
+                            {/* Immediate Focus Card */}
+                            <Card.Root
+                                bg="white"
+                                border="1px solid"
+                                borderColor="gray.200"
+                                borderRadius="lg"
+                                shadow="sm"
+                                display="flex"
+                                flexDirection="column"
+                                h="full"
+                                style={{ marginLeft: "-42%", width: "146%" }}
+                            >
+                                <Card.Header p={3} pb={2} borderBottom="1px solid" borderColor="gray.100">
+                                    <HStack gap={2}>
+                                        <Box p={1} bg="red.100" borderRadius="md">
+                                            <AlertTriangle size={14} color="#DC2626" />
+                                        </Box>
+                                        <VStack align="start" gap={0}>
+                                            <Heading size="xs" color="gray.900" fontWeight="600">
+                                                Immediate Focus
+                                            </Heading>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                4 priority actions
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Header>
+                                <Card.Body p={3} flex={1} overflow="auto">
+                                    <VStack gap={2} align="stretch">
+                                        <Box
+                                            p={2}
+                                            bg="blue.50"
+                                            borderRadius="md"
+                                            border="1px solid"
+                                            borderColor="blue.200"
+                                            cursor="pointer"
+                                        >
+                                            <HStack gap={2} align="start">
+                                                <Box mt={0.5}>
+                                                    <BookOpen size={12} color="#2563EB" />
                                                 </Box>
                                                 <VStack align="start" gap={0.5} flex={1}>
-                                                    <HStack justify="space-between" w="full">
-                                                        <Text
-                                                            fontWeight="semibold"
-                                                            color="gray.800"
-                                                            fontSize={{ base: "2xs", md: "xs" }}
-                                                            lineClamp={1}
-                                                        >
-                                                            {notification.title}
-                                                        </Text>
-                                                        {!notification.read && (
-                                                            <Box
-                                                                w={1.5}
-                                                                h={1.5}
-                                                                bg="blue.500"
-                                                                borderRadius="full"
-                                                                flexShrink={0}
-                                                            />
-                                                        )}
-                                                    </HStack>
-                                                    <Text fontSize="2xs" color="gray.600" lineClamp={2}>
-                                                        {notification.message}
+                                                    <Text fontWeight="600" color="gray.800" fontSize="xs">
+                                                        Complete React Advanced Course
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.600">
+                                                        Module 3: State Management - Due in 2 days
                                                     </Text>
                                                 </VStack>
                                             </HStack>
                                         </Box>
-                                    );
-                                })}
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
 
-                    {/* Quadrant 5: Technical Skills */}
-                    <Card.Root
-                        bg="white"
-                        border="1px solid"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        shadow="sm"
-                        h="full"
-                        display="flex"
-                        flexDirection="column"
-                    >
-                        <Card.Header p={{ base: 2, md: 3 }} pb={2} borderBottom="1px solid" borderColor="gray.100">
-                            <HStack gap={2}>
-                                <Box p={1} bg="cyan.100" borderRadius="md">
-                                    <Code size={16} color="#0891B2" />
-                                </Box>
-                                <VStack align="start" gap={0}>
-                                    <Heading size={{ base: "xs", md: "sm" }} color="gray.800" fontWeight="bold">
-                                        Technical Skills
-                                    </Heading>
-                                    <Text fontSize="2xs" color="gray.600">
-                                        {skills.length} skills
-                                    </Text>
-                                </VStack>
-                            </HStack>
-                        </Card.Header>
-                        <Card.Body p={{ base: 2, md: 3 }} flex={1} overflow="auto">
-                            <VStack gap={2} align="stretch">
-                                {skills.map((skill) => {
-                                    const categoryColors = {
-                                        frontend: { bg: 'purple.100', text: 'purple.700', dot: 'purple.500' },
-                                        backend: { bg: 'blue.100', text: 'blue.700', dot: 'blue.500' },
-                                        database: { bg: 'green.100', text: 'green.700', dot: 'green.500' },
-                                        tools: { bg: 'orange.100', text: 'orange.700', dot: 'orange.500' }
-                                    };
-                                    const colors = categoryColors[skill.category as keyof typeof categoryColors] || 
-                                                   { bg: 'gray.100', text: 'gray.700', dot: 'gray.500' };
-                                    
-                                    return (
-                                        <HStack
-                                            key={skill.id}
-                                            gap={3}
-                                            px={3}
-                                            py={2}
-                                            bg={colors.bg}
-                                            borderRadius="lg"
-                                            transition="all 0.2s ease"
-                                            _hover={{
-                                                shadow: "sm",
-                                                transform: "translateX(2px)"
-                                            }}
-                                            justify="space-between"
+                                        <Box
+                                            p={2}
+                                            bg="blue.50"
+                                            borderRadius="md"
+                                            border="1px solid"
+                                            borderColor="blue.200"
+                                            cursor="pointer"
                                         >
-                                            <Text fontSize="sm" fontWeight="600" color={colors.text} minW="120px">
-                                                {skill.name}
-                                            </Text>
-                                            <HStack gap={0.5} flexShrink={0}>
-                                                {[1, 2, 3, 4, 5].map((level) => (
-                                                    <Box
-                                                        key={level}
-                                                        w={2.5}
-                                                        h={2.5}
-                                                        borderRadius="full"
-                                                        bg={level <= skill.level ? colors.dot : 'gray.300'}
-                                                    />
-                                                ))}
+                                            <HStack gap={2} align="start">
+                                                <Box mt={0.5}>
+                                                    <Target size={12} color="#2563EB" />
+                                                </Box>
+                                                <VStack align="start" gap={0.5} flex={1}>
+                                                    <Text fontWeight="600" color="gray.800" fontSize="xs">
+                                                        Practice TypeScript Exercises
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.600">
+                                                        Complete 5 coding challenges this week
+                                                    </Text>
+                                                </VStack>
                                             </HStack>
-                                        </HStack>
-                                    );
-                                })}
-                            </VStack>
-                        </Card.Body>
-                    </Card.Root>
+                                        </Box>
+
+                                        <Box
+                                            p={2}
+                                            bg="pink.50"
+                                            borderRadius="md"
+                                            border="1px solid"
+                                            borderColor="pink.200"
+                                            cursor="pointer"
+                                        >
+                                            <HStack gap={2} align="start">
+                                                <Box mt={0.5}>
+                                                    <Heart size={12} color="#EC4899" />
+                                                </Box>
+                                                <VStack align="start" gap={0.5} flex={1}>
+                                                    <Text fontWeight="600" color="gray.800" fontSize="xs">
+                                                        Schedule 1-on-1 with Manager
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.600">
+                                                        Discuss workload concerns - This week
+                                                    </Text>
+                                                </VStack>
+                                            </HStack>
+                                        </Box>
+
+                                        <Box
+                                            p={2}
+                                            bg="pink.50"
+                                            borderRadius="md"
+                                            border="1px solid"
+                                            borderColor="pink.200"
+                                            cursor="pointer"
+                                        >
+                                            <HStack gap={2} align="start">
+                                                <Box mt={0.5}>
+                                                    <Zap size={12} color="#EC4899" />
+                                                </Box>
+                                                <VStack align="start" gap={0.5} flex={1}>
+                                                    <Text fontWeight="600" color="gray.800" fontSize="xs">
+                                                        Join Wellness Session
+                                                    </Text>
+                                                    <Text fontSize="2xs" color="gray.600">
+                                                        Stress Management Workshop - Tomorrow 2 PM
+                                                    </Text>
+                                                </VStack>
+                                            </HStack>
+                                        </Box>
+                                    </VStack>
+                                </Card.Body>
+                            </Card.Root>
+
+                            {/* Notifications Card */}
+                            <Card.Root
+                                bg="white"
+                                border="1px solid"
+                                borderColor="gray.200"
+                                borderRadius="lg"
+                                shadow="sm"
+                                display="flex"
+                                flexDirection="column"
+                                h="full"
+                                style={{ marginLeft: "2%", width: "140%" }}
+                            >
+                                <Card.Header 
+                                    p={3} 
+                                    pb={2} 
+                                    borderBottom="1px solid" 
+                                    borderColor="gray.100"
+                                    bg="gray.50"
+                                >
+                                    <HStack gap={2}>
+                                        <Box p={1} bg="gray.600" borderRadius="md">
+                                            <Bell size={14} color="white" />
+                                        </Box>
+                                        <VStack align="start" gap={0}>
+                                            <Heading size="xs" color="gray.900" fontWeight="600">
+                                                Notifications
+                                            </Heading>
+                                            <Text fontSize="2xs" color="gray.600">
+                                                {notifications.filter(n => !n.read).length} unread
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </Card.Header>
+                                <Card.Body p={3} flex={1} overflow="auto">
+                                    <VStack gap={2} align="stretch">
+                                        {notifications.map((notification) => {
+                                            const Icon = getNotificationIcon(notification.type);
+                                            return (
+                                                <Box
+                                                    key={notification.id}
+                                                    p={2}
+                                                    bg={notification.read ? "white" : "blue.50"}
+                                                    borderRadius="md"
+                                                    border="1px solid"
+                                                    borderColor={notification.read ? "gray.200" : "blue.200"}
+                                                    cursor="pointer"
+                                                    onClick={() => markAsRead(notification.id)}
+                                                >
+                                                    <HStack align="start" gap={2}>
+                                                        <Box
+                                                            p={1.5}
+                                                            bg={`${getNotificationColor(notification.type)}.500`}
+                                                            borderRadius="md"
+                                                            flexShrink={0}
+                                                            display="flex"
+                                                            alignItems="center"
+                                                            justifyContent="center"
+                                                        >
+                                                            <Icon size={12} color="white" />
+                                                        </Box>
+                                                        <VStack align="start" gap={0.5} flex={1}>
+                                                            <HStack justify="space-between" w="full">
+                                                                <Text
+                                                                    fontWeight="600"
+                                                                    color="gray.800"
+                                                                    fontSize="xs"
+                                                                    lineClamp={1}
+                                                                >
+                                                                    {notification.title}
+                                                                </Text>
+                                                                {!notification.read && (
+                                                                    <Box
+                                                                        w={1.5}
+                                                                        h={1.5}
+                                                                        bg="blue.500"
+                                                                        borderRadius="full"
+                                                                        flexShrink={0}
+                                                                    />
+                                                                )}
+                                                            </HStack>
+                                                            <Text fontSize="2xs" color="gray.600" lineClamp={2}>
+                                                                {notification.message}
+                                                            </Text>
+                                                        </VStack>
+                                                    </HStack>
+                                                </Box>
+                                            );
+                                        })}
+                                    </VStack>
+                                </Card.Body>
+                            </Card.Root>
+                        </SimpleGrid>
+                        </Box>
+                    </VStack>
+
+                    {/* Last Column (25%): Projects + Technical Skills */}
+                    <VStack gap={3} h="full">
+                        {/* My Projects Card */}
+                        <Card.Root
+                            bg="white"
+                            border="1px solid"
+                            borderColor="#E5E7EB"
+                            borderRadius="16px"
+                            shadow="sm"
+                            display="flex"
+                            flexDirection="column"
+                            overflow="hidden"
+                            style={{ height: "40%", width: "95%", marginLeft:"-6%" }}
+                        >
+                            <Card.Header 
+                                p={5} 
+                                pb={4} 
+                                borderBottom="1px solid" 
+                                borderColor="#E5E7EB"
+                                bg="white"
+                            >
+                                <HStack justify="space-between" align="center">
+                                    <HStack gap={3}>
+                                        <Box p={2} bg="#4F46E5" borderRadius="12px">
+                                            <FolderKanban size={18} color="white" />
+                                        </Box>
+                                        <VStack align="start" gap={0}>
+                                            <Heading size="xs" color="#111827" fontWeight="600">
+                                                My Projects
+                                            </Heading>
+                                            <Text fontSize="xs" color="#6B7280">
+                                                {projects.length} active projects
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                </HStack>
+                            </Card.Header>
+                            <Card.Body p={5} overflow="auto" flex={1}>
+                                <VStack gap={4} align="stretch">
+                                    {projects.map((project, index) => {
+                                        const progressColors = [
+                                            '#4F46E5',
+                                            '#10B981',
+                                            '#F59E0B',
+                                            '#EF4444',
+                                            '#8B5CF6'
+                                        ];
+                                        const progressColor = progressColors[index % progressColors.length];
+                                        return (
+                                            <Box key={project.id}>
+                                                <HStack justify="space-between" align="center" mb={2}>
+                                                    <Text fontSize="xs" color="#111827" fontWeight="600">
+                                                        {project.name}
+                                                    </Text>
+                                                    <Badge
+                                                        bg={progressColor}
+                                                        color="white"
+                                                        px={3}
+                                                        py={1}
+                                                        borderRadius="full"
+                                                        fontSize="xs"
+                                                        fontWeight="500"
+                                                    >
+                                                        {project.allocation}%
+                                                    </Badge>
+                                                </HStack>
+                                                <Box
+                                                    w="full"
+                                                    h="4px"
+                                                    bg="#F3F4F6"
+                                                    borderRadius="full"
+                                                    overflow="hidden"
+                                                >
+                                                    <Box
+                                                        w={`${project.allocation}%`}
+                                                        h="full"
+                                                        bg={progressColor}
+                                                        borderRadius="full"
+                                                        transition="width 0.8s ease"
+                                                    />
+                                                </Box>
+                                            </Box>
+                                        );
+                                    })}
+                                </VStack>
+                            </Card.Body>
+                        </Card.Root>
+
+                        {/* Technical Skills Card */}
+                        <Card.Root
+                            bg="white"
+                            border="1px solid"
+                            borderColor="#E5E7EB"
+                            borderRadius="16px"
+                            shadow="sm"
+                            display="flex"
+                            flexDirection="column"
+                            style={{ height: "60%", width: "95%", marginLeft:"-6%" }}
+                        >
+                            <Card.Header p={5} pb={4} borderBottom="1px solid" borderColor="#E5E7EB" bg="white">
+                                <HStack justify="space-between" align="center">
+                                    <HStack gap={3}>
+                                        <Box p={2} bg="#10B981" borderRadius="12px">
+                                            <Code size={18} color="white" />
+                                        </Box>
+                                        <VStack align="start" gap={0}>
+                                            <Heading size="xs" color="#111827" fontWeight="600">
+                                                Technical Skills
+                                            </Heading>
+                                            <Text fontSize="xs" color="#6B7280">
+                                                {skills.length} skills
+                                            </Text>
+                                        </VStack>
+                                    </HStack>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        borderColor="#E5E7EB"
+                                        color="#4F46E5"
+                                        fontWeight="500"
+                                        onClick={() => setIsSkillEditModalOpen(true)}
+                                    >
+                                        Edit Skills
+                                    </Button>
+                                </HStack>
+                            </Card.Header>
+                            <Card.Body p={5} flex={1} overflow="auto">
+                                <VStack gap={3} align="stretch">
+                                    {skills.map((skill) => {
+                                        const validationColors = {
+                                            self_declared: { bg: '#F3F4F6', text: '#111827', dot: '#9CA3AF', border: '#E5E7EB' },
+                                            has_knowledge: { bg: '#ECFDF5', text: '#065F46', dot: '#10B981', border: '#D1FAE5' },
+                                            project_experience: { bg: '#D1FAE5', text: '#064E3B', dot: '#059669', border: '#A7F3D0' }
+                                        };
+                                        const colors = validationColors[skill.validationStatus] || 
+                                                       validationColors.self_declared;
+                                        
+                                        return (
+                                            <Box
+                                                key={skill.id}
+                                                p={3}
+                                                bg="white"
+                                                border="1px solid"
+                                                borderColor="#E5E7EB"
+                                                borderRadius="12px"
+                                                transition="all 0.2s ease"
+                                                _hover={{
+                                                    shadow: "md",
+                                                    transform: "translateY(-2px)"
+                                                }}
+                                            >
+                                                <SimpleGrid columns={3} gap={0} align="center">
+                                                    {/* Column 1: Skill Name */}
+                                                    <VStack align="start" gap={1}>
+                                                        <Text fontSize="xs" fontWeight="600" color="#111827">
+                                                            {skill.name}
+                                                        </Text>
+                                                        <Badge
+                                                            bg={colors.bg}
+                                                            color={colors.text}
+                                                            border="1px solid"
+                                                            borderColor={colors.border}
+                                                            px={2}
+                                                            py={0.5}
+                                                            borderRadius="md"
+                                                            fontSize="2xs"
+                                                            fontWeight="500"
+                                                        >
+                                                            {skill.validationStatus.replace('_', ' ')}
+                                                        </Badge>
+                                                    </VStack>
+
+                                                    {/* Column 2: Progress Graph */}
+                                                    <HStack gap={0}>
+                                                        {[1, 2, 3, 4, 5].map((level) => {
+                                                            const visibleColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+                                                            const colorIndex = (skill.id + level) % visibleColors.length;
+                                                            return (
+                                                                <Box
+                                                                    key={level}
+                                                                    flex={1}
+                                                                    h="3px"
+                                                                    borderRadius="full"
+                                                                    bg={level <= skill.level ? visibleColors[colorIndex] : '#E5E7EB'}
+                                                                    transition="all 0.3s ease"
+                                                                />
+                                                            );
+                                                        })}
+                                                    </HStack>
+
+                                                    {/* Column 3: Experience */}
+                                                    <Text fontSize="xs" fontWeight="500" color="#111827" textAlign="right">
+                                                        {skill.validationStatus === 'project_experience' ? 'Has Experience' : 'Has Knowledge'}
+                                                    </Text>
+                                                </SimpleGrid>
+                                            </Box>
+                                        );
+                                    })}
+                                </VStack>
+                            </Card.Body>
+                        </Card.Root>
+                    </VStack>
+
 
                 </SimpleGrid>
             </Box>
@@ -4982,6 +5443,389 @@ export default function TeamMemberView() {
                 isOpen={showTrendModal}
                 onClose={() => setShowTrendModal(false)}
             />
+
+            {/* Skill Edit Modal */}
+            {isSkillEditModalOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0, 0, 0, 0.6)"
+                    backdropFilter="blur(10px)"
+                    zIndex={1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    onClick={() => setIsSkillEditModalOpen(false)}
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="2xl"
+                        boxShadow="2xl"
+                        w={{ base: "95%", md: "600px" }}
+                        maxH="90vh"
+                        overflow="hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Box p={4} borderBottom="1px solid" borderColor="gray.200">
+                            <HStack justify="space-between">
+                                <Heading size="md" color="gray.800">Edit Skills</Heading>
+                                <IconButton
+                                    aria-label="Close modal"
+                                    onClick={() => setIsSkillEditModalOpen(false)}
+                                    variant="ghost"
+                                    size="sm"
+                                >
+                                    <XIcon size={18} />
+                                </IconButton>
+                            </HStack>
+                        </Box>
+                        <Box p={4} overflowY="auto" maxH="70vh">
+                            <VStack gap={4} align="stretch">
+                                <Box>
+                                    <Text fontWeight="600" mb={2} color="gray.700">Add New Skill</Text>
+                                    <HStack gap={2}>
+                                        <Input
+                                            placeholder="Skill name"
+                                            value={newSkillName}
+                                            onChange={(e) => setNewSkillName(e.target.value)}
+                                        />
+                                        <Box
+                                            as="select"
+                                            placeholder="Category"
+                                            value={newSkillCategory}
+                                            onChange={(e) => setNewSkillCategory(e.target.value as any)}
+                                            w="140px"
+                                            p={2}
+                                            border="1px solid"
+                                            borderColor="gray.300"
+                                            borderRadius="md"
+                                            bg="white"
+                                        >
+                                            <option value="frontend">Frontend</option>
+                                            <option value="backend">Backend</option>
+                                            <option value="database">Database</option>
+                                            <option value="tools">Tools</option>
+                                            <option value="other">Other</option>
+                                        </Box>
+                                        <Box
+                                            as="select"
+                                            placeholder="Level"
+                                            value={newSkillLevel}
+                                            onChange={(e) => setNewSkillLevel(Number(e.target.value))}
+                                            w="100px"
+                                            p={2}
+                                            border="1px solid"
+                                            borderColor="gray.300"
+                                            borderRadius="md"
+                                            bg="white"
+                                        >
+                                            {[1, 2, 3, 4, 5].map(level => (
+                                                <option key={level} value={level}>{level}</option>
+                                            ))}
+                                        </Box>
+                                        <Button
+                                            colorScheme="blue"
+                                            size="sm"
+                                            onClick={handleAddSkill}
+                                        >
+                                            Add
+                                        </Button>
+                                    </HStack>
+                                </Box>
+                                <Box>
+                                    <Text fontWeight="600" mb={2} color="gray.700">Current Skills</Text>
+                                    <VStack gap={2} align="stretch">
+                                        {skills.map((skill) => (
+                                            <HStack
+                                                key={skill.id}
+                                                p={3}
+                                                bg="gray.50"
+                                                borderRadius="lg"
+                                                justify="space-between"
+                                            >
+                                                <VStack align="start" gap={0}>
+                                                    <Text fontWeight="600" color="gray.800">{skill.name}</Text>
+                                                    <HStack gap={2} fontSize="xs" color="gray.500">
+                                                        <Text>{skill.category}</Text>
+                                                        <Text>•</Text>
+                                                        <Text>Level: {skill.level}</Text>
+                                                    </HStack>
+                                                </VStack>
+                                                <IconButton
+                                                    aria-label="Remove skill"
+                                                    onClick={() => handleRemoveSkill(skill.id)}
+                                                    variant="ghost"
+                                                    colorScheme="red"
+                                                    size="sm"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </IconButton>
+                                            </HStack>
+                                        ))}
+                                    </VStack>
+                                </Box>
+                            </VStack>
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+
+            {/* Raise Concern Drawer */}
+            {isConcernDrawerOpen && (
+                <Box
+                    position="fixed"
+                    top={0}
+                    right={0}
+                    bottom={0}
+                    w="420px"
+                    bg="white"
+                    borderLeft="1px solid"
+                    borderColor="#E5E7EB"
+                    boxShadow="-4px 0 20px rgba(0, 0, 0, 0.1)"
+                    zIndex={1000}
+                    style={{
+                        animation: 'slideIn 0.3s ease-out'
+                    }}
+                >
+                    <VStack h="full" align="stretch" spacing={0}>
+                        {/* Drawer Header */}
+                        <Box
+                            p={6}
+                            borderBottom="1px solid"
+                            borderColor="#E5E7EB"
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                        >
+                            <HStack gap={3} align="center">
+                                <Box p={2} bg="#FEF3C7" borderRadius="8px">
+                                    <Text fontSize="lg">⚠</Text>
+                                </Box>
+                                <Text fontSize="md" fontWeight="600" color="#111827">
+                                    Raise a Concern
+                                </Text>
+                            </HStack>
+                            <Box
+                                cursor="pointer"
+                                p={2}
+                                borderRadius="4px"
+                                _hover={{ bg: "#F3F4F6" }}
+                                onClick={() => setIsConcernDrawerOpen(false)}
+                            >
+                                <XIcon size={20} color="#6B7280" />
+                            </Box>
+                        </Box>
+
+                        {/* Drawer Body */}
+                        <Box p={6} flex={1} overflowY="auto">
+                            <VStack gap={6} align="stretch">
+                                {/* Description */}
+                                <Text fontSize="sm" color="#6B7280">
+                                    Share any workplace, project, HR or infrastructure concern.
+                                </Text>
+
+                                {/* Category */}
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
+                                        Category *
+                                    </Text>
+                                    <Box
+                                        as="select"
+                                        value={concernCategory}
+                                        onChange={(e) => setConcernCategory(e.target.value)}
+                                        w="full"
+                                        h="44px"
+                                        border="1px solid"
+                                        borderColor="#E5E7EB"
+                                        borderRadius="8px"
+                                        bg="white"
+                                        px={3}
+                                        color={concernCategory ? '#111827' : '#9CA3AF'}
+                                    >
+                                        <option value="">Select category</option>
+                                        <option value="Workplace">Workplace</option>
+                                        <option value="Project">Project</option>
+                                        <option value="HR">HR</option>
+                                        <option value="Infrastructure">Infrastructure</option>
+                                        <option value="Manager">Manager</option>
+                                        <option value="Other">Other</option>
+                                    </Box>
+                                </Box>
+
+                                {/* Subject */}
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
+                                        Subject *
+                                    </Text>
+                                    <Box
+                                        as="input"
+                                        value={concernSubject}
+                                        onChange={(e) => setConcernSubject(e.target.value)}
+                                        placeholder="Brief summary of your concern"
+                                        w="full"
+                                        h="44px"
+                                        border="1px solid"
+                                        borderColor="#E5E7EB"
+                                        borderRadius="8px"
+                                        bg="white"
+                                        px={3}
+                                        _focus={{ borderColor: "#4F46E5", outline: "none" }}
+                                    />
+                                </Box>
+
+                                {/* Description */}
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
+                                        Description *
+                                    </Text>
+                                    <Box
+                                        as="textarea"
+                                        value={concernDescription}
+                                        onChange={(e) => setConcernDescription(e.target.value)}
+                                        placeholder="Describe your concern in detail..."
+                                        w="full"
+                                        minH="140px"
+                                        border="1px solid"
+                                        borderColor="#E5E7EB"
+                                        borderRadius="8px"
+                                        bg="white"
+                                        p={3}
+                                        resize="vertical"
+                                        _focus={{ borderColor: "#4F46E5", outline: "none" }}
+                                    />
+                                    <Text fontSize="xs" color="#6B7280" mt={1} textAlign="right">
+                                        {concernDescription.length}/500
+                                    </Text>
+                                </Box>
+
+                                {/* Priority */}
+                                <Box>
+                                    <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
+                                        Priority
+                                    </Text>
+                                    <HStack gap={2}>
+                                        {(['Low', 'Medium', 'High'] as const).map((priority) => (
+                                            <Box
+                                                key={priority}
+                                                px={4}
+                                                py={2}
+                                                borderRadius="full"
+                                                border="1px solid"
+                                                borderColor={concernPriority === priority ? '#4F46E5' : '#E5E7EB'}
+                                                bg={concernPriority === priority ? '#4F46E5' : 'white'}
+                                                color={concernPriority === priority ? 'white' : '#6B7280'}
+                                                fontSize="sm"
+                                                fontWeight="500"
+                                                cursor="pointer"
+                                                onClick={() => setConcernPriority(priority)}
+                                            >
+                                                {priority}
+                                            </Box>
+                                        ))}
+                                    </HStack>
+                                </Box>
+
+                                {/* Anonymous Checkbox */}
+                                <HStack gap={3} align="start">
+                                    <Box
+                                        w="5"
+                                        h="5"
+                                        border="1px solid"
+                                        borderColor="#E5E7EB"
+                                        borderRadius="4px"
+                                        bg={concernAnonymous ? '#4F46E5' : 'white'}
+                                        cursor="pointer"
+                                        onClick={() => setConcernAnonymous(!concernAnonymous)}
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                    >
+                                        {concernAnonymous && <Check size={12} color="white" />}
+                                    </Box>
+                                    <Text fontSize="sm" color="#6B7280">
+                                        Submit anonymously
+                                    </Text>
+                                </HStack>
+                            </VStack>
+                        </Box>
+
+                        {/* Drawer Footer */}
+                        <Box
+                            p={6}
+                            borderTop="1px solid"
+                            borderColor="#E5E7EB"
+                            display="flex"
+                            justifyContent="flex-end"
+                            gap={3}
+                        >
+                            <Button
+                                variant="outline"
+                                borderColor="#E5E7EB"
+                                color="#6B7280"
+                                fontWeight="500"
+                                onClick={() => setIsConcernDrawerOpen(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                bg="#4F46E5"
+                                color="white"
+                                fontWeight="500"
+                                onClick={handleSubmitConcern}
+                                isDisabled={!concernCategory || !concernSubject || !concernDescription}
+                            >
+                                Submit Concern
+                            </Button>
+                        </Box>
+                    </VStack>
+                </Box>
+            )}
+
+            {/* Success Toast */}
+            {showSuccessToast && (
+                <Box
+                    position="fixed"
+                    bottom={6}
+                    right={6}
+                    bg="white"
+                    border="1px solid"
+                    borderColor="#E5E7EB"
+                    borderRadius="8px"
+                    boxShadow="0 4px 12px rgba(0, 0, 0, 0.15)"
+                    p={4}
+                    minW="320px"
+                    zIndex={1001}
+                    style={{
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}
+                >
+                    <HStack gap={3} align="start">
+                        <Box p={2} bg="#ECFDF5" borderRadius="full">
+                            <CheckCircle size={20} color="#10B981" />
+                        </Box>
+                        <VStack align="start" gap={1} flex={1}>
+                            <Text fontSize="sm" fontWeight="600" color="#111827">
+                                Concern Submitted
+                            </Text>
+                            <Text fontSize="xs" color="#6B7280">
+                                Your concern has been submitted successfully.
+                            </Text>
+                            <Text fontSize="xs" color="#6B7280" fontWeight="500">
+                                Reference ID: {referenceId}
+                            </Text>
+                        </VStack>
+                        <Box
+                            cursor="pointer"
+                            onClick={() => setShowSuccessToast(false)}
+                        >
+                            <XIcon size={16} color="#9CA3AF" />
+                        </Box>
+                    </HStack>
+                </Box>
+            )}
         </Box>
     );
 }
