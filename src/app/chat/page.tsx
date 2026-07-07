@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { 
   Box, 
   VStack, 
@@ -14,8 +14,10 @@ import {
 } from '@chakra-ui/react';
 import { Send, Bot, User, ArrowLeft, Trash2, Copy, X, Sparkles, MessageSquare, FileText, ArrowRight, AlertTriangle, ListTodo, Edit2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useChatContext } from '@/contexts/ChatContext';
+import { asyncChatApi } from '@/services/asyncChatApi';
+import { RAGApiResponse } from '@/types/ragApi';
 import { toaster } from '@/components/ui/toaster';
+import { useChatContext } from '@/contexts/ChatContext';
 
 export default function ChatPage() {
   const [inputMessage, setInputMessage] = React.useState('');

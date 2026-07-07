@@ -70,6 +70,8 @@ import { RequireSurveyView, RequireSurveyCreate, ManagerOnly } from '@/component
 import { AppLayout } from '@/components/layouts/AppLayout';
 import { formatDate } from '@/utils/date';
 import { Pagination } from '@/components/common/Pagination';
+import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useResponsive } from '@/hooks/useResponsive';
 
 interface SurveyResponse {
     id: string;
@@ -106,6 +108,7 @@ interface EngagementScore {
 
 export default function ManagerDashboardPage() {
     const router = useRouter();
+    const { itemsToShow } = useResponsive(3, 5);
     const [activeTab, setActiveTab] = useState<'surveys' | 'responses' | 'actions'>('surveys');
     
     // Surveys state
@@ -391,7 +394,7 @@ export default function ManagerDashboardPage() {
     return (
         <AppLayout>
             <ManagerOnly>
-                <Box w="full" h="100vh" bg="gray.50" overflow="hidden" display="flex" flexDirection="column">
+                <Box w="full" minH="100vh" bg="gray.50" display="flex" flexDirection="column">
                     {/* Professional Header with Stats */}
                     <Box bg="white" borderBottom="1px solid" borderColor="gray.200" shadow="sm" flexShrink={0}>
                         <Box px={8} py={6}>
@@ -563,10 +566,10 @@ export default function ManagerDashboardPage() {
                     </Box>
 
                     {/* Main Content Area */}
-                    <Box px={8} py={4} flex={1} overflow="hidden">
-                        <VStack gap={4} align="stretch" w="full" h="full">
+                    <Box px={8} py={4} flex={1}>
+                        <VStack gap={4} align="stretch" w="full">
                             {/* Tabs Navigation and Content */}
-                            <Card.Root bg="white" shadow="sm" borderRadius="lg" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" h="full" overflow="hidden">
+                            <Card.Root bg="white" shadow="sm" borderRadius="lg" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column">
                                 <Tabs.Root value={activeTab} onValueChange={(e) => setActiveTab(e.value as any)}>
                                     {/* Tabs List */}
                                     <Tabs.List px={6} borderBottom="1px solid" borderColor="gray.200">
@@ -594,7 +597,7 @@ export default function ManagerDashboardPage() {
                                     </Tabs.List>
 
                                     {/* Tab Content */}
-                                    <Box flex={1} overflow="hidden" p={4} display="flex" flexDirection="column">
+                                    <Box flex={1} p={4} display="flex" flexDirection="column">
                                 {/* Surveys Tab */}
                                 {activeTab === 'surveys' && (
                                     <VStack gap={3} align="stretch" h="full" display="flex" flexDirection="column">
@@ -656,12 +659,9 @@ export default function ManagerDashboardPage() {
 
                                         {/* Survey Templates List */}
                                         {surveysLoading ? (
-                                            <Flex justify="center" align="center" minH="40vh">
-                                                <VStack gap={4}>
-                                                    <Spinner size="xl" color="purple.500" />
-                                                    <Text color="gray.600" fontSize="sm">Loading survey templates...</Text>
-                                                </VStack>
-                                            </Flex>
+                                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={3}>
+                                                <SkeletonLoader type="survey" count={itemsToShow} />
+                                            </SimpleGrid>
                                         ) : surveysError ? (
                                             <Card.Root bg="white">
                                                 <Card.Body p={8}>
@@ -1090,12 +1090,9 @@ export default function ManagerDashboardPage() {
 
                                         {/* Action Items List */}
                                         {actionsLoading ? (
-                                            <Flex justify="center" align="center" minH="40vh">
-                                                <VStack gap={4}>
-                                                    <Spinner size="xl" color="purple.500" />
-                                                    <Text color="gray.600">Loading action items...</Text>
-                                                </VStack>
-                                            </Flex>
+                                            <VStack gap={2} align="stretch">
+                                                <SkeletonLoader type="action-item" count={itemsToShow} />
+                                            </VStack>
                                         ) : actionsError ? (
                                             <Card.Root bg="white">
                                                 <Card.Body p={8}>

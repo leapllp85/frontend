@@ -3,6 +3,40 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Base font size - 14px on mobile */
+  font-size: 14px;
+}
+
+/* Responsive font sizing */
+@media (min-width: 640px) {
+  :root {
+    font-size: 15px; /* Slightly larger on small tablets */
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    font-size: 16px; /* Standard on tablets */
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    font-size: 16px; /* Standard on laptops */
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    font-size: 17px; /* Larger on desktops */
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    font-size: 18px; /* Even larger on large screens */
+  }
 }
 
 @theme inline {

@@ -22,6 +22,8 @@ import {
   CheckCircle,
   Activity
 } from 'lucide-react';
+import { EmployeeDetailModal } from '@/components/team/EmployeeDetailModal';
+import { TeamMember } from '@/types';
 
 interface Employee {
   id: string;
@@ -193,14 +195,19 @@ const getPortfolioHealthIcon = (health: string) => {
 const EmployeeCard: React.FC<{ 
   employee: Employee; 
   onEmployeeClick: (employee: Employee) => void;
-}> = ({ employee, onEmployeeClick }) => {
+  onViewDashboard?: (employee: Employee) => void;
+}> = ({ employee, onEmployeeClick, onViewDashboard }) => {
   const router = useRouter();
   const healthConfig = getPortfolioHealthIcon(employee.portfolioHealth);
   const IconComponent = healthConfig.icon;
 
   const handleViewDashboard = (e: React.MouseEvent) => {
     e.stopPropagation();
-    router.push(`/?employee=${employee.id}`);
+    if (onViewDashboard) {
+      onViewDashboard(employee);
+    } else {
+      router.push(`/?employee=${employee.id}`);
+    }
   };
 
   // Responsive card sizing
@@ -516,13 +523,58 @@ const TreeLevel: React.FC<{
   );
 };
 
+// Helper function to convert Employee to TeamMember for modal
+const convertToTeamMember = (employee: Employee): TeamMember => {
+  // Map portfolio health to risk levels
+  const getRiskFromHealth = (health: string): 'High' | 'Medium' | 'Low' => {
+    switch (health) {
+      case 'excellent':
+      case 'good':
+        return 'Low';
+      case 'average':
+        return 'Medium';
+      case 'poor':
+      case 'critical':
+        return 'High';
+      default:
+        return 'Low';
+    }
+  };
+
+  const risk = getRiskFromHealth(employee.portfolioHealth);
+
+  return {
+    id: employee.id,
+    name: employee.name,
+    email: employee.email,
+    age: 30, // Default age since not in Employee type
+    mentalHealth: risk,
+    motivationFactor: risk,
+    careerOpportunities: risk,
+    personalReason: risk,
+    managerAssessmentRisk: risk,
+    attritionRisk: risk,
+    utilization: 75,
+    projectCriticality: risk,
+    primaryTrigger: 'MH'
+  };
+};
+
 // Redesigned Main Organization Chart Component - Fit to Screen
 export const OrganizationChart: React.FC = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalEmployee, setModalEmployee] = useState<TeamMember | null>(null);
   const [zoom, setZoom] = useState(0.85);
 
   const handleEmployeeClick = (employee: Employee) => {
     setSelectedEmployee(employee);
+  };
+
+  const handleViewDashboard = (employee: Employee) => {
+    const teamMember = convertToTeamMember(employee);
+    setModalEmployee(teamMember);
+    setIsModalOpen(true);
   };
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1.2));
@@ -763,7 +815,7 @@ export const OrganizationChart: React.FC = () => {
                     _hover={{ bg: "#226773" }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.location.href = `/?employee=${selectedEmployee.id}`;
+                      handleViewDashboard(selectedEmployee);
                     }}
                     size="md"
                   >
@@ -775,6 +827,16 @@ export const OrganizationChart: React.FC = () => {
           </Box>
         )}
       </HStack>
+
+      {/* Employee Detail Modal */}
+      <EmployeeDetailModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setModalEmployee(null);
+        }}
+        employee={modalEmployee}
+      />
     </Box>
   );
 };

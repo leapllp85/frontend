@@ -256,7 +256,9 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
             size: 11,
             weight: 'normal' as const
           },
-          padding: 8
+          padding: 8,
+          maxRotation: 45,
+          minRotation: 45
         },
         border: {
           display: false
@@ -315,15 +317,11 @@ export const AttritionTrendsPanel: React.FC<AttritionTrendsPanelProps> = ({
       flex="1"
       minH="0"
     >
-      <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center">
-        Attrition Risk Trends
-      </Text>
-      
       {/* Line Chart */}
       <Box
         w="full"
-        h="200px"
-        maxH="200px"
+        h="300px"
+        maxH="300px"
         transition="all 0.2s ease"
       >
         <Line data={chartData} options={chartOptions} />

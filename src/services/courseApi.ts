@@ -1,4 +1,6 @@
 import { apiService, Course, CourseCategory } from './api';
+import { isDemoMode, simulateAsync } from '@/config/demo';
+import { MOCK_COURSES, MOCK_COURSE_CATEGORIES } from '@/constants/mockData';
 
 // Re-export types for external use
 export type { Course, CourseCategory };
@@ -6,11 +8,25 @@ export type { Course, CourseCategory };
 export class CourseApiService {
   // Get all courses
   async getCourses(): Promise<{ courses: Course[]; total_count: number; message: string }> {
+    if (isDemoMode()) {
+      return simulateAsync({
+        courses: MOCK_COURSES,
+        total_count: MOCK_COURSES.length,
+        message: 'Courses retrieved successfully',
+      }, 400);
+    }
     return await apiService.get<{ courses: Course[]; total_count: number; message: string }>('/courses/');
   }
 
   // Get course by ID
   async getCourse(id: number): Promise<Course> {
+    if (isDemoMode()) {
+      const course = MOCK_COURSES.find(c => c.id === id);
+      if (!course) {
+        throw new Error(`Course with ID ${id} not found`);
+      }
+      return simulateAsync(course, 200);
+    }
     return await apiService.get<Course>(`/courses/${id}/`);
   }
 

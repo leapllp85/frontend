@@ -1,4 +1,6 @@
 import { apiService, ActionItem } from './api';
+import { isDemoMode, simulateAsync } from '@/config/demo';
+import { MOCK_ACTION_ITEMS, MOCK_ACTION_ITEMS_STATS } from '@/constants/mockData';
 
 // Re-export ActionItem type for convenience
 export type { ActionItem };
@@ -24,6 +26,35 @@ export interface ActionItemsQueryParams {
 export class ActionItemApiService {
   // Get all action items with pagination
   async getActionItems(params?: ActionItemsQueryParams): Promise<ActionItemsPaginatedResponse> {
+    if (isDemoMode()) {
+      const page = params?.page || 1;
+      const pageSize = params?.page_size || 20;
+      const status = params?.status;
+      const userId = params?.user_id;
+      
+      let filteredItems = MOCK_ACTION_ITEMS;
+      if (status) {
+        filteredItems = filteredItems.filter(item => item.status === status);
+      }
+      if (userId) {
+        filteredItems = filteredItems.filter(item => item.assigned_to.id.toString() === userId);
+      }
+      
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedItems = filteredItems.slice(startIndex, endIndex);
+      
+      return simulateAsync({
+        count: filteredItems.length,
+        next: endIndex < filteredItems.length ? 'next' : null,
+        previous: page > 1 ? 'prev' : null,
+        results: {
+          action_items: paginatedItems,
+          summary: MOCK_ACTION_ITEMS_STATS,
+        },
+      });
+    }
+    
     const queryParams = new URLSearchParams();
     
     if (params?.page) {

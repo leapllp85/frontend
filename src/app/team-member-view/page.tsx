@@ -290,8 +290,7 @@ export default function TeamMemberView() {
                     body: '⚡ Action Needed: Share how you\'re feeling today!\n\n👆 Click here to complete your check-in now!',
                     requireInteraction: true,
                     tag: 'daily-checkin',
-                    silent: false,
-                    renotify: true
+                    silent: false
                 });
 
                 notification.onclick = () => {
@@ -607,8 +606,8 @@ export default function TeamMemberView() {
         
         // Calculate 7-day trend
         const last7Days = last30Days.slice(-7);
-        const energyTrend = calculateTrend(last7Days.map(d => d.energy));
-        const workloadTrend = calculateWorkloadTrend(last7Days.map(d => d.workload));
+        const energyTrend = calculateTrend(last7Days.map((d: any) => d.energy));
+        const workloadTrend = calculateWorkloadTrend(last7Days.map((d: any) => d.workload));
         
         // Show trend notification
         showTrendNotification(last7Days, energyTrend, workloadTrend);
@@ -1467,7 +1466,7 @@ export default function TeamMemberView() {
                     <HStack gap={4} align="center">
                         {/* Nav Links */}
                         <HStack gap={6}>
-                            <VStack spacing={0} align="start">
+                            <VStack gap={0} align="start">
                                 <Text 
                                     fontSize="sm" 
                                     fontWeight="600" 
@@ -1487,7 +1486,7 @@ export default function TeamMemberView() {
                                     transition="width 0.3s ease-in-out"
                                 />
                             </VStack>
-                            <VStack spacing={0} align="start">
+                            <VStack gap={0} align="start">
                                 <Text 
                                     fontSize="sm" 
                                     fontWeight="600" 
@@ -1507,7 +1506,7 @@ export default function TeamMemberView() {
                                     transition="width 0.3s ease-in-out"
                                 />
                             </VStack>
-                            <VStack spacing={0} align="start">
+                            <VStack gap={0} align="start">
                                 <Text 
                                     fontSize="sm" 
                                     fontWeight="600" 
@@ -1527,7 +1526,7 @@ export default function TeamMemberView() {
                                     transition="width 0.3s ease-in-out"
                                 />
                             </VStack>
-                            <VStack spacing={0} align="start">
+                            <VStack gap={0} align="start">
                                 <Text 
                                     fontSize="sm" 
                                     fontWeight="600" 
@@ -1743,10 +1742,9 @@ export default function TeamMemberView() {
                                     color="#4F46E5"
                                     fontSize="sm"
                                     fontWeight="500"
-                                    rightIcon={<ArrowRight size={16} />}
                                     mt={2}
                                 >
-                                    View Full Profile
+                                    View Full Profile <ArrowRight size={16} style={{ marginLeft: '8px' }} />
                                 </Button>
                             </VStack>
                         </Card.Body>
@@ -2495,7 +2493,7 @@ export default function TeamMemberView() {
                                                     transform: "translateY(-2px)"
                                                 }}
                                             >
-                                                <SimpleGrid columns={3} gap={0} align="center">
+                                                <SimpleGrid columns={3} gap={0}>
                                                     {/* Column 1: Skill Name */}
                                                     <VStack align="start" gap={1}>
                                                         <Text fontSize="xs" fontWeight="600" color="#111827">
@@ -2520,7 +2518,7 @@ export default function TeamMemberView() {
                                                     <HStack gap={0}>
                                                         {[1, 2, 3, 4, 5].map((level) => {
                                                             const visibleColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
-                                                            const colorIndex = (skill.id + level) % visibleColors.length;
+                                                            const colorIndex = (Number(skill.id) + level) % visibleColors.length;
                                                             return (
                                                                 <Box
                                                                     key={level}
@@ -4243,7 +4241,7 @@ export default function TeamMemberView() {
                                                             w="100%"
                                                             bgImage="url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&q=80')"
                                                             bgSize="cover"
-                                                            bgPosition="center"
+                                                            backgroundPosition="center"
                                                             position="relative"
                                                         >
                                                             <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
@@ -4261,7 +4259,7 @@ export default function TeamMemberView() {
                                                             w="100%"
                                                             bgImage="url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&q=80')"
                                                             bgSize="cover"
-                                                            bgPosition="center"
+                                                            backgroundPosition="center"
                                                             position="relative"
                                                         >
                                                             <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
@@ -4279,7 +4277,7 @@ export default function TeamMemberView() {
                                                             w="100%"
                                                             bgImage="url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80')"
                                                             bgSize="cover"
-                                                            bgPosition="center"
+                                                            backgroundPosition="center"
                                                             position="relative"
                                                         >
                                                             <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
@@ -4297,7 +4295,7 @@ export default function TeamMemberView() {
                                                             w="100%"
                                                             bgImage="url('https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80')"
                                                             bgSize="cover"
-                                                            bgPosition="center"
+                                                            backgroundPosition="center"
                                                             position="relative"
                                                         >
                                                             <Box position="absolute" top={0} left={0} right={0} bottom={0} bg="blackAlpha.300" display="flex" alignItems="center" justifyContent="center">
@@ -4917,17 +4915,15 @@ export default function TeamMemberView() {
                                                 size="sm"
                                                 variant="outline"
                                                 colorScheme="gray"
-                                                leftIcon={<MessageCircle size={16} />}
                                             >
-                                                Add Comment
+                                                <MessageCircle size={16} style={{ marginRight: '8px' }} /> Add Comment
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 backgroundColor="cornflowerblue"
                                                 colorScheme="green"
-                                                leftIcon={<CheckCircle size={16} />}
                                             >
-                                                Accept Response
+                                                <CheckCircle size={16} style={{ marginRight: '8px' }} /> Accept Response
                                             </Button>
                                         </HStack>
                                     </Box>
@@ -5013,17 +5009,15 @@ export default function TeamMemberView() {
                                                 size="sm"
                                                 variant="outline"
                                                 colorScheme="gray"
-                                                leftIcon={<MessageCircle size={16} />}
                                             >
-                                                Add Comment
+                                                <MessageCircle size={16} style={{ marginRight: '8px' }} /> Add Comment
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 backgroundColor="cornflowerblue"
                                                 colorScheme="green"
-                                                leftIcon={<CheckCircle size={16} />}
                                             >
-                                                Accept Response
+                                                <CheckCircle size={16} style={{ marginRight: '8px' }} /> Accept Response
                                             </Button>
                                         </HStack>
                                     </Box>
@@ -5144,10 +5138,10 @@ export default function TeamMemberView() {
                                             _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "blue.400" }}
                                         >
                                             <Badge colorScheme="blue" fontSize="2xs" mb={2}>WELLNESS</Badge>
-                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                            <Heading size="sm" color="gray.800" mb={2} lineClamp={2}>
                                                 Mental Health in the Workplace
                                             </Heading>
-                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                            <Text fontSize="xs" color="gray.600" mb={3} lineClamp={2}>
                                                 Complete guide to maintaining work-life balance and mental wellness.
                                             </Text>
                                             <HStack justify="space-between" fontSize="2xs" color="gray.500">
@@ -5168,10 +5162,10 @@ export default function TeamMemberView() {
                                             _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "purple.400" }}
                                         >
                                             <Badge colorScheme="purple" fontSize="2xs" mb={2}>CAREER</Badge>
-                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                            <Heading size="sm" color="gray.800" mb={2} lineClamp={2}>
                                                 Setting Career Goals for 2025
                                             </Heading>
-                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                            <Text fontSize="xs" color="gray.600" mb={3} lineClamp={2}>
                                                 Learn how to set achievable goals and create a professional roadmap.
                                             </Text>
                                             <HStack justify="space-between" fontSize="2xs" color="gray.500">
@@ -5192,10 +5186,10 @@ export default function TeamMemberView() {
                                             _hover={{ transform: "translateY(-4px)", shadow: "lg", borderColor: "green.400" }}
                                         >
                                             <Badge colorScheme="green" fontSize="2xs" mb={2}>HEALTH</Badge>
-                                            <Heading size="sm" color="gray.800" mb={2} noOfLines={2}>
+                                            <Heading size="sm" color="gray.800" mb={2} lineClamp={2}>
                                                 Nutrition Tips for Busy Professionals
                                             </Heading>
-                                            <Text fontSize="xs" color="gray.600" mb={3} noOfLines={2}>
+                                            <Text fontSize="xs" color="gray.600" mb={3} lineClamp={2}>
                                                 Practical nutrition advice for maintaining energy throughout the day.
                                             </Text>
                                             <HStack justify="space-between" fontSize="2xs" color="gray.500">
@@ -5235,7 +5229,7 @@ export default function TeamMemberView() {
                                                 h="180px" 
                                                 bgImage="url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&q=80')"
                                                 bgSize="cover"
-                                                bgPosition="center"
+                                                backgroundPosition="center"
                                                 position="relative"
                                             >
                                                 {/* Play Button Overlay */}
@@ -5265,10 +5259,10 @@ export default function TeamMemberView() {
                                             
                                             {/* Video Details */}
                                             <VStack align="stretch" p={4} gap={2}>
-                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                <Heading size="sm" color="gray.800" lineClamp={2}>
                                                     Guided Meditation for Stress Relief
                                                 </Heading>
-                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                <Text fontSize="xs" color="gray.600" lineClamp={2}>
                                                     Learn mindfulness techniques to reduce stress and anxiety in daily life
                                                 </Text>
                                                 <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
@@ -5294,7 +5288,7 @@ export default function TeamMemberView() {
                                                 h="180px" 
                                                 bgImage="url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80')"
                                                 bgSize="cover"
-                                                bgPosition="center"
+                                                backgroundPosition="center"
                                                 position="relative"
                                             >
                                                 {/* Play Button Overlay */}
@@ -5324,10 +5318,10 @@ export default function TeamMemberView() {
                                             
                                             {/* Video Details */}
                                             <VStack align="stretch" p={4} gap={2}>
-                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                <Heading size="sm" color="gray.800" lineClamp={2}>
                                                     Morning Yoga for Beginners
                                                 </Heading>
-                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                <Text fontSize="xs" color="gray.600" lineClamp={2}>
                                                     Start your day right with gentle stretches and breathing exercises
                                                 </Text>
                                                 <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
@@ -5353,7 +5347,7 @@ export default function TeamMemberView() {
                                                 h="180px" 
                                                 bgImage="url('https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80')"
                                                 bgSize="cover"
-                                                bgPosition="center"
+                                                backgroundPosition="center"
                                                 position="relative"
                                             >
                                                 {/* Play Button Overlay */}
@@ -5383,10 +5377,10 @@ export default function TeamMemberView() {
                                             
                                             {/* Video Details */}
                                             <VStack align="stretch" p={4} gap={2}>
-                                                <Heading size="sm" color="gray.800" noOfLines={2}>
+                                                <Heading size="sm" color="gray.800" lineClamp={2}>
                                                     Healthy Eating for Busy Professionals
                                                 </Heading>
-                                                <Text fontSize="xs" color="gray.600" noOfLines={2}>
+                                                <Text fontSize="xs" color="gray.600" lineClamp={2}>
                                                     Quick and nutritious meal ideas to fuel your workday
                                                 </Text>
                                                 <HStack justify="space-between" fontSize="xs" color="gray.500" pt={1}>
@@ -5492,6 +5486,7 @@ export default function TeamMemberView() {
                                             value={newSkillName}
                                             onChange={(e) => setNewSkillName(e.target.value)}
                                         />
+                                        {/* @ts-ignore - Chakra v2 pattern */}
                                         <Box
                                             as="select"
                                             placeholder="Category"
@@ -5510,6 +5505,7 @@ export default function TeamMemberView() {
                                             <option value="tools">Tools</option>
                                             <option value="other">Other</option>
                                         </Box>
+                                        {/* @ts-ignore - Chakra v2 pattern */}
                                         <Box
                                             as="select"
                                             placeholder="Level"
@@ -5590,7 +5586,7 @@ export default function TeamMemberView() {
                         animation: 'slideIn 0.3s ease-out'
                     }}
                 >
-                    <VStack h="full" align="stretch" spacing={0}>
+                    <VStack h="full" align="stretch" gap={0}>
                         {/* Drawer Header */}
                         <Box
                             p={6}
@@ -5632,6 +5628,7 @@ export default function TeamMemberView() {
                                     <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
                                         Category *
                                     </Text>
+                                    {/* @ts-ignore - Chakra v2 pattern */}
                                     <Box
                                         as="select"
                                         value={concernCategory}
@@ -5660,6 +5657,7 @@ export default function TeamMemberView() {
                                     <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
                                         Subject *
                                     </Text>
+                                    {/* @ts-ignore - Chakra v2 pattern */}
                                     <Box
                                         as="input"
                                         value={concernSubject}
@@ -5681,6 +5679,7 @@ export default function TeamMemberView() {
                                     <Text fontSize="sm" fontWeight="600" color="#111827" mb={2}>
                                         Description *
                                     </Text>
+                                    {/* @ts-ignore - Chakra v2 pattern */}
                                     <Box
                                         as="textarea"
                                         value={concernDescription}
@@ -5775,7 +5774,7 @@ export default function TeamMemberView() {
                                 color="white"
                                 fontWeight="500"
                                 onClick={handleSubmitConcern}
-                                isDisabled={!concernCategory || !concernSubject || !concernDescription}
+                                disabled={!concernCategory || !concernSubject || !concernDescription}
                             >
                                 Submit Concern
                             </Button>

@@ -45,3 +45,7 @@ export const getInvertedRiskLevelFromPercentage = (
     if (percentage >= fairThreshold) return 'Medium'; // Fair = Medium risk
     return 'High'; // Poor = High risk
 };
+
+// Re-export utilities from other modules for convenience
+export * from './riskCalculations';
+export * from './colorMappings';

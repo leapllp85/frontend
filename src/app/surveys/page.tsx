@@ -18,6 +18,8 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import { Pagination } from '@/components/common/Pagination';
+import { SkeletonLoader } from '@/components/common/SkeletonLoader';
+import { useResponsive } from '@/hooks/useResponsive';
 import { 
     FileText, 
     Plus, 
@@ -78,6 +80,7 @@ export default function SurveysPage() {
     const [error, setError] = useState<string | null>(null);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
+    const { itemsToShow } = useResponsive(3, 5);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [filteredCount, setFilteredCount] = useState(0);
@@ -375,14 +378,15 @@ export default function SurveysPage() {
     if (loading) {
         return (
             <AppLayout>
-                <Flex justify="center" align="center" minH="60vh">
-                    <VStack gap={4}>
-                        <Spinner size="xl" color="purple.500" />
-                        <Text color="gray.600" fontSize="lg">
-                            Loading surveys...
-                        </Text>
-                    </VStack>
-                </Flex>
+                <Box w="full" h="100vh" bg="gray.50" overflow="auto">
+                    <Box px={{ base: 3, sm: 4, md: 6, lg: 8 }} py={{ base: 3, sm: 4, md: 5, lg: 6 }} maxW="1920px" mx="auto">
+                        <VStack gap={6} align="stretch" w="full">
+                            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                                <SkeletonLoader type="survey" count={itemsToShow} />
+                            </SimpleGrid>
+                        </VStack>
+                    </Box>
+                </Box>
             </AppLayout>
         );
     }
@@ -392,7 +396,7 @@ export default function SurveysPage() {
             <AppLayout>
                 <Flex justify="center" align="center" minH="60vh">
                     <VStack gap={4}>
-                        <Text color="red.600" fontSize="lg">
+                        <Text color="red.600" fontSize="1.125rem">
                             {error}
                         </Text>
                         <Button onClick={() => window.location.reload()} colorPalette="blue">
@@ -431,12 +435,12 @@ export default function SurveysPage() {
                                                     <Heading size="2xl" color="white" fontWeight="bold">
                                                         Employee Surveys
                                                     </Heading>
-                                                    <Text color="blue.500" fontSize="lg">
+                                                    <Text color="blue.500" fontSize="1.125rem">
                                                         Gather insights and drive engagement
                                                     </Text>
                                                 </VStack>
                                             </HStack>
-                                            <Text fontSize="sm" color="blue.500">
+                                            <Text fontSize="0.875rem" color="blue.500">
                                                 {searchQuery ? (
                                                     `${filteredAndSortedSurveys.length} of ${totalCount} surveys matching "${searchQuery}"`
                                                 ) : (
@@ -630,7 +634,7 @@ export default function SurveysPage() {
                                                         <SimpleGrid columns={{ base: 1, md: 3 }} gap={6}>
                                                             {/* Status Filter */}
                                                             <VStack align="start" gap={2}>
-                                                                <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="1rem">
                                                                     Status
                                                                 </Text>
                                                                 <VStack align="start" gap={2}>
@@ -652,7 +656,7 @@ export default function SurveysPage() {
 
                                                             {/* Type Filter */}
                                                             <VStack align="start" gap={2}>
-                                                                <Text fontWeight="semibold" color="gray.800" fontSize="sm">
+                                                                <Text fontWeight="semibold" color="gray.800" fontSize="1rem">
                                                                     Survey Type
                                                                 </Text>
                                                                 <VStack align="start" gap={2}>
@@ -729,7 +733,7 @@ export default function SurveysPage() {
                         {/* Search Results Info */}
                         {searchQuery && (
                             <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
-                                <Text fontSize="sm" color="blue.700">
+                                <Text fontSize="0.875rem" color="blue.700">
                                     <strong>{filteredAndSortedSurveys.length}</strong> surveys found matching <strong>"{searchQuery}"</strong>
                                     {filteredAndSortedSurveys.length !== totalCount && (
                                         <span> (filtered from {totalCount} total surveys)</span>
@@ -748,10 +752,10 @@ export default function SurveysPage() {
                                             <FileText color="#16a34a" size={20} />
                                         </Box>
                                         <VStack align="start" gap={0} flex={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
                                                 Active Surveys
                                             </Text>
-                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
                                                 {activeSurveys}
                                             </Text>
                                         </VStack>
@@ -765,10 +769,10 @@ export default function SurveysPage() {
                                             <BarChart3 color="#3182ce" size={20} />
                                         </Box>
                                         <VStack align="start" gap={0} flex={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
                                                 Completed
                                             </Text>
-                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
                                                 {completedSurveys}
                                             </Text>
                                         </VStack>
@@ -782,10 +786,10 @@ export default function SurveysPage() {
                                             <FileText color="#6b7280" size={20} />
                                         </Box>
                                         <VStack align="start" gap={0} flex={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
                                                 Drafts
                                             </Text>
-                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
                                                 {draftSurveys}
                                             </Text>
                                         </VStack>
@@ -799,10 +803,10 @@ export default function SurveysPage() {
                                             <Users color="#9333ea" size={20} />
                                         </Box>
                                         <VStack align="start" gap={0} flex={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                                            <Text fontSize="0.875rem" fontWeight="medium" color="gray.700">
                                                 Total Responses
                                             </Text>
-                                            <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                                            <Text fontSize="1.5rem" fontWeight="bold" color="gray.900">
                                                 {totalResponses}
                                             </Text>
                                         </VStack>
@@ -816,14 +820,14 @@ export default function SurveysPage() {
                         {loading && (
                             <Box textAlign="center" py={12}>
                                 <Spinner size="xl" color="blue.500" mb={4} />
-                                <Text fontSize="lg" color="gray.700">Loading surveys...</Text>
+                                <Text fontSize="1.125rem" color="gray.700">Loading surveys...</Text>
                             </Box>
                         )}
 
                         {/* Error State */}
                         {error && (
                             <Box textAlign="center" py={12}>
-                                <Text fontSize="lg" color="red.600" mb={4}>{error}</Text>
+                                <Text fontSize="1.125rem" color="red.600" mb={4}>{error}</Text>
                                 <Button onClick={() => window.location.reload()} bg="blue.600" color="white" _hover={{ bg: "blue.700" }}>
                                     Retry
                                 </Button>

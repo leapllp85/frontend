@@ -33,12 +33,8 @@ export const TeamHealthCompact: React.FC<TeamHealthCompactProps> = ({
   metrics = defaultMetrics
 }) => {
   return (
-    <VStack align="stretch" justify="flex-start" gap={2} w="full" h="full">
-      <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
-        Team Health
-      </Text>
-      
-      <VStack gap={2} w="full" flex={1} justify="center">
+    <VStack align="stretch" justify="flex-start" gap={3} w="full" h="full">
+      <VStack gap={2.5} w="full" flex={1} justify="center">
         {metrics.map((metric, index) => {
           const isPortfolio = metric.type === 'portfolio';
           const barColor = isPortfolio ? getPortfolioColor(metric.value) : metric.color;
@@ -47,10 +43,11 @@ export const TeamHealthCompact: React.FC<TeamHealthCompactProps> = ({
           return (
             <Box key={index} w="full" mb={isPortfolio ? 2 : 0}>
               <Text 
-                fontSize={isPortfolio ? "xs" : "2xs"} 
-                fontWeight={isPortfolio ? "bold" : "medium"} 
+                fontSize={isPortfolio ? "0.75rem" : "0.6875rem"} 
+                fontWeight={isPortfolio ? "700" : "600"} 
                 color={isPortfolio ? "gray.800" : "gray.600"} 
                 mb={0.5}
+                letterSpacing="0.01em"
               >
                 {metric.label}
               </Text>
@@ -87,8 +84,8 @@ export const TeamHealthCompact: React.FC<TeamHealthCompactProps> = ({
                 />
               </Box>
               <Text 
-                fontSize={isPortfolio ? "xs" : "2xs"} 
-                fontWeight="bold" 
+                fontSize={isPortfolio ? "0.75rem" : "0.6875rem"} 
+                fontWeight="700" 
                 color={barColor} 
                 mt={0.5}
               >

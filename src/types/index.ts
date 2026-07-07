@@ -99,6 +99,7 @@ export interface Project {
     contributors: Contributor[];
     assigned_to: User[];
     progress?: number;
+    business_unit?: string;
 }
 
 // Team Types

@@ -107,17 +107,17 @@ export default function Header() {
                                 key={item.path}
                                 variant={isActive ? "solid" : "ghost"}
                                 bg={isActive ? "#a5489f" : "transparent"}
-                                color={isActive ? "white" : "gray.600"}
+                                color={isActive ? "white" : "gray.700"}
                                 _hover={{
                                     bg: isActive ? "#8a3d85" : "gray.100",
-                                    color: isActive ? "white" : "gray.800"
+                                    color: isActive ? "white" : "gray.900"
                                 }}
                                 onClick={() => handleNavigation(item.path)}
                                 size="md"
                             >
                                 <HStack gap={2}>
                                     <Icon size={18} />
-                                    <Text>{item.label}</Text>
+                                    <Text fontWeight={isActive ? "600" : "500"}>{item.label}</Text>
                                 </HStack>
                             </Button>
                         );
