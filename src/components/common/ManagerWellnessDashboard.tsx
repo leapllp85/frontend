@@ -339,131 +339,225 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                     </Box>
                 </HStack>
 
-                {/* Header */}
-                {!showChat && (
-                    <VStack gap={0} mb={5} align="start">
-                        <Heading size="lg" color="gray.800" fontWeight="600">
-                            Team Wellness Dashboard
-                        </Heading>
-                        <Text color="gray.500" fontSize="sm">
-                            Real-time insights into your team's wellbeing
-                        </Text>
-                    </VStack>
-                )}
+            {/* Header */}
+            {!showChat && (
+                <VStack gap={0} mb={5} align="start">
+                    <Heading size="lg" color="gray.800" fontWeight="600">
+                        Team Wellness Dashboard
+                    </Heading>
+                    <Text color="gray.500" fontSize="sm">
+                        Real-time insights into your team's wellbeing
+                    </Text>
+                </VStack>
+            )}
 
-                {/* Chat Interface */}
-                {showChat && (
-                    <Box position="absolute" top={0} left={0} right={0} bottom={0} overflow="hidden" m={0} p={0} zIndex={5}>
-                        <iframe
-                            src="/chat?embed=true"
-                            width="100%"
-                            height="100%"
-                            style={{ 
-                                border: 'none',
-                                display: 'block',
-                                margin: 0,
-                                padding: 0,
-                                width: '100%',
-                                height: '100%',
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0
-                            }}
-                            title="AI Chat"
-                        />
-                    </Box>
-                )}
+            {/* Chat Interface */}
+            {showChat && (
+                <Box position="absolute" top={0} left={0} right={0} bottom={0} overflow="hidden" m={0} p={0} zIndex={5}>
+                    <iframe
+                        src="/chat?embed=true"
+                        width="100%"
+                        height="100%"
+                        style={{ 
+                            border: 'none',
+                            display: 'block',
+                            margin: 0,
+                            padding: 0,
+                            width: '100%',
+                            height: '100%',
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0
+                        }}
+                        title="AI Chat"
+                    />
+                </Box>
+            )}
 
-                {/* Loading State */}
-                {!showChat && (isLoading || !aggregatedData) && (
-                    <Box textAlign="center" py={20}>
-                        <Spinner size="xl" color="blue.500" />
-                        <Text mt={4} color="gray.600">Loading team wellness data...</Text>
-                    </Box>
-                )}
+            {/* Loading State */}
+            {!showChat && (isLoading || !aggregatedData) && (
+                <Box textAlign="center" py={20}>
+                    <Spinner size="xl" color="blue.500" />
+                    <Text mt={4} color="gray.600">Loading team wellness data...</Text>
+                </Box>
+            )}
 
-                {/* Content */}
-                {!showChat && !isLoading && aggregatedData && (
-                    <VStack gap={4} align="stretch" h="calc(100vh - 120px)">
-                        {/* Top Metrics */}
-                        <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-                            {/* Total Team */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(59, 130, 246, 0.08), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(59, 130, 246, 0.12), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Total Team</Text>
-                                    <Users size={18} color="#6b7280" />
-                                </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
-                                    {aggregatedData.totalEmployees}
-                                </Text>
-                                <Text fontSize="xs" color="gray.500">employees</Text>
-                            </Box>
+            {/* Content */}
+            {!showChat && !isLoading && aggregatedData && (
+                <VStack gap={4} align="stretch" h="calc(100vh - 120px)">
+                    {/* Top Metrics */}
+                    <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                        {/* Total Team */}
+                        <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(59, 130, 246, 0.08), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(59, 130, 246, 0.12), 0 3px 6px rgba(0,0,0,0.06)" }}>
+                            <HStack justify="space-between" mb={2}>
+                                <Text fontSize="sm" color="gray.600" fontWeight="500">Total Team</Text>
+                                <Users size={18} color="#6b7280" />
+                            </HStack>
+                            <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                {aggregatedData.totalEmployees}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">employees</Text>
+                        </Box>
 
-                            {/* Response */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(16, 185, 129, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(16, 185, 129, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Response</Text>
-                                    <CheckCircle size={18} color="#10b981" />
-                                </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
-                                    {responseRate}%
-                                </Text>
-                                <Text fontSize="xs" color="gray.500">
-                                    {aggregatedData.respondedToday} of {aggregatedData.totalEmployees} responded
-                                </Text>
-                            </Box>
+                        {/* Response */}
+                        <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(16, 185, 129, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(16, 185, 129, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
+                            <HStack justify="space-between" mb={2}>
+                                <Text fontSize="sm" color="gray.600" fontWeight="500">Response</Text>
+                                <CheckCircle size={18} color="#10b981" />
+                            </HStack>
+                            <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                {responseRate}%
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">
+                                {aggregatedData.respondedToday} of {aggregatedData.totalEmployees} responded
+                            </Text>
+                        </Box>
 
-                            {/* At Risk */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(239, 68, 68, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(239, 68, 68, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">At Risk</Text>
-                                    <AlertTriangle size={18} color="#ef4444" />
-                                </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
-                                    {aggregatedData.atRiskEmployees.length}
-                                </Text>
-                                <Text fontSize="xs" color="gray.500">need attention</Text>
-                            </Box>
-                        </Grid>
+                        {/* At Risk */}
+                        <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(239, 68, 68, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(239, 68, 68, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
+                            <HStack justify="space-between" mb={2}>
+                                <Text fontSize="sm" color="gray.600" fontWeight="500">At Risk</Text>
+                                <AlertTriangle size={18} color="#ef4444" />
+                            </HStack>
+                            <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                {aggregatedData.atRiskEmployees.length}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">need attention</Text>
+                        </Box>
+                    </Grid>
 
-                        {/* Today's Status Row - Employees on left, Projects at Risk on right */}
-                        <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} flex="1" minH={0}>
-                            {/* Employees Requiring Attention - LEFT */}
-                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
-                                <HStack gap={2} mb={3} flexShrink={0}>
-                                    <AlertTriangle size={16} color="#ef4444" />
-                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Employees Requiring Attention</Text>
-                                </HStack>
-                                {aggregatedData.atRiskEmployees.length > 0 ? (
-                                    <Box
-                                        flex="1"
-                                        overflowY="auto"
-                                        css={{
-                                            scrollbarWidth: 'none',
-                                            msOverflowStyle: 'none',
-                                            '&::-webkit-scrollbar': {
-                                                display: 'none',
-                                                width: 0,
-                                                height: 0,
-                                            },
-                                        }}
+                    {/* Today's Status Row - Employees on left, Projects at Risk on right */}
+                    <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} flex="1" minH={0}>
+                        {/* Employees Requiring Attention - LEFT */}
+                        <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
+                            <HStack gap={2} mb={3} flexShrink={0}>
+                                <AlertTriangle size={16} color="#ef4444" />
+                                <Text fontSize="sm" color="gray.700" fontWeight="600">Employees Requiring Attention</Text>
+                            </HStack>
+                            {aggregatedData.atRiskEmployees.length > 0 ? (
+                                <Box
+                                    flex="1"
+                                    overflowY="auto"
+                                    css={{
+                                        scrollbarWidth: 'none',
+                                        msOverflowStyle: 'none',
+                                        '&::-webkit-scrollbar': {
+                                            display: 'none',
+                                            width: 0,
+                                            height: 0,
+                                        },
+                                    }}
+                                >
+                                    <Grid
+                                        templateColumns="repeat(2, 1fr)"
+                                        gap={3}
+                                        h="100%"
+                                        style={{ gridAutoRows: 'calc((100% - 0.75rem) / 2)' }}
                                     >
-                                        <Grid
-                                            templateColumns="repeat(2, 1fr)"
-                                            gap={3}
-                                            h="100%"
-                                            style={{ gridAutoRows: 'calc((100% - 0.75rem) / 2)' }}
-                                        >
-                                            {aggregatedData.atRiskEmployees.map((emp, index) => {
-                                                const initials = emp.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-                                                const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
-                                                const avatarColor = colors[emp.name.charCodeAt(0) % colors.length];
-                                                const photoUrl = `https://i.pravatar.cc/120?u=${encodeURIComponent(emp.id)}`;
+                                        {aggregatedData.atRiskEmployees.map((emp, index) => {
+                                            const initials = emp.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+                                            const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
+                                            const avatarColor = colors[emp.name.charCodeAt(0) % colors.length];
+                                            const photoUrl = `https://i.pravatar.cc/120?u=${encodeURIComponent(emp.id)}`;
+                                            return (
+                                                <Box
+                                                    key={index}
+                                                    bg="white"
+                                                    borderRadius="lg"
+                                                    p={3}
+                                                    border="1px solid"
+                                                    borderColor="gray.200"
+                                                    boxShadow="0 1px 3px rgba(0,0,0,0.04)"
+                                                    transition="all 0.2s"
+                                                    display="flex"
+                                                    flexDirection="column"
+                                                    justifyContent="center"
+                                                    _hover={{ borderColor: "blue.300", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}
+                                                >
+                                                    <VStack gap={2} align="center" textAlign="center">
+                                                        <Box
+                                                            w="56px"
+                                                            h="56px"
+                                                            borderRadius="full"
+                                                            overflow="hidden"
+                                                            flexShrink={0}
+                                                            bg={avatarColor}
+                                                            display="flex"
+                                                            alignItems="center"
+                                                            justifyContent="center"
+                                                            position="relative"
+                                                            border="2px solid"
+                                                            borderColor="white"
+                                                            boxShadow="0 2px 6px rgba(0,0,0,0.1)"
+                                                        >
+                                                            <Text fontSize="md" fontWeight="700" color="white" position="absolute">
+                                                                {initials}
+                                                            </Text>
+                                                            <img
+                                                                src={photoUrl}
+                                                                alt={emp.name}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    objectFit: 'cover',
+                                                                    position: 'relative',
+                                                                    zIndex: 1,
+                                                                }}
+                                                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                                            />
+                                                        </Box>
+                                                        <Box w="full" minW={0}>
+                                                            <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>
+                                                                {emp.name}
+                                                            </Text>
+                                                            <Text fontSize="xs" color="gray.600" lineClamp={1}>
+                                                                {emp.reason} · {emp.daysAffected}d
+                                                            </Text>
+                                                            <Text fontSize="xs" color="blue.600" fontWeight="500" lineClamp={1}>
+                                                                {emp.reason === 'Low energy' ? 'Recommend recovery' : 'Assist workload'}
+                                                            </Text>
+                                                        </Box>
+                                                    </VStack>
+                                                </Box>
+                                            );
+                                        })}
+                                    </Grid>
+                                </Box>
+                            ) : (
+                                <Text fontSize="sm" color="gray.500">No employees requiring attention right now.</Text>
+                            )}
+                        </Box>
+
+                        {/* Right column: Projects at Risk */}
+                        <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
+                            <HStack gap={2} mb={3} flexShrink={0}>
+                                <AlertTriangle size={16} color="#ef4444" />
+                                <Text fontSize="sm" color="gray.700" fontWeight="600">Projects at Risk</Text>
+                            </HStack>
+                            {(() => {
+                                const projectsAtRisk = [
+                                    { project: 'Atlas CRM Migration', client: 'Globex Corp', risk: 'High', associate: 'John Smith', role: 'Tech Lead', note: 'Tech Lead at high attrition risk; KT pending.' },
+                                    { project: 'Phoenix Data Platform', client: 'Initech', risk: 'High', associate: 'Alice Brown', role: 'Senior Data Engineer', note: 'Comp review pending; on-call rotation needs adjustment.' },
+                                    { project: 'Nimbus Cloud Re-platform', client: 'Cyberdyne Systems', risk: 'High', associate: 'David Park', role: 'Cloud Architect', note: 'Overloaded across parallel projects.' },
+                                    { project: 'Helix Mobile App', client: 'Stark Industries', risk: 'Medium', associate: 'Rahul Verma', role: 'Mobile Engineer', note: 'Growth path unclear; engagement dropping.' },
+                                    { project: 'Orion Analytics Suite', client: 'Wayne Enterprises', risk: 'Medium', associate: 'Sara Lee', role: 'BI Analyst', note: 'Single-point-of-failure; cross-train backup.' },
+                                    { project: 'Vega Reporting Refresh', client: 'Umbrella Group', risk: 'Low', associate: 'Meera Iyer', role: 'Frontend Engineer', note: 'Stable; involve in design system to retain.' },
+                                ];
+                                return (
+                                    <Box flex="1" overflowY="auto" css={{ scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+                                        <VStack gap={2} align="stretch">
+                                            {projectsAtRisk.map((p, idx) => {
+                                                const riskMap: Record<string, { bg: string; color: string; border: string }> = {
+                                                    High: { bg: 'red.50', color: 'red.700', border: 'red.200' },
+                                                    Medium: { bg: 'orange.50', color: 'orange.700', border: 'orange.200' },
+                                                    Low: { bg: 'yellow.50', color: 'yellow.700', border: 'yellow.200' },
+                                                };
+                                                const c = riskMap[p.risk];
                                                 return (
                                                     <Box
-                                                        key={index}
+                                                        key={idx}
                                                         bg="white"
                                                         borderRadius="lg"
                                                         p={3}
@@ -471,129 +565,35 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                                                         borderColor="gray.200"
                                                         boxShadow="0 1px 3px rgba(0,0,0,0.04)"
                                                         transition="all 0.2s"
-                                                        display="flex"
-                                                        flexDirection="column"
-                                                        justifyContent="center"
-                                                        _hover={{ borderColor: "blue.300", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}
+                                                        _hover={{ borderColor: 'blue.300', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
                                                     >
-                                                        <VStack gap={2} align="center" textAlign="center">
-                                                            <Box
-                                                                w="56px"
-                                                                h="56px"
-                                                                borderRadius="full"
-                                                                overflow="hidden"
-                                                                flexShrink={0}
-                                                                bg={avatarColor}
-                                                                display="flex"
-                                                                alignItems="center"
-                                                                justifyContent="center"
-                                                                position="relative"
-                                                                border="2px solid"
-                                                                borderColor="white"
-                                                                boxShadow="0 2px 6px rgba(0,0,0,0.1)"
-                                                            >
-                                                                <Text fontSize="md" fontWeight="700" color="white" position="absolute">
-                                                                    {initials}
-                                                                </Text>
-                                                                <img
-                                                                    src={photoUrl}
-                                                                    alt={emp.name}
-                                                                    style={{
-                                                                        width: '100%',
-                                                                        height: '100%',
-                                                                        objectFit: 'cover',
-                                                                        position: 'relative',
-                                                                        zIndex: 1,
-                                                                    }}
-                                                                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                                                                />
+                                                        <HStack justify="space-between" align="start" mb={1.5} gap={2}>
+                                                            <Box flex="1" minW={0}>
+                                                                <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>{p.project}</Text>
+                                                                <Text fontSize="xs" color="gray.500" lineClamp={1}>{p.client}</Text>
                                                             </Box>
-                                                            <Box w="full" minW={0}>
-                                                                <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>
-                                                                    {emp.name}
-                                                                </Text>
-                                                                <Text fontSize="xs" color="gray.600" lineClamp={1}>
-                                                                    {emp.reason} · {emp.daysAffected}d
-                                                                </Text>
-                                                                <Text fontSize="xs" color="blue.600" fontWeight="500" lineClamp={1}>
-                                                                    {emp.reason === 'Low energy' ? 'Recommend recovery' : 'Assist workload'}
-                                                                </Text>
+                                                            <Box px={2} py={0.5} borderRadius="md" bg={c.bg} border="1px solid" borderColor={c.border} flexShrink={0}>
+                                                                <Text fontSize="2xs" fontWeight="700" color={c.color} textTransform="uppercase">{p.risk}</Text>
                                                             </Box>
-                                                        </VStack>
+                                                        </HStack>
+                                                        <HStack gap={2} align="center" mb={1}>
+                                                            <Box w="6px" h="6px" borderRadius="full" bg="red.400" />
+                                                            <Text fontSize="xs" color="gray.700" fontWeight="500">{p.associate}</Text>
+                                                            <Text fontSize="xs" color="gray.400">·</Text>
+                                                            <Text fontSize="xs" color="gray.500">{p.role}</Text>
+                                                        </HStack>
+                                                        <Text fontSize="xs" color="gray.600" lineClamp={2}>{p.note}</Text>
                                                     </Box>
                                                 );
                                             })}
-                                        </Grid>
+                                        </VStack>
                                     </Box>
-                                ) : (
-                                    <Text fontSize="sm" color="gray.500">No employees requiring attention right now.</Text>
-                                )}
-                            </Box>
-
-                            {/* Right column: Projects at Risk */}
-                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
-                                <HStack gap={2} mb={3} flexShrink={0}>
-                                    <AlertTriangle size={16} color="#ef4444" />
-                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Projects at Risk</Text>
-                                </HStack>
-                                {(() => {
-                                    const projectsAtRisk = [
-                                        { project: 'Atlas CRM Migration', client: 'Globex Corp', risk: 'High', associate: 'John Smith', role: 'Tech Lead', note: 'Tech Lead at high attrition risk; KT pending.' },
-                                        { project: 'Phoenix Data Platform', client: 'Initech', risk: 'High', associate: 'Alice Brown', role: 'Senior Data Engineer', note: 'Comp review pending; on-call rotation needs adjustment.' },
-                                        { project: 'Nimbus Cloud Re-platform', client: 'Cyberdyne Systems', risk: 'High', associate: 'David Park', role: 'Cloud Architect', note: 'Overloaded across parallel projects.' },
-                                        { project: 'Helix Mobile App', client: 'Stark Industries', risk: 'Medium', associate: 'Rahul Verma', role: 'Mobile Engineer', note: 'Growth path unclear; engagement dropping.' },
-                                        { project: 'Orion Analytics Suite', client: 'Wayne Enterprises', risk: 'Medium', associate: 'Sara Lee', role: 'BI Analyst', note: 'Single-point-of-failure; cross-train backup.' },
-                                        { project: 'Vega Reporting Refresh', client: 'Umbrella Group', risk: 'Low', associate: 'Meera Iyer', role: 'Frontend Engineer', note: 'Stable; involve in design system to retain.' },
-                                    ];
-                                    return (
-                                        <Box flex="1" overflowY="auto" css={{ scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
-                                            <VStack gap={2} align="stretch">
-                                                {projectsAtRisk.map((p, idx) => {
-                                                    const riskMap: Record<string, { bg: string; color: string; border: string }> = {
-                                                        High: { bg: 'red.50', color: 'red.700', border: 'red.200' },
-                                                        Medium: { bg: 'orange.50', color: 'orange.700', border: 'orange.200' },
-                                                        Low: { bg: 'yellow.50', color: 'yellow.700', border: 'yellow.200' },
-                                                    };
-                                                    const c = riskMap[p.risk];
-                                                    return (
-                                                        <Box
-                                                            key={idx}
-                                                            bg="white"
-                                                            borderRadius="lg"
-                                                            p={3}
-                                                            border="1px solid"
-                                                            borderColor="gray.200"
-                                                            boxShadow="0 1px 3px rgba(0,0,0,0.04)"
-                                                            transition="all 0.2s"
-                                                            _hover={{ borderColor: 'blue.300', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
-                                                        >
-                                                            <HStack justify="space-between" align="start" mb={1.5} gap={2}>
-                                                                <Box flex="1" minW={0}>
-                                                                    <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>{p.project}</Text>
-                                                                    <Text fontSize="xs" color="gray.500" lineClamp={1}>{p.client}</Text>
-                                                                </Box>
-                                                                <Box px={2} py={0.5} borderRadius="md" bg={c.bg} border="1px solid" borderColor={c.border} flexShrink={0}>
-                                                                    <Text fontSize="2xs" fontWeight="700" color={c.color} textTransform="uppercase">{p.risk}</Text>
-                                                                </Box>
-                                                            </HStack>
-                                                            <HStack gap={2} align="center" mb={1}>
-                                                                <Box w="6px" h="6px" borderRadius="full" bg="red.400" />
-                                                                <Text fontSize="xs" color="gray.700" fontWeight="500">{p.associate}</Text>
-                                                                <Text fontSize="xs" color="gray.400">·</Text>
-                                                                <Text fontSize="xs" color="gray.500">{p.role}</Text>
-                                                            </HStack>
-                                                            <Text fontSize="xs" color="gray.600" lineClamp={2}>{p.note}</Text>
-                                                        </Box>
-                                                    );
-                                                })}
-                                            </VStack>
-                                        </Box>
-                                    );
-                                })()}
-                            </Box>
-                        </Grid>
-                    </VStack>
-                )}
+                                );
+                            })()}
+                        </Box>
+                    </Grid>
+                </VStack>
+            )}
             </Box>
         </Box>
     );

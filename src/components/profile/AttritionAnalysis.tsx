@@ -288,12 +288,13 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
     <Card.Root
       w="100%"
       bg="#ffffff"
-      shadow="xs" 
-      borderRadius="3xl" 
+      // shadow="xs" 
+      borderRadius="xl" 
       h="full"
       display="flex" 
       flexDirection="column"  
-      borderColor="gray.100"
+      border="1px solid"
+      borderColor="gray.200"
       p={2}
     >
       <Card.Header px={4} pt={2} pb={4} borderBottom="none">
@@ -306,103 +307,42 @@ export const AttritionAnalysis: React.FC<AttritionAnalysisProps> = ({ userId }) 
                 flex={1}
                 px={6}
                 py={2.5}
-                ml={index > 0 ? "-30px" : "0"}
-                bg={activeTab === index ? "rgba(224, 255, 255, 0.5)" : "rgba(245, 245, 245, 0.3)"}
-                color={activeTab === index ? "cyan.700" : "gray.500"}
+                bg="transparent"
+                color={activeTab === index ? "white" : "gray.600"}
                 cursor="pointer"
                 fontSize="sm"
-                fontWeight={activeTab === index ? "bold" : "medium"}
+                fontWeight="700"
                 textAlign="center"
-                transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+                transition="all 0.3s ease"
                 position="relative"
-                overflow="visible"
-                borderRadius="12px"
-                border="none"
-                zIndex={activeTab === index ? 10 : index}
                 onMouseEnter={() => setActiveTab(index)}
-                _hover={{
-                  bg: activeTab === index ? "rgba(224, 255, 255, 0.6)" : "rgba(245, 245, 245, 0.5)",
-                  zIndex: activeTab === index ? 10 : 5
-                }}
-_before={{
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: "calc(100% - 2px)",
-                  borderTop: "2px solid",
-                  borderLeft: (activeTab === index && (index === 1 || index === 2)) ? "2px solid" : "none",
-                  borderRight: (activeTab === index && (index === 0 || index === 1)) ? "2px solid" : "none",
-                  borderColor: activeTab === index ? "cyan.400" : "gray.300",
-                  borderTopLeftRadius: (activeTab === index && (index === 1 || index === 2)) ? "12px" : "0px",
-                  borderTopRightRadius: (activeTab === index && (index === 0 || index === 1)) ? "12px" : "0px",
-                  pointerEvents: "none",
-                  zIndex: 1
-                }}
+                zIndex={activeTab === index ? 2 : 1}
               >
-                <Text position="relative" zIndex={3}>
+                <Text>
                   {tab}
                 </Text>
               </Box>
             ))}
+            {/* Sliding background */}
+            <Box
+              position="absolute"
+              top={0}
+              left={0}
+              height="100%"
+              bg="blue.500"
+              borderRadius="md"
+              transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              style={{
+                width: `${100 / tabs.length}%`,
+                transform: `translateX(${activeTab * 100}%)`,
+              }}
+              zIndex={0}
+            />
           </Box>
-          
-          {/* Extended Border Lines Based on Active Tab */}
-          {isMounted && (
-            <>
-              <style jsx global>{`
-                @keyframes expandRight {
-                  0% { transform: scaleX(0); }
-                  100% { transform: scaleX(1); }
-                }
-                @keyframes expandLeft {
-                  0% { transform: scaleX(0); }
-                  100% { transform: scaleX(1); }
-                }
-              `}</style>
-              
-              {/* Right side line for tab 0 and 1 */}
-              {(activeTab === 0 || activeTab === 1) && (
-                <Box
-                  key={`right-${animationKey}`}
-                  position="absolute"
-left={`calc(${(activeTab + 1) * (100 / tabs.length)}% - 2px)`}
-                  bottom={0}
-                  right={0}
-                  h="2px"
-                  bg="cyan.400"
-                  zIndex={4}
-                  style={{
-                    transformOrigin: 'left',
-                    animation: 'expandRight 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-                  }}
-                />
-              )}
-              
-              {/* Left side line for tab 1 and 2 */}
-              {(activeTab === 1 || activeTab === 2) && (
-                <Box
-                  key={`left-${animationKey}`}
-                  position="absolute"
-                  left={0}
-right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
-                  bottom={0}
-                  h="2px"
-                  bg="cyan.400"
-                  zIndex={4}
-                  style={{
-                    transformOrigin: 'right',
-                    animation: 'expandLeft 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards'
-                  }}
-                />
-              )}
-            </>
-          )}
         </VStack>
       </Card.Header>
       
-      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={2} overflow="hidden" bg="rgba(224, 255, 255, 0.5)">
+      <Card.Body h="full" display="flex" flexDirection="column" w="full" p={2} overflow="hidden">
         {/* Tab 0: Attrition Analysis */}
         {activeTab === 0 && (
         <HStack 
@@ -430,14 +370,12 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             borderRadius="xl"
             border="1px solid"
             borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
+            shadow="xs"
+            transition="all 0.2s ease"
             cursor="pointer"
             _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "teal.300",
-              zIndex: 10
+              shadow: "sm",
+              borderColor: "teal.300"
             }}
           >
             <TeamHealthCompact />
@@ -459,14 +397,12 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             borderRadius="xl"
             border="1px solid"
             borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
+            shadow="xs"
+            transition="all 0.2s ease"
             cursor="pointer"
             _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "blue.300",
-              zIndex: 10
+              shadow: "sm",
+              borderColor: "blue.300"
             }}
           >
             <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
@@ -489,7 +425,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
                 height="150px"
                 viewBox="-70 -70 140 140"
                 style={{
-                  filter: "drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06))",
+                  filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.04))",
                   maxWidth: "240px",
                   maxHeight: "240px"
                 }}
@@ -572,14 +508,12 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             borderRadius="xl"
             border="1px solid"
             borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
+            shadow="xs"
+            transition="all 0.2s ease"
             cursor="pointer"
             _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "purple.300",
-              zIndex: 10
+              shadow: "sm",
+              borderColor: "purple.300"
             }}
           >
             <Text fontSize="sm" fontWeight="semibold" color="gray.700" textAlign="center" flexShrink={0}>
@@ -636,14 +570,12 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             borderRadius="xl"
             border="1px solid"
             borderColor="gray.200"
-            shadow="lg"
-            transition="all 0.3s ease"
+            shadow="xs"
+            transition="all 0.2s ease"
             cursor="pointer"
             _hover={{
-              shadow: "lg",
-              transform: "scale(1.05)",
-              borderColor: "orange.300",
-              zIndex: 10
+              shadow: "sm",
+              borderColor: "orange.300"
             }}
           >
             <AttritionTrendsPanel trends={undefined} />
@@ -657,7 +589,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             {/* Top Row - Skill Gap, Mental Health, and Quick Stats */}
             <Grid templateColumns="1fr 1fr 0.8fr" gap={2}>
               {/* Skill Gap Summary */}
-              <Box p={2} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200">
+              <Box p={2} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
                 <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Skill Gap</Text>
                 
                 <HStack gap={3} mb={1.5} flexWrap="wrap">
@@ -689,7 +621,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
               </Box>
 
               {/* Mental Health Summary */}
-              <Box p={2} bg="pink.50" borderRadius="md" border="1px solid" borderColor="pink.200">
+              <Box p={2} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200">
                 <Text fontSize="xs" color="gray.800" fontWeight="600" mb={1.5}>Mental Health — Action Required</Text>
                 
                 <HStack gap={3} mb={1.5} flexWrap="wrap">
@@ -745,7 +677,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
             <Grid templateColumns="repeat(2, 1fr)" gap={2} flex={1}>
               <VStack gap={2} align="stretch">
               {/* Survey Sentiment - Horizontal Bars with Dots */}
-              <Box p={3} bg="blue.50" borderRadius="md" border="1px solid" borderColor="blue.200" display="flex" flexDirection="column" h="full">
+              <Box p={3} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" h="full">
                 <HStack gap={1.5} mb={2}>
                   <Box w="2px" h="2px" borderRadius="full" bg="blue.600" />
                   <Heading size="xs" color="gray.800" fontWeight="600">Survey Sentiment</Heading>
@@ -778,7 +710,7 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
 
               <VStack gap={2} align="stretch">
               {/* Overall Engagement - Horizontal Bars with Dots */}
-              <Box p={3} bg="green.50" borderRadius="md" border="1px solid" borderColor="green.200" display="flex" flexDirection="column" h="full">
+              <Box p={3} bg="white" borderRadius="md" border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" h="full">
                 <HStack gap={1.5} mb={2}>
                   <Box w="2px" h="2px" borderRadius="full" bg="green.600" />
                   <Heading size="xs" color="gray.800" fontWeight="600">Content Consumption</Heading>
@@ -830,17 +762,16 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
               borderRadius="xl"
               border="1px solid"
               borderColor="gray.200"
-              shadow="sm"
               overflow="hidden"
             >
-              <Card.Body p={5}>
+              <Card.Body p={5} overflowY="auto">
                 <VStack align="stretch" gap={4}>
                   <HStack gap={3} align="center" justify="center">
                     <Box
                       w="28px"
                       h="28px"
                       borderRadius="full"
-                      bg="cyan.50"
+                      bg="gray.100"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -857,27 +788,144 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📋 Survey Sentiment</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Conduct immediate 1-on-1 meetings with high-stress employees</Text>
-                        <Text fontSize="xs" color="gray.700">• Review and redistribute workload across team members</Text>
-                        <Text fontSize="xs" color="gray.700">• Implement flexible work arrangements and remote options</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "blue.50", borderColor: "blue.200" }}
+                          onClick={() => console.log('Schedule 1-on-1')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Conduct immediate 1-on-1 meetings with high-stress employees</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "blue.50", borderColor: "blue.200" }}
+                          onClick={() => console.log('Redistribute workload')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Review and redistribute workload across team members</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "blue.50", borderColor: "blue.200" }}
+                          onClick={() => console.log('Implement flexible work')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Implement flexible work arrangements and remote options</Text>
+                        </Box>
                       </VStack>
                     </Box>
 
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>💚 Mental Health</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Schedule wellness check-ins with at-risk team members</Text>
-                        <Text fontSize="xs" color="gray.700">• Enroll team in mental health support programs</Text>
-                        <Text fontSize="xs" color="gray.700">• Promote work-life balance initiatives and time-off policies</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "green.50", borderColor: "green.200" }}
+                          onClick={() => console.log('Schedule wellness check-ins')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Schedule wellness check-ins with at-risk team members</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "green.50", borderColor: "green.200" }}
+                          onClick={() => console.log('Enroll in mental health programs')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Enroll team in mental health support programs</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "green.50", borderColor: "green.200" }}
+                          onClick={() => console.log('Promote work-life balance')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Promote work-life balance initiatives and time-off policies</Text>
+                        </Box>
                       </VStack>
                     </Box>
 
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📚 Skill Gap</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Create personalized learning paths for each team member</Text>
-                        <Text fontSize="xs" color="gray.700">• Allocate budget for technical training and certifications</Text>
-                        <Text fontSize="xs" color="gray.700">• Pair junior developers with senior mentors for knowledge transfer</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "purple.50", borderColor: "purple.200" }}
+                          onClick={() => console.log('Create learning paths')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Create personalized learning paths for each team member</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "purple.50", borderColor: "purple.200" }}
+                          onClick={() => console.log('Allocate training budget')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Allocate budget for technical training and certifications</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "purple.50", borderColor: "purple.200" }}
+                          onClick={() => console.log('Pair mentors')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Pair junior developers with senior mentors for knowledge transfer</Text>
+                        </Box>
                       </VStack>
                     </Box>
                   </Grid>
@@ -891,17 +939,16 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
               borderRadius="xl"
               border="1px solid"
               borderColor="gray.200"
-              shadow="sm"
               overflow="hidden"
             >
-              <Card.Body p={5}>
+              <Card.Body p={5} overflowY="auto">
                 <VStack align="stretch" gap={4}>
                   <HStack gap={3} align="center" justify="center">
                     <Box
                       w="28px"
                       h="28px"
                       borderRadius="full"
-                      bg="cyan.50"
+                      bg="gray.100"
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
@@ -918,27 +965,144 @@ right={`calc(${(tabs.length - activeTab) * (100 / tabs.length)}% - 2px)`}
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📅 Project Management</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Reassess project timelines and reduce unrealistic deadlines</Text>
-                        <Text fontSize="xs" color="gray.700">• Implement agile methodologies for better sprint planning</Text>
-                        <Text fontSize="xs" color="gray.700">• Prioritize critical projects and defer non-essential tasks</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "orange.50", borderColor: "orange.200" }}
+                          onClick={() => console.log('Reassess timelines')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Reassess project timelines and reduce unrealistic deadlines</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "orange.50", borderColor: "orange.200" }}
+                          onClick={() => console.log('Implement agile')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Implement agile methodologies for better sprint planning</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "orange.50", borderColor: "orange.200" }}
+                          onClick={() => console.log('Prioritize projects')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Prioritize critical projects and defer non-essential tasks</Text>
+                        </Box>
                       </VStack>
                     </Box>
 
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>👨‍💼 Resource Allocation</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Balance workload distribution based on skill levels</Text>
-                        <Text fontSize="xs" color="gray.700">• Hire additional resources for high-priority initiatives</Text>
-                        <Text fontSize="xs" color="gray.700">• Cross-train team members to improve resource flexibility</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "teal.50", borderColor: "teal.200" }}
+                          onClick={() => console.log('Balance workload')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Balance workload distribution based on skill levels</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "teal.50", borderColor: "teal.200" }}
+                          onClick={() => console.log('Hire resources')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Hire additional resources for high-priority initiatives</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "teal.50", borderColor: "teal.200" }}
+                          onClick={() => console.log('Cross-train team')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Cross-train team members to improve resource flexibility</Text>
+                        </Box>
                       </VStack>
                     </Box>
 
                     <Box>
                       <Text fontSize="xs" fontWeight="700" color="blue.700" mb={2}>📊 Impact Management</Text>
                       <VStack align="stretch" gap={1}>
-                        <Text fontSize="xs" color="gray.700">• Monitor team morale through regular pulse surveys</Text>
-                        <Text fontSize="xs" color="gray.700">• Establish clear communication channels for feedback</Text>
-                        <Text fontSize="xs" color="gray.700">• Track retention metrics and adjust strategies accordingly</Text>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "indigo.50", borderColor: "indigo.200" }}
+                          onClick={() => console.log('Monitor morale')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Monitor team morale through regular pulse surveys</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "indigo.50", borderColor: "indigo.200" }}
+                          onClick={() => console.log('Establish communication channels')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Establish clear communication channels for feedback</Text>
+                        </Box>
+                        <Box
+                          as="button"
+                          p={2}
+                          bg="gray.50"
+                          borderRadius="md"
+                          border="1px solid"
+                          borderColor="gray.200"
+                          cursor="pointer"
+                          transition="all 0.2s"
+                          _hover={{ bg: "indigo.50", borderColor: "indigo.200" }}
+                          onClick={() => console.log('Track retention metrics')}
+                        >
+                          <Text fontSize="xs" color="gray.700" textAlign="left">Track retention metrics and adjust strategies accordingly</Text>
+                        </Box>
                       </VStack>
                     </Box>
                   </Grid>

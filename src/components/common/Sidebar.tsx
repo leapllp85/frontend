@@ -183,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </VStack>
 
       {/* Navigation - Centered in sidebar */}
-      <VStack w="full" gap={1.5} align="center" flex={1} justify="center">
+      <VStack w="full" gap={1.5} align="stretch" flex={1} justify="flex-start">
           {/* My Space - Only for Managers (First Option) */}
           {user && getUserRole(user) === 'Manager' && (
             <Link href="/my-space" style={{ width: '100%' }}>
@@ -201,7 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 cursor="pointer"
                 transition="all 0.2s"
-                justify="center"
+                justify="flex-start"
               >
                 <UserCircle 
                   size={20} 
@@ -243,7 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   cursor="pointer"
                   transition="all 0.2s"
-                  justify="center"
+                  justify="flex-start"
                 >
                   <Icon 
                     size={20} 
@@ -261,34 +261,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </Link>
             );
           })}
-          
-          {/* Logout */}
-          <HStack 
-            gap={2} 
-            w="full" 
-            px={3}
-            py={2}
-            borderRadius="md"
-            bg="transparent"
-            borderLeft="3px solid transparent"
-            _hover={{ 
-              bg: "#d0d0d5"
-            }}
-            cursor="pointer"
-            transition="all 0.2s"
-            onClick={handleLogout}
-            justify="center"
-          >
-            <LogOut size={20} color="#EF4444" strokeWidth={2} />
-            <Text 
-              fontSize="sm" 
-              color="red.500" 
-              fontWeight="500"
-            >
-              Logout
-            </Text>
-          </HStack>
         </VStack>
+
+      {/* Logout Button - At the very bottom */}
+      <HStack 
+        gap={2} 
+        w="full" 
+        px={3}
+        py={2}
+        borderRadius="md"
+        bg="transparent"
+        borderLeft="3px solid transparent"
+        _hover={{ 
+          bg: "#d0d0d5"
+        }}
+        cursor="pointer"
+        transition="all 0.2s"
+        onClick={handleLogout}
+        justify="flex-start"
+      >
+        <LogOut size={20} color="#EF4444" strokeWidth={2} />
+        <Text 
+          fontSize="sm" 
+          color="red.500" 
+          fontWeight="500"
+        >
+          Logout
+        </Text>
+      </HStack>
 
       {/* Bottom Section - Empty for now */}
       <Box />
