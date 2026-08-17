@@ -5,20 +5,62 @@ import { Box, Flex, HStack, Text, VStack } from "@chakra-ui/react";
 import { UsersRound } from "lucide-react";
 import { TeamHealthDistribution } from "./TeamHealthDistribution";
 import { TeamMembersTable, type TeamRiskFilterValue } from "./TeamMembersTable";
-import { teamMembers } from "./teamsInfoData";
+import { teamMembers, type TeamMemberHighlight, type TeamRiskLevel } from "./teamsInfoData";
 import { cardBorder, cardRadius, cardShadow, colors } from "@/types/styles";
+
+type PendingRiskChanges = Record<string, TeamRiskLevel>;
+type RiskFilterCounts = Record<TeamRiskFilterValue, number>;
+
+function mockSaveRiskLevelChanges(changes: PendingRiskChanges) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(() => {
+      console.info("Mock saved team risk-level changes", changes);
+      resolve();
+    }, 450);
+  });
+}
 
 export function TeamMemberHighlights() {
   const [activeRisk, setActiveRisk] = useState<TeamRiskFilterValue>("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(8);
   const [searchQuery, setSearchQuery] = useState("");
+  const [committedRiskLevels, setCommittedRiskLevels] = useState<PendingRiskChanges>({});
+  const [pendingChanges, setPendingChanges] = useState<PendingRiskChanges>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const getCommittedRisk = (memberInitials: string, fallback: TeamRiskLevel) =>
+    committedRiskLevels[memberInitials] ?? fallback;
+
+  const getEffectiveRisk = (memberInitials: string, fallback: TeamRiskLevel) =>
+    pendingChanges[memberInitials] ?? getCommittedRisk(memberInitials, fallback);
+
+  const riskFilterCounts = useMemo(() => {
+    const counts: RiskFilterCounts = {
+      all: teamMembers.length,
+      High: 0,
+      Medium: 0,
+      Low: 0,
+    };
+
+    teamMembers.forEach((member) => {
+      const effectiveRisk =
+        pendingChanges[member.initials] ??
+        committedRiskLevels[member.initials] ??
+        member.riskLevel;
+
+      counts[effectiveRisk] += 1;
+    });
+
+    return counts;
+  }, [committedRiskLevels, pendingChanges]);
 
   const filteredMembers = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     return teamMembers.filter((member) => {
-      const matchesRisk = activeRisk === "all" || member.riskLevel === activeRisk;
+      const effectiveRisk = pendingChanges[member.initials] ?? committedRiskLevels[member.initials] ?? member.riskLevel;
+      const matchesRisk = activeRisk === "all" || effectiveRisk === activeRisk;
       const matchesSearch =
         normalizedQuery.length === 0 ||
         member.name.toLowerCase().includes(normalizedQuery) ||
@@ -27,7 +69,7 @@ export function TeamMemberHighlights() {
 
       return matchesRisk && matchesSearch;
     });
-  }, [activeRisk, searchQuery]);
+  }, [activeRisk, committedRiskLevels, pendingChanges, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / pageSize));
 
@@ -39,6 +81,57 @@ export function TeamMemberHighlights() {
   useEffect(() => {
     setCurrentPage(1);
   }, [activeRisk, pageSize, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
+
+  const pendingChangesCount = Object.keys(pendingChanges).length;
+
+  const isPendingRiskChange = (memberInitials: string) =>
+    pendingChanges[memberInitials] !== undefined;
+
+  function handleDraftRiskChange(member: TeamMemberHighlight, nextRisk: TeamRiskLevel) {
+    const committedRisk = getCommittedRisk(member.initials, member.riskLevel);
+
+    setPendingChanges((currentChanges) => {
+      const nextChanges = { ...currentChanges };
+
+      if (nextRisk === committedRisk) {
+        delete nextChanges[member.initials];
+      } else {
+        nextChanges[member.initials] = nextRisk;
+      }
+
+      return nextChanges;
+    });
+  }
+
+  async function handleSaveChanges() {
+    if (pendingChangesCount === 0 || isSaving) {
+      return;
+    }
+
+    const changesToSave = { ...pendingChanges };
+
+    setIsSaving(true);
+
+    try {
+      await mockSaveRiskLevelChanges(changesToSave);
+      setCommittedRiskLevels((currentLevels) => ({ ...currentLevels, ...changesToSave }));
+      setPendingChanges({});
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  function handleDiscardChanges() {
+    if (isSaving) {
+      return;
+    }
+
+    setPendingChanges({});
+  }
 
   return (
     <Box
@@ -97,14 +190,22 @@ export function TeamMemberHighlights() {
           activeRisk={activeRisk}
           currentPage={currentPage}
           filteredCount={filteredMembers.length}
+          getEffectiveRisk={getEffectiveRisk}
+          isSaving={isSaving}
           members={paginatedMembers}
           pageSize={pageSize}
+          pendingChangesCount={pendingChangesCount}
+          riskFilterCounts={riskFilterCounts}
           searchQuery={searchQuery}
           totalMembers={filteredMembers.length}
           totalPages={totalPages}
+          isPendingRiskChange={isPendingRiskChange}
+          onDiscardChanges={handleDiscardChanges}
           onPageChange={(page) => setCurrentPage(Math.min(Math.max(page, 1), totalPages))}
           onPageSizeChange={setPageSize}
+          onRiskLevelChange={handleDraftRiskChange}
           onRiskChange={setActiveRisk}
+          onSaveChanges={handleSaveChanges}
           onSearchChange={setSearchQuery}
         />
       </Flex>

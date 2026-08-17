@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Box, Button, Flex, HStack, Input, Text, VStack } from "@chakra-ui/react";
 import {
   ChevronDown,
@@ -28,14 +29,22 @@ type TeamMembersTableProps = {
   activeRisk: TeamRiskFilterValue;
   currentPage: number;
   filteredCount: number;
+  getEffectiveRisk: (memberInitials: string, fallback: TeamRiskLevel) => TeamRiskLevel;
+  isSaving: boolean;
   members: readonly TeamMemberHighlight[];
   pageSize: number;
+  pendingChangesCount: number;
+  riskFilterCounts: Record<TeamRiskFilterValue, number>;
   searchQuery: string;
   totalMembers: number;
   totalPages: number;
+  isPendingRiskChange: (memberInitials: string) => boolean;
+  onDiscardChanges: () => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+  onRiskLevelChange: (member: TeamMemberHighlight, risk: TeamRiskLevel) => void;
   onRiskChange: (risk: TeamRiskFilterValue) => void;
+  onSaveChanges: () => void;
   onSearchChange: (query: string) => void;
 };
 
@@ -151,8 +160,45 @@ function HeaderCell({
   );
 }
 
-function MemberRow({ member }: { member: TeamMemberHighlight }) {
-  const style = teamRiskStyles[member.riskLevel];
+function MemberRow({
+  effectiveRisk,
+  hasPendingChange,
+  member,
+  onRiskLevelChange,
+}: {
+  effectiveRisk: TeamRiskLevel;
+  hasPendingChange: boolean;
+  member: TeamMemberHighlight;
+  onRiskLevelChange: (member: TeamMemberHighlight, risk: TeamRiskLevel) => void;
+}) {
+  const [isRiskOpen, setIsRiskOpen] = useState(false);
+  const riskDropdownRef = useRef<HTMLDivElement | null>(null);
+  const style = teamRiskStyles[effectiveRisk];
+
+  useEffect(() => {
+    setIsRiskOpen(false);
+  }, [member.initials]);
+
+  useEffect(() => {
+    if (!isRiskOpen) {
+      return;
+    }
+
+    function handlePointerDown(event: MouseEvent) {
+      if (
+        riskDropdownRef.current &&
+        !riskDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsRiskOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, [isRiskOpen]);
 
   return (
     <Box
@@ -162,6 +208,7 @@ function MemberRow({ member }: { member: TeamMemberHighlight }) {
       minW="900px"
       minH="58px"
       px="8px"
+      bg={hasPendingChange ? "#F8FAFD" : "transparent"}
       borderBottom="1px solid"
       borderColor={colors.lightBorder}
     >
@@ -197,14 +244,72 @@ function MemberRow({ member }: { member: TeamMemberHighlight }) {
         </VStack>
       </HStack>
 
-      <HStack gap="6px">
-        <Text color={style.color} fontSize="12px" fontWeight="800">
-          {member.riskLevel}
-        </Text>
-        <ChevronDown size={12} color={style.color} />
-      </HStack>
+      <Box position="relative" ref={riskDropdownRef}>
+        <HStack
+          as="button"
+          gap="6px"
+          p="0"
+          bg="transparent"
+          border="0"
+          appearance="none"
+          cursor="pointer"
+          onClick={() => setIsRiskOpen((isOpen) => !isOpen)}
+        >
+          <Text color={style.color} fontSize="12px" fontWeight="800">
+            {effectiveRisk}
+          </Text>
+          <ChevronDown size={12} color={style.color} />
+        </HStack>
 
-      <ScoreRing score={member.healthScore} riskLevel={member.riskLevel} />
+        {isRiskOpen && (
+          <VStack
+            align="stretch"
+            gap="2px"
+            position="absolute"
+            top="22px"
+            left="-8px"
+            zIndex={20}
+            minW="92px"
+            p="5px"
+            bg={colors.surface}
+            border="1px solid"
+            borderColor={colors.border}
+            borderRadius="6px"
+            boxShadow="0 12px 28px rgba(11, 12, 28, 0.12)"
+          >
+            {(["High", "Medium", "Low"] as const).map((risk) => {
+              const riskStyle = teamRiskStyles[risk];
+
+              return (
+                <Box
+                  key={risk}
+                  as="button"
+                  w="full"
+                  px="8px"
+                  py="6px"
+                  border="0"
+                  borderRadius="5px"
+                  bg={effectiveRisk === risk ? riskStyle.bg : colors.surface}
+                  color={riskStyle.color}
+                  textAlign="left"
+                  fontSize="12px"
+                  fontWeight="800"
+                  cursor="pointer"
+                  _hover={{ bg: riskStyle.bg }}
+                  onClick={() => {
+                    onRiskLevelChange(member, risk);
+                    setIsRiskOpen(false);
+                  }}
+                >
+                  {risk}
+                </Box>
+              );
+            })}
+          </VStack>
+        )}
+      </Box>
+
+      <ScoreRing score={member.healthScore} riskLevel={effectiveRisk} />
 
       <SignalDots color="#F23D4F" kind="heart" value={member.mentalHealth} />
       <SignalDots color="#F58220" kind="dot" value={member.motivation} />
@@ -222,14 +327,22 @@ export function TeamMembersTable({
   activeRisk,
   currentPage,
   filteredCount,
+  getEffectiveRisk,
+  isSaving,
   members,
   pageSize,
+  pendingChangesCount,
+  riskFilterCounts,
   searchQuery,
   totalMembers,
   totalPages,
+  isPendingRiskChange,
+  onDiscardChanges,
   onPageChange,
   onPageSizeChange,
+  onRiskLevelChange,
   onRiskChange,
+  onSaveChanges,
   onSearchChange,
 }: TeamMembersTableProps) {
   const resultStart = filteredCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -239,10 +352,11 @@ export function TeamMembersTable({
   return (
     <VStack align="stretch" gap="16px" minW={0} flex="1">
       <Flex justify="space-between" gap="18px" align="center" wrap={{ base: "wrap", xl: "nowrap" }}>
-        <HStack gap="18px" wrap="wrap">
+        <HStack gap={{xl: "0px","2xl":'18px'}} wrap="wrap">
           {teamRiskFilters.map((filter) => {
             const isActive = activeRisk === filter.value;
             const filterColor = filter.value === "all" ? colors.primary : teamRiskStyles[filter.value].color;
+            const count = riskFilterCounts[filter.value];
 
             return (
               <Button
@@ -259,7 +373,7 @@ export function TeamMembersTable({
                 _hover={{ bg: isActive ? colors.primarySoft : "#F8FAFD" }}
                 onClick={() => onRiskChange(filter.value)}
               >
-                {filter.label} ({filter.count})
+                {filter.label} ({count})
               </Button>
             );
           })}
@@ -357,7 +471,15 @@ export function TeamMembersTable({
           </Box>
 
           {members.length > 0 ? (
-            members.map((member) => <MemberRow key={member.name} member={member} />)
+            members.map((member) => (
+              <MemberRow
+                key={member.name}
+                effectiveRisk={getEffectiveRisk(member.initials, member.riskLevel)}
+                hasPendingChange={isPendingRiskChange(member.initials)}
+                member={member}
+                onRiskLevelChange={onRiskLevelChange}
+              />
+            ))
           ) : (
             <Box
               minW="900px"
@@ -379,6 +501,48 @@ export function TeamMembersTable({
         <Text color={colors.secondaryText} fontSize="12px" fontWeight="600">
           Showing {resultStart} to {resultEnd} of {totalMembers} members
         </Text>
+
+        {pendingChangesCount > 0 && (
+          <HStack gap="10px" wrap="wrap">
+            <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
+              {pendingChangesCount} unsaved changes
+            </Text>
+            <Button
+              h="32px"
+              px="12px"
+              borderRadius="6px"
+              bg={colors.surface}
+              color={colors.primaryText}
+              border="1px solid"
+              borderColor={colors.border}
+              disabled={isSaving}
+              fontSize="12px"
+              fontWeight="800"
+              _hover={{ bg: "#F8FAFD" }}
+              _disabled={{ opacity: 0.45, cursor: "not-allowed" }}
+              onClick={onDiscardChanges}
+            >
+              Discard Changes
+            </Button>
+            <Button
+              h="32px"
+              px="12px"
+              borderRadius="6px"
+              bg={colors.primary}
+              color={colors.surface}
+              border="1px solid"
+              borderColor={colors.primary}
+              disabled={isSaving}
+              fontSize="12px"
+              fontWeight="800"
+              _hover={{ bg: "#176CC1" }}
+              _disabled={{ opacity: 0.45, cursor: "not-allowed" }}
+              onClick={onSaveChanges}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </HStack>
+        )}
 
         <HStack gap="9px">
           <Button
