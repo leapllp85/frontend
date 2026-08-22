@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { Box, HStack, IconButton, Text, VStack } from "@chakra-ui/react";
 import { ChevronDown, Crosshair, Minus, MoreVertical, Plus } from "lucide-react";
 import {
@@ -486,6 +486,7 @@ export function OrganizationChartPanel({
   onEmployeeSelect,
 }: OrganizationChartPanelProps) {
   const [zoom, setZoom] = useState(1);
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const panStateRef = useRef<PanState | null>(null);
@@ -496,7 +497,27 @@ export function OrganizationChartPanel({
     () => buildChartLayout(organizationChartRoot, expandedNodeIds),
     [expandedNodeIds],
   );
-  const fitChartToViewport = () => {
+  const centerChartInViewport = useCallback((nextZoom: number) => {
+    const viewport = viewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    const scaledWidth = canvasWidth * nextZoom;
+    const scaledHeight = canvasHeight * nextZoom;
+    const offsetX = Math.max(0, (viewport.clientWidth - scaledWidth) / 2);
+    const offsetY = Math.max(0, (viewport.clientHeight - scaledHeight) / 2);
+
+    setCanvasOffset({ x: offsetX, y: offsetY });
+
+    window.requestAnimationFrame(() => {
+      viewport.scrollLeft = Math.max(0, (scaledWidth + offsetX * 2 - viewport.clientWidth) / 2);
+      viewport.scrollTop = Math.max(0, (scaledHeight + offsetY * 2 - viewport.clientHeight) / 2);
+    });
+  }, [canvasHeight, canvasWidth]);
+
+  const fitChartToViewport = useCallback(() => {
     const viewport = viewportRef.current;
 
     if (!viewport) {
@@ -510,12 +531,28 @@ export function OrganizationChartPanel({
     const nextZoom = Number(Math.max(minZoom, Math.min(1, fitScale)).toFixed(2));
 
     setZoom(nextZoom);
+    centerChartInViewport(nextZoom);
+  }, [canvasHeight, canvasWidth, centerChartInViewport]);
 
-    window.requestAnimationFrame(() => {
-      viewport.scrollLeft = Math.max(0, (canvasWidth * nextZoom - viewport.clientWidth) / 2);
-      viewport.scrollTop = 0;
+  useEffect(() => {
+    fitChartToViewport();
+  }, [fitChartToViewport]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+
+    if (!viewport || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      fitChartToViewport();
     });
-  };
+
+    resizeObserver.observe(viewport);
+
+    return () => resizeObserver.disconnect();
+  }, [fitChartToViewport]);
 
   const toggleNode = (person: OrganizationPerson) => {
     if (!person.reports?.length) {
@@ -586,14 +623,25 @@ export function OrganizationChartPanel({
       borderColor={colors.border}
       borderRadius={cardRadius}
       boxShadow={cardShadow}
+      h={{ base: "560px", xl: "590px" }}
       minH={{ base: "560px", xl: "590px" }}
       overflow="hidden"
       position="relative"
     >
       <ChartControls
         onFit={fitChartToViewport}
-        onZoomIn={() => setZoom((value) => Math.min(maxZoom, Number((value + 0.06).toFixed(2))))}
-        onZoomOut={() => setZoom((value) => Math.max(minZoom, Number((value - 0.06).toFixed(2))))}
+        onZoomIn={() => setZoom((value) => {
+          const nextZoom = Math.min(maxZoom, Number((value + 0.06).toFixed(2)));
+          window.requestAnimationFrame(() => centerChartInViewport(nextZoom));
+
+          return nextZoom;
+        })}
+        onZoomOut={() => setZoom((value) => {
+          const nextZoom = Math.max(minZoom, Number((value - 0.06).toFixed(2)));
+          window.requestAnimationFrame(() => centerChartInViewport(nextZoom));
+
+          return nextZoom;
+        })}
       />
       <RiskLegend />
 
@@ -613,15 +661,15 @@ export function OrganizationChartPanel({
       >
         <Box
           position="relative"
-          w={`${canvasWidth * zoom}px`}
-          h={`${canvasHeight * zoom}px`}
+          w={`${canvasWidth * zoom + canvasOffset.x * 2}px`}
+          h={`${canvasHeight * zoom + canvasOffset.y * 2}px`}
           minW="100%"
           minH="100%"
         >
           <Box
             position="absolute"
-            left="0"
-            top="0"
+            left={`${canvasOffset.x}px`}
+            top={`${canvasOffset.y}px`}
             w={`${canvasWidth}px`}
             h={`${canvasHeight}px`}
             transform={`scale(${zoom})`}
