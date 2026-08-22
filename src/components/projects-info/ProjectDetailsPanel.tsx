@@ -52,8 +52,8 @@ function ProjectHeroIcon({ project }: { project: ProjectInfo }) {
 
   return (
     <Box
-      w="64px"
-      h="64px"
+      w="60px"
+      h="60px"
       borderRadius="10px"
       bg={project.iconBg}
       color={project.iconColor}
@@ -62,7 +62,7 @@ function ProjectHeroIcon({ project }: { project: ProjectInfo }) {
       justifyContent="center"
       flexShrink={0}
     >
-      <Icon size={31} strokeWidth={2.1} />
+      <Icon size={29} strokeWidth={2.1} />
     </Box>
   );
 }
@@ -89,7 +89,7 @@ function ContributorInitial({ contributor }: { contributor: ProjectContributor }
 
 function ContributorRow({ contributor }: { contributor: ProjectContributor }) {
   return (
-    <HStack gap="12px" py="12px" borderBottom="1px solid" borderColor={colors.lightBorder}>
+    <HStack gap="12px" py="10px" borderBottom="1px solid" borderColor={colors.lightBorder}>
       <Box
         w="32px"
         h="32px"
@@ -125,8 +125,8 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
       h="full"
     >
       <VStack align="stretch" gap="0">
-        <Flex align="center" justify="space-between" px="24px" pt="24px" pb="18px">
-          <Text color={colors.primaryText} fontSize="16px" fontWeight="800" lineHeight="1">
+        <Flex align="center" justify="space-between" px={{ base: "20px", md: "22px" }} pt="22px" pb="16px">
+          <Text color={colors.primaryText} fontSize="15px" fontWeight="800" lineHeight="1">
             Project Details
           </Text>
           <HStack gap="18px">
@@ -150,15 +150,15 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
           </HStack>
         </Flex>
 
-        <Box px={{ base: "18px", md: "22px" }} pb={{ base: "18px", md: "22px" }}>
+        <Box px={{ base: "16px", md: "20px" }} pb={{ base: "16px", md: "20px" }}>
           <Box border="1px solid" borderColor={colors.border} borderRadius="9px" overflow="hidden">
             <Box
-              p={{ base: "18px", md: "22px" }}
+              p={{ base: "16px", md: "20px" }}
               bg="linear-gradient(135deg, #F7FAFF 0%, #FFFFFF 68%)"
             >
-              <HStack gap="18px" align="center">
+              <HStack gap="16px" align="center">
                 <ProjectHeroIcon project={project} />
-                <VStack align="flex-start" gap="8px" minW={0}>
+                <VStack align="flex-start" gap="7px" minW={0}>
                   <Text color={colors.primary} fontSize="15px" fontWeight="800" lineHeight="1.2" truncate>
                     {project.name}
                   </Text>
@@ -171,7 +171,7 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
             </Box>
 
             <Flex borderTop="1px solid" borderColor={colors.lightBorder}>
-              <VStack align="flex-start" gap="8px" flex="1" p="20px">
+              <VStack align="flex-start" gap="8px" flex="1" p="18px">
                 <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
                   Business Unit
                 </Text>
@@ -180,7 +180,7 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
                 </Text>
               </VStack>
               <Box w="1px" bg={colors.lightBorder} />
-              <VStack align="flex-start" gap="8px" flex="1" p="20px">
+              <VStack align="flex-start" gap="8px" flex="1" p="18px">
                 <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
                   Criticality
                 </Text>
@@ -194,7 +194,7 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
             <VStack
               align="stretch"
               gap="12px"
-              p="20px"
+              p="18px"
               borderTop="1px solid"
               borderColor={colors.lightBorder}
             >
@@ -209,7 +209,7 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
             <VStack
               align="stretch"
               gap="16px"
-              p="20px"
+              p="18px"
               borderTop="1px solid"
               borderColor={colors.lightBorder}
             >
@@ -246,7 +246,7 @@ export function ProjectDetailsPanel({ project, onClose }: ProjectDetailsPanelPro
             <VStack
               align="stretch"
               gap="16px"
-              p="20px"
+              p="18px"
               borderTop="1px solid"
               borderColor={colors.lightBorder}
             >

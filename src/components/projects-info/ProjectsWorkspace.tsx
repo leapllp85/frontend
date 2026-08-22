@@ -69,7 +69,7 @@ export function ProjectsWorkspace() {
     <Grid
       templateColumns={{
         base: "1fr",
-        xl: selectedProject ? "minmax(0, 1fr) 390px" : "1fr",
+        xl: selectedProject ? "minmax(0, 1fr) 372px" : "1fr",
         "2xl": selectedProject ? "minmax(0, 1fr) 410px" : "1fr",
       }}
       gap={{ base: "18px", xl: "18px" }}

@@ -51,16 +51,16 @@ type ProjectsListPanelProps = {
 
 const tableLayouts = {
   compact: {
-    columns: "minmax(300px, 1.2fr) minmax(270px, 0.95fr) 112px 92px 26px",
-    columnGap: "18px",
-    minWidth: "900px",
-    timelineGap: "18px",
+    columns: "minmax(290px, 1.15fr) minmax(260px, 0.9fr) 104px 86px 24px",
+    columnGap: "16px",
+    minWidth: "860px",
+    timelineGap: "16px",
   },
   expanded: {
-    columns: "minmax(380px, 420px) minmax(480px, 1fr) 130px 112px 26px",
-    columnGap: "28px",
-    minWidth: "1180px",
-    timelineGap: "28px",
+    columns: "minmax(360px, 430px) minmax(460px, 1fr) 124px 104px 24px",
+    columnGap: "24px",
+    minWidth: "1120px",
+    timelineGap: "24px",
   },
 } as const;
 
@@ -75,7 +75,7 @@ const selectStyle: CSSProperties = {
   cursor: "pointer",
   fontSize: "12px",
   fontWeight: 700,
-  height: "46px",
+  height: "44px",
   lineHeight: "1.1",
   padding: "18px 38px 6px 14px",
   width: "100%",
@@ -97,12 +97,12 @@ function ProjectBadge({
       justifySelf="start"
       w="fit-content"
       minW="58px"
-      h="24px"
+      h="23px"
       px="10px"
       borderRadius="5px"
       bg={style.bg}
       color={style.color}
-      fontSize="12px"
+      fontSize="11px"
       fontWeight="700"
       lineHeight="1"
       whiteSpace="nowrap"
@@ -124,7 +124,7 @@ function ProjectFilterSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <Box position="relative" w={{ base: "full", md: "180px" }} flexShrink={0}>
+    <Box position="relative" w={{ base: "full", md: "168px", "2xl": "180px" }} flexShrink={0}>
       <Text
         position="absolute"
         top="8px"
@@ -211,9 +211,9 @@ function ProjectRow({
         gridTemplateColumns={layout.columns}
         columnGap={layout.columnGap}
         alignItems="center"
-        minH="72px"
-        px={{ base: "12px", xl: "18px" }}
-        py="10px"
+        minH="67px"
+        px={{ base: "12px", xl: "16px" }}
+        py="9px"
       >
         <HStack gap="14px" minW={0}>
           <ProjectIcon project={project} />
@@ -260,7 +260,7 @@ function ProjectRow({
               {project.goLiveDate}
             </Text>
           </Box>
-          <HStack gap="10px">
+          <HStack gap="9px">
             <Box h="4px" flex="1" bg={colors.lightBorder} borderRadius="999px" overflow="hidden">
               <Box
                 h="full"
@@ -402,24 +402,25 @@ export function ProjectsListPanel({
       borderColor={colors.border}
       borderRadius="12px"
       boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)"
-      px={{ base: "18px", md: "22px", xl: "26px" }}
-      py={{ base: "20px", md: "22px", xl: "26px" }}
+      px={{ base: "16px", md: "22px", xl: "24px" }}
+      py={{ base: "18px", md: "22px", xl: "24px" }}
       minW={0}
+      overflow="hidden"
     >
-      <VStack align="stretch" gap="22px">
-        <Flex justify="space-between" gap="18px" align="flex-start" wrap={{ base: "wrap", lg: "nowrap" }}>
-          <VStack align="flex-start" gap="8px">
-            <Text color={colors.primaryText} fontSize="20px" fontWeight="800" lineHeight="1">
+      <VStack align="stretch" gap={{ base: "18px", xl: "20px" }}>
+        <Flex justify="space-between" gap="16px" align="flex-start" wrap={{ base: "wrap", lg: "nowrap" }}>
+          <VStack align="flex-start" gap="7px">
+            <Text color={colors.primaryText} fontSize="19px" fontWeight="800" lineHeight="1">
               All Projects
             </Text>
-            <Text color={colors.secondaryText} fontSize="14px" fontWeight="500" lineHeight="1.25">
+            <Text color={colors.secondaryText} fontSize="13px" fontWeight="500" lineHeight="1.25">
               Track, manage and monitor all active initiatives across the organization.
             </Text>
           </VStack>
 
           <HStack gap="12px">
             <Button
-              h="40px"
+              h="38px"
               px="18px"
               borderRadius="6px"
               bg={colors.primary}
@@ -434,9 +435,9 @@ export function ProjectsListPanel({
               New Project
             </Button>
             <Button
-              h="40px"
-              w="40px"
-              minW="40px"
+              h="38px"
+              w="38px"
+              minW="38px"
               p={0}
               borderRadius="6px"
               bg={colors.surface}
@@ -449,8 +450,16 @@ export function ProjectsListPanel({
           </HStack>
         </Flex>
 
-        <Flex justify="space-between" gap="18px" align="center" wrap={{ base: "wrap", xl: "nowrap" }}>
-          <Box position="relative" w={{ base: "full", xl: "520px" }} maxW="100%">
+        <Flex justify="space-between" gap="16px" align="center" wrap={{ base: "wrap", xl: "nowrap" }}>
+          <Box
+            position="relative"
+            w={{
+              base: "full",
+              xl: isDetailsOpen ? "410px" : "520px",
+              "2xl": isDetailsOpen ? "460px" : "560px",
+            }}
+            maxW="100%"
+          >
             <Box
               position="absolute"
               left="16px"
@@ -465,7 +474,7 @@ export function ProjectsListPanel({
               value={searchQuery}
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search projects by name, team or keyword..."
-              h="46px"
+              h="44px"
               pl="46px"
               pr="14px"
               bg={colors.surface}
@@ -480,7 +489,7 @@ export function ProjectsListPanel({
             />
           </Box>
 
-          <HStack gap="16px" wrap={{ base: "wrap", md: "nowrap" }} w={{ base: "full", xl: "auto" }}>
+          <HStack gap={{ base: "12px", xl: "14px" }} wrap={{ base: "wrap", md: "nowrap" }} w={{ base: "full", xl: "auto" }}>
             <ProjectFilterSelect
               label="Business Unit"
               value={businessUnitFilter}
@@ -503,14 +512,14 @@ export function ProjectsListPanel({
         </Flex>
 
         <Box overflow="hidden">
-          <Box overflowX="auto">
+          <Box overflowX="auto" overflowY="hidden">
             <Box
               display="grid"
               gridTemplateColumns={tableLayout.columns}
               columnGap={tableLayout.columnGap}
               minW={tableLayout.minWidth}
-              px={{ base: "15px", xl: "21px" }}
-              pb="14px"
+              px={{ base: "15px", xl: "19px" }}
+              pb="12px"
               color={colors.secondaryText}
             >
               <Text fontSize="12px" fontWeight="700">

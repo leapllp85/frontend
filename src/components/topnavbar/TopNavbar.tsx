@@ -13,7 +13,7 @@ import { colors } from "../../types/styles";
 const navItems = [
   { label: "Overview", href: "/manager-overview" },
   { label: "Team", href: "/teams-info" },
-  { label: "Projects", href: "/projects" },
+  { label: "Projects", href: "/projects-info" },
   { label: "Organization", href: "/organization-info" },
   { label: "Analytics", href: "/talent-analytics" },
   { label: "Survey", href: "/surveys" },
