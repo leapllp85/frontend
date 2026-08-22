@@ -14,6 +14,7 @@ const navItems = [
   { label: "Overview", href: "/manager-overview" },
   { label: "Team", href: "/teams-info" },
   { label: "Projects", href: "/projects" },
+  { label: "Organization", href: "/organization-info" },
   { label: "Analytics", href: "/talent-analytics" },
   { label: "Survey", href: "/surveys" },
 ] as const;
