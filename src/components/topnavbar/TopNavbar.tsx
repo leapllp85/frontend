@@ -17,7 +17,8 @@ const navItems = [
   { label: "Talent", href: "/talent-management" },
   { label: "Organization", href: "/organization-info" },
   { label: "Analytics", href: "/talent-analytics" },
-  { label: "Survey", href: "/surveys" },
+  { label: "Survey", href: "/survey-info" },
+  { label: "Action Items", href: "/action-item" },
 ] as const;
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
