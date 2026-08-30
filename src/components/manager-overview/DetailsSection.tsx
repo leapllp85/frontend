@@ -451,12 +451,13 @@ function UpcomingDeadlinesCard() {
                 gap={4}
                 px={{ base: 5, md: 6 }}
                 py={5}
+                bg="#042550"
                 borderBottom="1px solid"
                 borderColor={colors.lightBorder}
                 flexDir={{ base: "column", md: "row" }}
               >
                 <Box>
-                  <Text color={colors.primaryText} fontSize="18px" fontWeight="800" lineHeight="1.1">
+                  <Text color={colors.surface} fontSize="18px" fontWeight="800" lineHeight="1.1">
                     Project Deadlines Calendar
                   </Text>
                   <Text mt={1} color={colors.mutedText} fontSize="13px" fontWeight="600">
@@ -467,7 +468,7 @@ function UpcomingDeadlinesCard() {
                   aria-label="Close calendar"
                   variant="ghost"
                   alignSelf={{ base: "flex-end", md: "center" }}
-                  color={colors.secondaryText}
+                  color={colors.surface}
                   _hover={{ bg: colors.primarySoft }}
                   onClick={() => setIsCalendarOpen(false)}
                 >
@@ -476,7 +477,7 @@ function UpcomingDeadlinesCard() {
               </Flex>
 
               <Grid templateColumns={{ base: "1fr", lg: "1.2fr 0.8fr" }} gap={0}>
-                <Box px={{ base: 5, md: 6 }} py={5} borderRight={{ base: "none", lg: "1px solid" }} borderColor={colors.lightBorder}>
+                <Box px={{ base: 5, md: 6 }} py={5} borderRight={{ base: "none", lg: "1px solid #e2e2eb" }} borderColor={colors.lightBorder}>
                   <HStack justify="space-between" mb={5}>
                     <HStack gap={2}>
                       <IconButton
@@ -531,7 +532,7 @@ function UpcomingDeadlinesCard() {
 
                     {calendarDays.map((day, index) => {
                       if (!day) {
-                        return <Box key={`empty-${index}`} h={{ base: "68px", md: "78px" }} />;
+                        return <Box key={`empty-${index}`} h={{ base: "60px", md: "44px" }} />;
                       }
 
                       const matchingDeadlines = deadlinesWithDates.filter((deadline) =>
@@ -542,7 +543,7 @@ function UpcomingDeadlinesCard() {
                       return (
                         <Button
                           key={day.toISOString()}
-                          h={{ base: "68px", md: "78px" }}
+                          h={{ base: "60px", md: "44px" }}
                           p={2.5}
                           borderRadius="12px"
                           border="1px solid"
