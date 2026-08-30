@@ -1,27 +1,294 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
-import { 
-  Box, 
-  VStack, 
-  HStack, 
-  Text, 
+import React, { useEffect, useMemo, useRef } from 'react';
+import {
+  Box,
+  Button,
   Flex,
+  Grid,
+  HStack,
   IconButton,
-  Textarea,
   Spinner,
-  Grid
+  Text,
+  Textarea,
+  VStack,
 } from '@chakra-ui/react';
-import { Send, Bot, User, ArrowLeft, Trash2, Copy, X, Sparkles, MessageSquare, FileText, ArrowRight, AlertTriangle, ListTodo, Edit2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Bot,
+  Brain,
+  Copy,
+  Edit2,
+  FileText,
+  ListTodo,
+  LogOut,
+  MessageSquare,
+  Mic,
+  MoreHorizontal,
+  Paperclip,
+  Send,
+  Settings,
+  Sparkles,
+  Trash2,
+  User,
+  X,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { asyncChatApi } from '@/services/asyncChatApi';
-import { RAGApiResponse } from '@/types/ragApi';
 import { toaster } from '@/components/ui/toaster';
 import { useChatContext } from '@/contexts/ChatContext';
+import type { RAGApiResponse } from '@/types/ragApi';
+
+const palette = {
+  page: '#FAFBFD',
+  surface: '#FFFFFF',
+  primary: '#1D7FE3',
+  primaryText: '#0B0C1C',
+  secondaryText: '#3D4B68',
+  mutedText: '#71809B',
+  border: '#E6EAF0',
+  lightBorder: '#EEF1F5',
+  primarySoft: '#E7F0FC',
+  danger: '#E2493A',
+};
+
+const promptChips = [
+  { label: 'Risk Analysis', prompt: 'Show risk analysis', icon: Sparkles },
+  { label: 'Pending Actions', prompt: 'Show pending actions', icon: ListTodo },
+  { label: 'Portfolio Health', prompt: 'How is my portfolio?', icon: FileText },
+  { label: 'Attrition Trend', prompt: 'Show attrition trend for the last 6 months', icon: MessageSquare },
+] as const;
+
+function getTextPreview(content?: string) {
+  if (!content) return 'No messages yet';
+  return content.length > 78 ? `${content.slice(0, 78)}...` : content;
+}
+
+function formatConversationDate(date: Date | string) {
+  const dateObj = new Date(date);
+  return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function AssistantOrb({ compact = false }: { compact?: boolean }) {
+  return (
+    <Box
+      position="relative"
+      w={compact ? '170px' : { base: '210px', md: '310px' }}
+      h={compact ? '170px' : { base: '210px', md: '310px' }}
+    >
+      <Box
+        position="absolute"
+        inset="7%"
+        borderRadius="full"
+        bg="radial-gradient(circle at 28% 22%, rgba(255,255,255,0.96) 0 12%, rgba(255,255,255,0) 22%), linear-gradient(145deg, rgba(255,146,208,0.88), rgba(95,210,232,0.86) 55%, rgba(29,127,227,0.62))"
+        boxShadow="inset -22px -26px 42px rgba(11,12,28,0.18), inset 20px 20px 36px rgba(255,255,255,0.72), 0 32px 80px rgba(29,127,227,0.2), 0 12px 40px rgba(226,73,58,0.08)"
+        border="1px solid rgba(255,255,255,0.78)"
+      />
+      <Box
+        position="absolute"
+        left="28%"
+        bottom="18%"
+        w="38%"
+        h="12%"
+        borderRadius="full"
+        bg="rgba(255,255,255,0.72)"
+        filter="blur(1px)"
+        transform="rotate(-8deg)"
+      />
+      <Box
+        position="absolute"
+        left="19%"
+        top="18%"
+        w="32%"
+        h="18%"
+        borderRadius="full"
+        bg="rgba(255,255,255,0.75)"
+        filter="blur(1px)"
+        transform="rotate(-22deg)"
+      />
+      <Box
+        position="absolute"
+        left="50%"
+        bottom="-18%"
+        transform="translateX(-50%)"
+        w="72%"
+        h="34%"
+        borderRadius="50%"
+        bg="linear-gradient(180deg, rgba(255,255,255,0.58), rgba(29,127,227,0.06))"
+        filter="blur(3px)"
+        opacity={0.8}
+      />
+      <Flex position="absolute" inset="0" align="center" justify="center" color="rgba(255,255,255,0.76)">
+        <Mic size={compact ? 20 : 28} strokeWidth={1.8} />
+      </Flex>
+    </Box>
+  );
+}
+
+function SidebarButton({
+  label,
+  icon,
+  isActive,
+  onClick,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  isActive?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <IconButton
+      aria-label={label}
+      title={label}
+      w="52px"
+      h="52px"
+      minW="52px"
+      borderRadius="18px"
+      bg={isActive ? 'linear-gradient(135deg, rgba(255,239,216,0.95), rgba(231,240,252,0.96))' : 'transparent'}
+      color={isActive ? palette.primaryText : palette.secondaryText}
+      border={isActive ? '1px solid rgba(255,255,255,0.9)' : '1px solid transparent'}
+      boxShadow={isActive ? '0 12px 28px rgba(29, 127, 227, 0.12)' : 'none'}
+      _hover={{ bg: palette.primarySoft, color: palette.primary }}
+      onClick={onClick}
+    >
+      {icon}
+    </IconButton>
+  );
+}
+
+function DataValue({ value }: { value: unknown }) {
+  if (value === null || value === undefined) return <Text color={palette.mutedText}>-</Text>;
+  if (typeof value === 'object') {
+    return (
+      <Text color={palette.secondaryText} whiteSpace="pre-wrap">
+        {JSON.stringify(value)}
+      </Text>
+    );
+  }
+
+  return (
+    <Text color={palette.secondaryText} whiteSpace="pre-wrap">
+      {String(value)}
+    </Text>
+  );
+}
+
+function StructuredResponse({ response }: { response: RAGApiResponse }) {
+  const dataSets = response.dataset ? Object.entries(response.dataset as Record<string, any>) : [];
+  const insights = response.insights as any;
+
+  if (dataSets.length === 0 && !insights) return null;
+
+  return (
+    <VStack align="stretch" gap={4} mt={4}>
+      {insights?.summary && (
+        <Box bg={palette.primarySoft} border="1px solid" borderColor="#D5E5FA" borderRadius="16px" p={4}>
+          <Text fontSize="13px" fontWeight="800" color={palette.primaryText} mb={2}>
+            Summary
+          </Text>
+          <Text fontSize="13px" lineHeight="1.65" color={palette.secondaryText}>
+            {insights.summary}
+          </Text>
+        </Box>
+      )}
+
+      {Array.isArray(insights?.key_findings) && insights.key_findings.length > 0 && (
+        <Box bg={palette.surface} border="1px solid" borderColor={palette.border} borderRadius="16px" p={4}>
+          <Text fontSize="13px" fontWeight="800" color={palette.primaryText} mb={3}>
+            Key Findings
+          </Text>
+          <VStack align="stretch" gap={2}>
+            {insights.key_findings.map((finding: any, index: number) => (
+              <HStack key={`${finding.reason ?? finding.title ?? index}`} align="start" gap={3}>
+                <Flex
+                  w="24px"
+                  h="24px"
+                  align="center"
+                  justify="center"
+                  borderRadius="full"
+                  bg={palette.primarySoft}
+                  color={palette.primary}
+                  flexShrink={0}
+                >
+                  <Text fontSize="11px" fontWeight="800">
+                    {index + 1}
+                  </Text>
+                </Flex>
+                <Box flex="1">
+                  <Text fontSize="13px" fontWeight="800" color={palette.primaryText}>
+                    {finding.reason ?? finding.title ?? 'Finding'}
+                  </Text>
+                  <Text fontSize="12px" color={palette.mutedText}>
+                    {finding.percentage ? `${finding.percentage}%` : finding.trend ?? finding.description ?? ''}
+                  </Text>
+                </Box>
+              </HStack>
+            ))}
+          </VStack>
+        </Box>
+      )}
+
+      {dataSets.map(([key, dataSet]) => {
+        const rows = Array.isArray(dataSet?.data) ? dataSet.data : [];
+        const columns = Array.isArray(dataSet?.columns)
+          ? dataSet.columns
+          : rows[0]
+            ? Object.keys(rows[0])
+            : [];
+
+        return (
+          <Box key={key} bg={palette.surface} border="1px solid" borderColor={palette.border} borderRadius="18px" overflow="hidden">
+            <Box px={4} py={3} bg="rgba(250, 251, 253, 0.84)" borderBottom="1px solid" borderColor={palette.lightBorder}>
+              <Text fontSize="13px" fontWeight="800" color={palette.primaryText}>
+                {dataSet?.description ?? key}
+              </Text>
+            </Box>
+            {rows.length > 0 ? (
+              <Box overflowX="auto">
+                <Grid
+                  minW="620px"
+                  templateColumns={`repeat(${Math.max(columns.length, 1)}, minmax(120px, 1fr))`}
+                  bg={palette.surface}
+                >
+                  {columns.map((column: string) => (
+                    <Box key={column} px={4} py={3} borderBottom="1px solid" borderColor={palette.lightBorder}>
+                      <Text fontSize="11px" fontWeight="800" color={palette.mutedText} textTransform="uppercase">
+                        {column.replaceAll('_', ' ')}
+                      </Text>
+                    </Box>
+                  ))}
+                  {rows.slice(0, 8).flatMap((row: any, rowIndex: number) =>
+                    columns.map((column: string) => (
+                      <Box
+                        key={`${rowIndex}-${column}`}
+                        px={4}
+                        py={3}
+                        borderBottom="1px solid"
+                        borderColor={palette.lightBorder}
+                        fontSize="12px"
+                        fontWeight="600"
+                      >
+                          <DataValue value={row[column]} />
+                      </Box>
+                    )),
+                  )}
+                </Grid>
+              </Box>
+            ) : (
+              <Box p={4}>
+                <Text fontSize="13px" color={palette.mutedText}>
+                  No rows returned for this response.
+                </Text>
+              </Box>
+            )}
+          </Box>
+        );
+      })}
+    </VStack>
+  );
+}
 
 export default function ChatPage() {
   const [inputMessage, setInputMessage] = React.useState('');
-  const [selectedAssociate, setSelectedAssociate] = React.useState<any>(null);
   const [isEmbedded, setIsEmbedded] = React.useState(() => {
     if (typeof window === 'undefined') return false;
     const urlParams = new URLSearchParams(window.location.search);
@@ -33,18 +300,33 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
-  
-  const { sendMessageAsync, isLoading, currentConversation, clearHistory, startNewConversation, conversations, loadConversation, deleteConversation } = useChatContext();
 
-  // Detect if running in embedded mode (iframe)
+  const {
+    sendMessageAsync,
+    isLoading,
+    currentConversation,
+    clearHistory,
+    startNewConversation,
+    conversations,
+    loadConversation,
+    deleteConversation,
+  } = useChatContext();
+
+  const currentMessages = currentConversation?.messages ?? [];
+  const showWelcome = currentMessages.length === 0 || (!hasStartedChat && isEmbedded);
+
+  const activeConversationTitle = useMemo(() => {
+    const firstUserMessage = currentConversation?.messages.find((message) => message.type === 'user');
+    return getTextPreview(currentConversation?.title ?? firstUserMessage?.content ?? 'New Conversation');
+  }, [currentConversation]);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const embedParam = urlParams.get('embed');
     const inIframe = window.self !== window.top;
     const embedded = embedParam === 'true' || inIframe;
     setIsEmbedded(embedded);
-    
-    // Remove body margins when embedded
+
     if (embedded) {
       document.body.style.margin = '0';
       document.body.style.padding = '0';
@@ -53,12 +335,8 @@ export default function ChatPage() {
     }
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentConversation]);
 
   const handleSendMessage = async (overrideMessage?: string) => {
@@ -79,17 +357,23 @@ export default function ChatPage() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
       handleSendMessage();
     }
-
   };
 
-  const clearChat = () => {
+  const handleNewChat = () => {
+    startNewConversation();
+    setHasStartedChat(false);
+    inputRef.current?.focus();
+  };
+
+  const handleClearChat = () => {
     clearHistory();
     startNewConversation();
+    setHasStartedChat(false);
   };
 
   const copyMessage = (content: string) => {
@@ -102,1346 +386,536 @@ export default function ChatPage() {
   };
 
   return (
-    <Box 
-      w="100vw" 
-      h="100vh" 
-      bg={isEmbedded ? "white" : "gray.50"} 
-      display="flex" 
-      flexDirection="column" 
-      m={0} 
+    <Box
+      w="100vw"
+      h="100vh"
+      bg={isEmbedded ? palette.surface : palette.page}
+      display="flex"
+      m={0}
       p={0}
-      position={isEmbedded ? "fixed" : "relative"}
-      top={isEmbedded ? 0 : undefined}
-      left={isEmbedded ? 0 : undefined}
-      right={isEmbedded ? 0 : undefined}
-      bottom={isEmbedded ? 0 : undefined}
+      position={isEmbedded ? 'fixed' : 'relative'}
+      inset={isEmbedded ? 0 : undefined}
+      overflow="hidden"
+      fontFamily="Arial, Helvetica, sans-serif"
     >
-      {/* Header */}
       {!isEmbedded && (
-      <Box
-        bg="linear-gradient(135deg, #0077b6 0%, #3b82f6 50%, #8b5cf6 100%)"
-        color="white"
-        px={6}
-        py={4}
-        boxShadow="0 2px 10px rgba(0,0,0,0.1)"
-      >
-        <HStack justify="space-between" align="center">
-          <HStack gap={4}>
-            <IconButton
-              aria-label="Go back"
-              variant="ghost"
-              color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
-              onClick={() => router.push('/')}
+        <Flex
+          as="aside"
+          w={{ base: '72px', md: '96px' }}
+          h="calc(100vh - 32px)"
+          m={{ base: 2, md: 4 }}
+          mr={0}
+          px={{ base: 2, md: 3 }}
+          py={4}
+          direction="column"
+          align="center"
+          justify="space-between"
+          bg="rgba(255,255,255,0.88)"
+          border="1px solid rgba(230,234,240,0.9)"
+          borderRadius="24px"
+          boxShadow="0 20px 70px rgba(11, 12, 28, 0.07)"
+          zIndex={2}
+        >
+          <VStack gap={8}>
+            <Flex
+              w="54px"
+              h="54px"
+              align="center"
+              justify="center"
+              borderRadius="18px"
+              bg="linear-gradient(135deg, #FFFFFF 0%, #E7F0FC 100%)"
+              border="1px solid"
+              borderColor={palette.border}
+              boxShadow="0 12px 28px rgba(29, 127, 227, 0.1)"
             >
-              <ArrowLeft size={20} />
-            </IconButton>
-            <HStack gap={3}>
-              <Box
-                w="40px"
-                h="40px"
-                borderRadius="full"
-                bg="linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                boxShadow="0 4px 12px rgba(0,0,0,0.2)"
-              >
-                <Bot size={20} color="white" />
-              </Box>
-              <VStack align="start" gap={0}>
-                <Text fontSize="lg" fontWeight="bold">
-                  Clyra AI
-                </Text>
-                <Text fontSize="sm" opacity={0.8}>
-                  Your Intelligent Assistant
-                </Text>
-              </VStack>
-            </HStack>
-          </HStack>
-          
-          <HStack gap={2}>
-            <IconButton
-              aria-label="Clear chat"
-              variant="ghost"
-              color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
-              onClick={clearChat}
-            >
-              <Trash2 size={18} />
-            </IconButton>
-            <IconButton
-              aria-label="Close chat"
-              variant="ghost"
-              color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
-              onClick={() => router.push('/')}
-            >
-              <X size={18} />
-            </IconButton>
-          </HStack>
-        </HStack>
-      </Box>
+              <Bot size={25} color={palette.primary} />
+            </Flex>
+
+            <VStack gap={3}>
+              <SidebarButton label="Assistant" icon={<Sparkles size={20} />} isActive />
+              <SidebarButton label="Conversations" icon={<MessageSquare size={20} />} />
+              <SidebarButton label="Settings" icon={<Settings size={20} />} />
+            </VStack>
+          </VStack>
+
+          <SidebarButton label="Back" icon={<LogOut size={19} />} onClick={() => router.push('/')} />
+        </Flex>
       )}
 
-      <Flex flex="1" overflow="hidden">
-        {/* Chat History Sidebar (main app only) */}
-        {!isEmbedded && (
-          <Box
-            w="320px"
-            flexShrink={0}
-            bg="white"
-            borderRight="1px solid"
-            borderColor="gray.200"
-            display="flex"
-            flexDirection="column"
-            overflow="hidden"
-          >
-            <HStack justify="space-between" align="center" px={5} py={4} borderBottom="1px solid" borderColor="gray.100">
-              <Text fontSize="lg" fontWeight="700" color="gray.900">
-                Chat History <Text as="span" color="gray.500" fontWeight="500">({String(conversations.length).padStart(2, '0')})</Text>
-              </Text>
-              <HStack gap={1}>
-                <IconButton
-                  aria-label="New chat"
-                  size="sm"
-                  variant="ghost"
-                  color="gray.600"
-                  _hover={{ bg: "purple.50", color: "purple.600" }}
-                  onClick={() => { startNewConversation(); setHasStartedChat(false); }}
-                  title="New chat"
-                >
-                  <Edit2 size={16} />
-                </IconButton>
-                <IconButton
-                  aria-label="Clear history"
-                  size="sm"
-                  variant="ghost"
-                  color="gray.600"
-                  _hover={{ bg: "red.50", color: "red.600" }}
-                  onClick={clearChat}
-                  title="Clear all history"
-                >
-                  <Trash2 size={16} />
-                </IconButton>
-              </HStack>
-            </HStack>
-
-            <Box flex="1" overflowY="auto" px={3} py={3} css={{
-              '&::-webkit-scrollbar': { width: '6px' },
-              '&::-webkit-scrollbar-thumb': { background: '#d1d5db', borderRadius: '3px' },
-            }}>
-              {conversations.length === 0 ? (
-                <Text fontSize="sm" color="gray.500" textAlign="center" mt={6}>
-                  No conversations yet. Start a new chat below.
-                </Text>
-              ) : (
-                <VStack align="stretch" gap={1}>
-                  {conversations.map((conv) => {
-                    const firstUserMsg = conv.messages.find(m => m.type === 'user');
-                    const lastAssistant = [...conv.messages].reverse().find(m => m.type === 'assistant');
-                    const title = conv.title || firstUserMsg?.content?.slice(0, 40) || 'New Conversation';
-                    const description = lastAssistant?.content?.slice(0, 70) || firstUserMsg?.content?.slice(0, 70) || 'No messages yet';
-                    const dateObj = new Date(conv.created_at);
-                    const dateLabel = `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
-                    const isActive = currentConversation?.id === conv.id;
-                    return (
-                      <Box
-                        key={conv.id}
-                        px={3}
-                        py={3}
-                        borderRadius="lg"
-                        cursor="pointer"
-                        bg={isActive ? "purple.50" : "transparent"}
-                        borderLeft={isActive ? "3px solid #a855f7" : "3px solid transparent"}
-                        transition="all 0.15s"
-                        _hover={{ bg: isActive ? "purple.50" : "gray.50" }}
-                        onClick={() => { loadConversation(conv.id); setHasStartedChat(true); }}
-                        role="group"
-                      >
-                        <HStack justify="space-between" align="start" mb={1} gap={2}>
-                          <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1} flex="1">
-                            {title}
-                          </Text>
-                          <Text fontSize="xs" color="gray.500" flexShrink={0}>{dateLabel}</Text>
-                        </HStack>
-                        <HStack justify="space-between" align="center" gap={2}>
-                          <Text fontSize="xs" color="gray.600" lineClamp={2} flex="1">
-                            {description}
-                          </Text>
-                          <IconButton
-                            aria-label="Delete conversation"
-                            size="xs"
-                            variant="ghost"
-                            color="gray.400"
-                            opacity={0}
-                            _groupHover={{ opacity: 1 }}
-                            _hover={{ color: "red.500", bg: "red.50" }}
-                            onClick={(e) => { e.stopPropagation(); deleteConversation(conv.id); }}
-                          >
-                            <Trash2 size={12} />
-                          </IconButton>
-                        </HStack>
-                      </Box>
-                    );
-                  })}
-                </VStack>
-              )}
-            </Box>
-          </Box>
-        )}
-
-      {/* Messages Container */}
-      <Box
-        flex="1"
-        overflow="hidden"
-        display="flex"
-        flexDirection="column"
-      >
-        <Box
-          flex="1"
-          overflowY="auto"
-          px={isEmbedded ? 0 : 4}
-          py={isEmbedded ? 0 : 6}
-          css={{
-            '&::-webkit-scrollbar': {
-              width: '6px',
-            },
-            '&::-webkit-scrollbar-track': {
-              background: '#f1f1f1',
-              borderRadius: '3px',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              background: '#c1c1c1',
-              borderRadius: '3px',
-            },
-            '&::-webkit-scrollbar-thumb:hover': {
-              background: '#a8a8a8',
-            },
-          }}
+      <Box flex="1" p={isEmbedded ? 0 : { base: 2, md: 4 }} minW={0}>
+        <Flex
+          h="100%"
+          borderRadius={isEmbedded ? 0 : '28px'}
+          overflow="hidden"
+          position="relative"
+          bg="linear-gradient(135deg, rgba(255,247,238,0.88) 0%, rgba(255,255,255,0.9) 43%, rgba(231,240,252,0.95) 100%)"
+          border={isEmbedded ? 'none' : '1px solid rgba(230,234,240,0.95)'}
+          boxShadow={isEmbedded ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 24px 70px rgba(11, 12, 28, 0.075)'}
         >
-          <VStack gap={6} align="stretch" maxW={isEmbedded ? "78%" : "4xl"} mx="auto" px={isEmbedded ? 4 : 0} pt={isEmbedded ? "96px" : 0} pb={isEmbedded ? 4 : 0}>
-            {isEmbedded && !hasStartedChat && (
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                minH="calc(100vh - 240px)"
-                px={8}
-                py={8}
-              >
-                {/* Logo */}
-                <Box
-                  w="72px"
-                  h="72px"
-                  borderRadius="full"
-                  bg="linear-gradient(135deg, #d8b4fe 0%, #a855f7 100%)"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  mb={5}
-                  boxShadow="0 8px 24px rgba(168, 85, 247, 0.25)"
-                >
-                  <Bot size={36} color="white" />
-                </Box>
+          <Box
+            position="absolute"
+            inset={0}
+            opacity={0.32}
+            bgImage="linear-gradient(rgba(113,128,155,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(113,128,155,0.09) 1px, transparent 1px)"
+            bgSize="32px 32px"
+            maskImage="radial-gradient(circle at 50% 42%, black 0%, transparent 46%)"
+            pointerEvents="none"
+          />
 
-                {/* Title */}
-                
-                <Text
-                  fontSize="2xl"
-                  fontWeight="700"
-                  color="#7c3aed"
-                  mb={3}
-                  textAlign="center"
-                >
-                  Effortless Support, Anytime
-                </Text>
-
-                {/* Subtitle */}
-                <Text
-                  fontSize="md"
-                  color="gray.600"
-                  mb={12}
-                  textAlign="center"
-                  maxW="600px"
-                >
-                  Providing Seamless Assistance, Every Step of the Way
-                </Text>
-
-                {/* Action Cards */}
-                <VStack gap={4} w="100%" maxW="500px">
-                  <Box
-                    w="100%"
-                    bg="white"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    borderRadius="xl"
-                    px={5}
-                    py={4}
-                    cursor="pointer"
-                    transition="all 0.2s"
-                    _hover={{
-                      borderColor: "#a855f7",
-                      boxShadow: "0 4px 12px rgba(168, 85, 247, 0.1)",
-                      transform: "translateY(-1px)"
-                    }}
-                    onClick={() => handleSendMessage("Show risk analysis")}
-                  >
-                    <HStack justify="space-between">
-                      <HStack gap={4}>
-                        <Box
-                          w="40px"
-                          h="40px"
-                          borderRadius="lg"
-                          bg="red.50"
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="center"
-                        >
-                          <AlertTriangle size={20} color="#ef4444" />
-                        </Box>
-                        <Text fontSize="md" fontWeight="600" color="gray.800">
-                          Risk Analysis
-                        </Text>
-                      </HStack>
-                      <ArrowRight size={18} color="#9ca3af" />
-                    </HStack>
-                  </Box>
-
-                  <Box
-                    w="100%"
-                    bg="white"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    borderRadius="xl"
-                    px={5}
-                    py={4}
-                    cursor="pointer"
-                    transition="all 0.2s"
-                    _hover={{
-                      borderColor: "#a855f7",
-                      boxShadow: "0 4px 12px rgba(168, 85, 247, 0.1)",
-                      transform: "translateY(-1px)"
-                    }}
-                    onClick={() => handleSendMessage("Show pending actions")}
-                  >
-                    <HStack justify="space-between">
-                      <HStack gap={4}>
-                        <Box
-                          w="40px"
-                          h="40px"
-                          borderRadius="lg"
-                          bg="blue.50"
-                          display="flex"
-                          alignItems="center"
-                          justifyContent="center"
-                        >
-                          <ListTodo size={20} color="#3b82f6" />
-                        </Box>
-                        <Text fontSize="md" fontWeight="600" color="gray.800">
-                          Pending Actions
-                        </Text>
-                      </HStack>
-                      <ArrowRight size={18} color="#9ca3af" />
-                    </HStack>
-                  </Box>
-                </VStack>
-              </Flex>
-            )}
-            {!isEmbedded && (!currentConversation || currentConversation.messages.length === 0) && (
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                minH="calc(100vh - 280px)"
-                px={8}
-                py={8}
-              >
-                <Box
-                  w="72px"
-                  h="72px"
-                  borderRadius="full"
-                  bg="linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  mb={6}
-                  boxShadow="0 8px 24px rgba(139, 92, 246, 0.25)"
-                >
-                  <Bot size={36} color="white" />
-                </Box>
-                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={3} textAlign="center">
-                  Good to see you.
-                </Text>
-                <Text fontSize="md" color="gray.600" textAlign="center" maxW="620px" lineHeight="1.7">
-                  Hello! I&apos;m <Text as="span" fontWeight="700" color="#7c3aed">Clyra AI</Text>, your intelligent assistant. I can help you with project insights, team analytics, action items, and much more. What would you like to know?
-                </Text>
-              </Flex>
-            )}
-            {(!isEmbedded || hasStartedChat) && currentConversation?.messages.map((message) => (
-              <Flex
-                key={message.id}
-                justify={message.type === 'user' ? 'flex-end' : 'flex-start'}
-                align="flex-start"
-                gap={3}
-              >
-                {message.type === 'assistant' && (
-                  <Box
-                    w="32px"
-                    h="32px"
-                    borderRadius="full"
-                    bg="linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    flexShrink={0}
-                    mt={1}
-                  >
-                    <Bot size={16} color="white" />
-                  </Box>
-                )}
-                
-                <Box
-                  maxW={isEmbedded ? "95%" : "70%"}
-                  bg={message.type === 'user' ? 
-                    'linear-gradient(135deg, #0077b6 0%, #3b82f6 100%)' : 
-                    'white'
-                  }
-                  color={message.type === 'user' ? 'white' : 'gray.800'}
-                  px={4}
-                  py={3}
-                  borderRadius="2xl"
-                  boxShadow="0 2px 8px rgba(0,0,0,0.1)"
-                  position="relative"
-                  _hover={{
-                    '& .message-actions': {
-                      opacity: 1
-                    }
-                  }}
-                >
-                  <Text fontSize="sm" lineHeight="1.5" whiteSpace="pre-wrap">
-                    {message.content}
+          {!isEmbedded && (
+            <Box
+              w={{ base: '0', lg: '300px' }}
+              display={{ base: 'none', lg: 'flex' }}
+              flexDirection="column"
+              bg="rgba(255,255,255,0.68)"
+              borderRight="1px solid rgba(230,234,240,0.76)"
+              backdropFilter="blur(20px)"
+              zIndex={1}
+            >
+              <HStack justify="space-between" px={5} py={5} borderBottom="1px solid" borderColor="rgba(230,234,240,0.76)">
+                <Box>
+                  <Text fontSize="15px" fontWeight="800" color={palette.primaryText}>
+                    Chat History
                   </Text>
-                  
-                  {/* Render structured response if available */}
-                  {message.response && message.response.dataset && (
-                    <Box mt={4}>
-                      {Object.entries(message.response.dataset).map(([key, dataSet]: [string, any]) => (
-                        <Box key={key} bg="white" borderRadius="xl" border="1px" borderColor="gray.200" shadow="sm" overflow="hidden">
-                          {/* Header */}
-                          <Box bg="linear-gradient(135deg, #0077b6 0%, #3b82f6 100%)" p={4}>
-                            <Text fontWeight="bold" fontSize="md" color="white">{dataSet.description}</Text>
-                          </Box>
-                          
-                          {/* Attrition Trend Graph */}
-                          {dataSet.data && dataSet.data.some((row: any) => row.attrition_rate) && (
-                            <Box p={5}>
-                              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={4}>
-                                Attrition Rate Over Time
-                              </Text>
-                              <Box bg="gray.50" p={4} borderRadius="lg" mb={5}>
-                                <Box h="200px" position="relative">
-                                  <svg width="100%" height="100%" viewBox="0 0 600 200">
-                                    <defs>
-                                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor="#f97316" />
-                                        <stop offset="100%" stopColor="#ef4444" />
-                                      </linearGradient>
-                                    </defs>
-                                    
-                                    {/* Grid lines */}
-                                    {[0, 25, 50, 75, 100].map((pct, idx) => (
-                                      <line
-                                        key={idx}
-                                        x1="50"
-                                        y1={30 + (pct / 100) * 140}
-                                        x2="570"
-                                        y2={30 + (pct / 100) * 140}
-                                        stroke="#e5e7eb"
-                                        strokeWidth="1"
-                                      />
-                                    ))}
-                                    
-                                    {/* Line */}
-                                    <polyline
-                                      fill="none"
-                                      stroke="url(#lineGradient)"
-                                      strokeWidth="3"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      points={dataSet.data.map((row: any, idx: number) => {
-                                        const rateValue = parseFloat(row.attrition_rate);
-                                        const maxRate = Math.max(...dataSet.data.map((r: any) => parseFloat(r.attrition_rate)));
-                                        const x = 70 + (idx / (dataSet.data.length - 1)) * 480;
-                                        const y = 170 - ((rateValue / maxRate) * 140);
-                                        return `${x},${y}`;
-                                      }).join(' ')}
-                                    />
-                                    
-                                    {/* Data points and labels */}
-                                    {dataSet.data.map((row: any, idx: number) => {
-                                      const rateValue = parseFloat(row.attrition_rate);
-                                      const maxRate = Math.max(...dataSet.data.map((r: any) => parseFloat(r.attrition_rate)));
-                                      const x = 70 + (idx / (dataSet.data.length - 1)) * 480;
-                                      const y = 170 - ((rateValue / maxRate) * 140);
-                                      return (
-                                        <g key={idx}>
-                                          <circle
-                                            cx={x}
-                                            cy={y}
-                                            r="6"
-                                            fill="#ef4444"
-                                            stroke="white"
-                                            strokeWidth="3"
-                                          />
-                                          <text
-                                            x={x}
-                                            y={y - 15}
-                                            textAnchor="middle"
-                                            fontSize="12"
-                                            fontWeight="bold"
-                                            fill="#374151"
-                                          >
-                                            {row.attrition_rate}
-                                          </text>
-                                          <text
-                                            x={x}
-                                            y={190}
-                                            textAnchor="middle"
-                                            fontSize="11"
-                                            fill="#6b7280"
-                                          >
-                                            {row.month.split(' ')[0]}
-                                          </text>
-                                        </g>
-                                      );
-                                    })}
-                                  </svg>
-                                </Box>
-                              </Box>
-                              
-                              {/* Top Reasons */}
-                              {message.response?.insights && (message.response.insights as any).key_findings && (
-                                <Box>
-                                  <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={3}>
-                                    Top Reasons for Attrition
-                                  </Text>
-                                  <VStack align="stretch" gap={3}>
-                                    {(message.response.insights as any).key_findings.map((finding: any, idx: number) => (
-                                      <HStack key={idx} gap={4} align="center">
-                                        <Box flex="1">
-                                          <HStack justify="space-between" mb={1}>
-                                            <Text fontSize="sm" fontWeight="medium" color="gray.800">
-                                              {finding.reason}
-                                            </Text>
-                                            <HStack gap={2}>
-                                              <Text fontSize="sm" fontWeight="bold" color="orange.600">
-                                                {finding.percentage}%
-                                              </Text>
-                                              <Box
-                                                px={2}
-                                                py={0.5}
-                                                borderRadius="md"
-                                                bg={
-                                                  finding.trend === 'increasing' ? 'red.50' :
-                                                  finding.trend === 'decreasing' ? 'green.50' : 'gray.50'
-                                                }
-                                              >
-                                                <Text
-                                                  fontSize="xs"
-                                                  color={
-                                                    finding.trend === 'increasing' ? 'red.600' :
-                                                    finding.trend === 'decreasing' ? 'green.600' : 'gray.600'
-                                                  }
-                                                  fontWeight="medium"
-                                                >
-                                                  {finding.trend}
-                                                </Text>
-                                              </Box>
-                                            </HStack>
-                                          </HStack>
-                                          <Box w="100%" bg="gray.200" h="2" borderRadius="full">
-                                            <Box
-                                              w={`${finding.percentage}%`}
-                                              bg={
-                                                finding.trend === 'increasing' ? 'linear-gradient(90deg, #f97316 0%, #ef4444 100%)' :
-                                                finding.trend === 'decreasing' ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)' : 'gray.400'
-                                              }
-                                              h="2"
-                                              borderRadius="full"
-                                            />
-                                          </Box>
-                                        </Box>
-                                      </HStack>
-                                    ))}
-                                  </VStack>
-                                </Box>
-                              )}
-                              
-                              {/* Summary */}
-                              {message.response?.insights && (message.response.insights as any).summary && (
-                                <Box mt={5} bg="blue.50" p={4} borderRadius="lg">
-                                  <HStack gap={3} mb={2}>
-                                    <Box
-                                      w="8"
-                                      h="8"
-                                      borderRadius="full"
-                                      bg="blue.500"
-                                      color="white"
-                                      display="flex"
-                                      alignItems="center"
-                                      justifyContent="center"
-                                    >
-                                      <Text fontSize="sm">📊</Text>
-                                    </Box>
-                                    <Text fontSize="sm" fontWeight="bold" color="blue.800">
-                                      Summary
-                                    </Text>
-                                  </HStack>
-                                  <Text fontSize="sm" color="blue.900" pl={11}>
-                                    {(message.response.insights as any).summary}
-                                  </Text>
-                                </Box>
-                              )}
-                            </Box>
-                          )}
-                          
-                          {/* Portfolio Health */}
-                          {dataSet.data && dataSet.data.some((row: any) => row.health_status) && (
-                            <Box p={5}>
-                              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={4}>
-                                Project Health Status
-                              </Text>
-                              <VStack align="stretch" gap={3}>
-                                {dataSet.data.map((row: any, idx: number) => (
-                                  <Box
-                                    key={idx}
-                                    bg="white"
-                                    p={4}
-                                    borderRadius="lg"
-                                    border="2px"
-                                    borderColor={
-                                      row.health_status === 'green' ? 'green.200' :
-                                      row.health_status === 'amber' ? 'yellow.300' : 'red.300'
-                                    }
-                                    shadow="sm"
-                                  >
-                                    <HStack justify="space-between" align="start" mb={3}>
-                                      <Box flex="1">
-                                        <Text fontSize="md" fontWeight="bold" color="gray.900" mb={1}>
-                                          {row.project_name}
-                                        </Text>
-                                        <HStack gap={2} flexWrap="wrap">
-                                          <Text fontSize="xs" color="gray.500">Team: {row.team_size}</Text>
-                                          <Text fontSize="xs" color="gray.500">•</Text>
-                                          <Text fontSize="xs" color="gray.500">Budget: {row.budget_utilization}</Text>
-                                          <Text fontSize="xs" color="gray.500">•</Text>
-                                          <Text fontSize="xs" color="gray.500">Deadline: {row.deadline}</Text>
-                                        </HStack>
-                                      </Box>
-                                      <Box
-                                        px={3}
-                                        py={1}
-                                        borderRadius="full"
-                                        bg={
-                                          row.health_status === 'green' ? 'green.100' :
-                                          row.health_status === 'amber' ? 'yellow.100' : 'red.100'
-                                        }
-                                      >
-                                        <Text
-                                          fontSize="xs"
-                                          fontWeight="bold"
-                                          color={
-                                            row.health_status === 'green' ? 'green.700' :
-                                            row.health_status === 'amber' ? 'yellow.700' : 'red.700'
-                                          }
-                                        >
-                                          {row.health_status.toUpperCase()}
-                                        </Text>
-                                      </Box>
-                                    </HStack>
-                                    
-                                    {/* Progress Bar */}
-                                    <Box mb={2}>
-                                      <HStack justify="space-between" mb={1}>
-                                        <Text fontSize="xs" color="gray.600">Progress</Text>
-                                        <Text fontSize="xs" fontWeight="bold" color="gray.700">{row.completion_percentage}%</Text>
-                                      </HStack>
-                                      <Box w="100%" bg="gray.200" h="2" borderRadius="full">
-                                        <Box
-                                          w={`${row.completion_percentage}%`}
-                                          bg={
-                                            row.health_status === 'green' ? 'green.500' :
-                                            row.health_status === 'amber' ? 'yellow.500' : 'red.500'
-                                          }
-                                          h="2"
-                                          borderRadius="full"
-                                        />
-                                      </Box>
-                                    </Box>
-                                  </Box>
-                                ))}
-                              </VStack>
-                              
-                              {/* Red Project Details */}
-                              {message.response?.insights && (message.response.insights as any).red_project_details && (
-                                <Box mt={5}>
-                                  <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={3}>
-                                    Critical Issues - Red Projects
-                                  </Text>
-                                  {(message.response.insights as any).red_project_details.map((project: any, pIdx: number) => (
-                                    <Box key={pIdx} bg="red.50" p={4} borderRadius="lg" border="1px" borderColor="red.200">
-                                      <Text fontSize="sm" fontWeight="bold" color="red.800" mb={3}>
-                                        {project.project_name}
-                                      </Text>
-                                      
-                                      <VStack align="stretch" gap={2} mb={4}>
-                                        {project.reasons.map((reason: any, rIdx: number) => (
-                                          <HStack key={rIdx} gap={3} align="start">
-                                            <Box
-                                              w="6"
-                                              h="6"
-                                              borderRadius="full"
-                                              bg={reason.severity === 'critical' ? 'red.600' : 'orange.500'}
-                                              color="white"
-                                              display="flex"
-                                              alignItems="center"
-                                              justifyContent="center"
-                                              flexShrink={0}
-                                              mt="2px"
-                                            >
-                                              <Text fontSize="xs">!</Text>
-                                            </Box>
-                                            <Text fontSize="sm" color="red.900">
-                                              {reason.reason}
-                                            </Text>
-                                          </HStack>
-                                        ))}
-                                      </VStack>
-                                      
-                                      {/* Associates at Risk */}
-                                      {project.associates_at_risk && project.associates_at_risk.length > 0 && (
-                                        <Box mb={4}>
-                                          <Text fontSize="xs" fontWeight="bold" color="red.700" mb={3}>
-                                            Associates at Risk ({project.associates_at_risk.length})
-                                          </Text>
-                                          <HStack gap={3} flexWrap="wrap">
-                                            {project.associates_at_risk.map((associate: any, aIdx: number) => (
-                                              <Box key={aIdx} bg="white" p={3} borderRadius="lg" border="1px" borderColor="red.200" minW="180px">
-                                                <HStack gap={3} align="center" mb={2}>
-                                                  <Box
-                                                    w="10"
-                                                    h="10"
-                                                    borderRadius="full"
-                                                    overflow="hidden"
-                                                    border="2px"
-                                                    borderColor="red.300"
-                                                    flexShrink={0}
-                                                  >
-                                                    <img src={associate.photo} alt={associate.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                  </Box>
-                                                  <Text fontSize="sm" fontWeight="bold" color="gray.900">
-                                                    {associate.name}
-                                                  </Text>
-                                                </HStack>
-                                                <Text fontSize="xs" color="red.700">
-                                                  {associate.risk_reason}
-                                                </Text>
-                                              </Box>
-                                            ))}
-                                          </HStack>
-                                        </Box>
-                                      )}
-                                      
-                                      <Box bg="white" p={3} borderRadius="md">
-                                        <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={2}>
-                                          Recommended Actions:
-                                        </Text>
-                                        <VStack align="stretch" gap={1}>
-                                          {project.recommended_actions.map((action: string, aIdx: number) => (
-                                            <HStack key={aIdx} gap={2} align="start">
-                                              <Text fontSize="xs" color="blue.600">•</Text>
-                                              <Text fontSize="xs" color="gray.700">{action}</Text>
-                                            </HStack>
-                                          ))}
-                                        </VStack>
-                                      </Box>
-                                    </Box>
-                                  ))}
-                                </Box>
-                              )}
-                            </Box>
-                          )}
-                          
-                          {/* Risk Associates Grid */}
-                          {dataSet.data && dataSet.data.some((row: any) => row.attrition_risk) && !selectedAssociate && (
-                            <Box p={5}>
-                              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={4}>
-                                Associates at Risk
-                              </Text>
-                              <Text fontSize="sm" color="gray.600" mb={4}>
-                {(message.response?.insights as any)?.summary || 'Click on any associate to view their detailed retention plan.'}
-                              </Text>
-                              <Grid templateColumns="repeat(3, 1fr)" gap={4}>
-                                {dataSet.data.map((row: any, idx: number) => (
-                                  <Box
-                                    key={idx}
-                                    cursor="pointer"
-                                    onClick={() => setSelectedAssociate(row)}
-                                    bg="white"
-                                    p={4}
-                                    borderRadius="lg"
-                                    border="2px"
-                                    borderColor={
-                                      row.attrition_risk === 'critical' ? 'red.300' :
-                                      row.attrition_risk === 'high' ? 'orange.300' : 'yellow.300'
-                                    }
-                                    shadow="sm"
-                                    _hover={{
-                                      shadow: 'md',
-                                      transform: 'translateY(-2px)',
-                                      transition: 'all 0.2s ease'
-                                    }}
-                                    transition="all 0.2s ease"
-                                  >
-                                    <VStack align="center" gap={3}>
-                                      <Box
-                                        w="80px"
-                                        h="80px"
-                                        borderRadius="full"
-                                        overflow="hidden"
-                                        border="3px"
-                                        borderColor={
-                                          row.attrition_risk === 'critical' ? 'red.400' :
-                                          row.attrition_risk === 'high' ? 'orange.400' : 'yellow.400'
-                                        }
-                                        shadow="md"
-                                      >
-                                        <img src={row.photo} alt={row.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                      </Box>
-                                      <Text fontSize="sm" fontWeight="bold" color="gray.900" textAlign="center">
-                                        {row.name}
-                                      </Text>
-                                      <Text fontSize="xs" color="gray.600" textAlign="center">
-                                        {row.designation}
-                                      </Text>
-                                      <HStack gap={2}>
-                                        <Box
-                                          px={2}
-                                          py={0.5}
-                                          borderRadius="md"
-                                          bg={
-                                            row.attrition_risk === 'critical' ? 'red.100' :
-                                            row.attrition_risk === 'high' ? 'orange.100' : 'yellow.100'
-                                          }
-                                        >
-                                          <Text
-                                            fontSize="xs"
-                                            fontWeight="bold"
-                                            color={
-                                              row.attrition_risk === 'critical' ? 'red.700' :
-                                              row.attrition_risk === 'high' ? 'orange.700' : 'yellow.700'
-                                            }
-                                          >
-                                            {row.attrition_risk.toUpperCase()}
-                                          </Text>
-                                        </Box>
-                                        <Text fontSize="xs" color="gray.500">
-                                          {row.tenure}
-                                        </Text>
-                                      </HStack>
-                                    </VStack>
-                                  </Box>
-                                ))}
-                              </Grid>
-                            </Box>
-                          )}
-                          
-                          {/* Selected Associate Retention Plan */}
-                          {selectedAssociate && (
-                            <Box p={5}>
-                              <HStack gap={3} mb={4}>
-                                <Box
-                                  cursor="pointer"
-                                  onClick={() => setSelectedAssociate(null)}
-                                  p={2}
-                                  borderRadius="md"
-                                  _hover={{ bg: 'gray.100' }}
-                                  transition="all 0.2s"
-                                >
-                                  <ArrowLeft size={20} color="#6b7280" />
-                                </Box>
-                                <Text fontSize="sm" fontWeight="bold" color="gray.700">
-                                  Back to Associates
-                                </Text>
-                              </HStack>
-                              
-                              {/* Employee Profile */}
-                              <HStack gap={4} align="start" mb={5}>
-                                <Box
-                                  w="80px"
-                                  h="80px"
-                                  borderRadius="full"
-                                  overflow="hidden"
-                                  border="3px"
-                                  borderColor="blue.200"
-                                  shadow="md"
-                                  flexShrink={0}
-                                >
-                                  <img src={selectedAssociate.photo} alt={selectedAssociate.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                </Box>
-                                <Box flex="1">
-                                  <Text fontSize="xl" fontWeight="bold" color="gray.900" mb={1}>
-                                    {selectedAssociate.name}
-                                  </Text>
-                                  <Text fontSize="sm" color="gray.600" mb={1}>
-                                    {selectedAssociate.designation} • {selectedAssociate.department}
-                                  </Text>
-                                  <HStack gap={3} flexWrap="wrap">
-                                    <Text fontSize="xs" color="gray.500">Tenure: {selectedAssociate.tenure}</Text>
-                                    <Text fontSize="xs" color="gray.500">•</Text>
-                                    <Text fontSize="xs" color="gray.500">Attrition Risk: {selectedAssociate.attrition_risk}</Text>
-                                  </HStack>
-                                </Box>
-                              </HStack>
-                              
-                              {/* Mock concerns, impact, and remediation for selected associate */}
-                              <Box mb={5}>
-                                <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={3}>
-                                  Identified Concerns
-                                </Text>
-                                <VStack align="stretch" gap={3}>
-                                  <Box
-                                    bg="white"
-                                    p={4}
-                                    borderRadius="lg"
-                                    border="1px"
-                                    borderColor={selectedAssociate.attrition_risk === 'critical' ? 'red.300' : 'orange.300'}
-                                    shadow="sm"
-                                  >
-                                    <HStack justify="space-between" mb={2}>
-                                      <Text fontSize="sm" fontWeight="bold" color="gray.900">
-                                        Career Growth
-                                      </Text>
-                                      <Box
-                                        px={2}
-                                        py={0.5}
-                                        borderRadius="md"
-                                        bg={selectedAssociate.attrition_risk === 'critical' ? 'red.100' : 'orange.100'}
-                                      >
-                                        <Text
-                                          fontSize="xs"
-                                          fontWeight="bold"
-                                          color={selectedAssociate.attrition_risk === 'critical' ? 'red.700' : 'orange.700'}
-                                        >
-                                          {selectedAssociate.attrition_risk.toUpperCase()}
-                                        </Text>
-                                      </Box>
-                                    </HStack>
-                                    <Text fontSize="sm" color="gray.700">
-                                      {selectedAssociate.attrition_risk === 'critical' 
-                                        ? 'Has received a competitive offer from a competitor with significant salary increase and senior role'
-                                        : 'Lack of clear career progression and growth opportunities in current role'}
-                                    </Text>
-                                  </Box>
-                                </VStack>
-                              </Box>
-                              
-                              <Box mb={5}>
-                                <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={3}>
-                                  Impact of Departure
-                                </Text>
-                                <Box bg="red.50" p={4} borderRadius="lg" border="1px" borderColor="red.200">
-                                  <VStack align="stretch" gap={3}>
-                                    <HStack gap={3} align="start">
-                                      <Box
-                                        w="6"
-                                        h="6"
-                                        borderRadius="full"
-                                        bg="red.600"
-                                        color="white"
-                                        display="flex"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        flexShrink={0}
-                                        mt="2px"
-                                      >
-                                        <Text fontSize="xs">!</Text>
-                                      </Box>
-                                      <Box>
-                                        <Text fontSize="xs" fontWeight="bold" color="red.800" mb={1}>
-                                          Immediate Impact
-                                        </Text>
-                                        <Text fontSize="sm" color="red.900">
-                                          Loss of critical domain knowledge and project momentum
-                                        </Text>
-                                      </Box>
-                                    </HStack>
-                                    <HStack gap={3} align="start">
-                                      <Box
-                                        w="6"
-                                        h="6"
-                                        borderRadius="full"
-                                        bg="orange.500"
-                                        color="white"
-                                        display="flex"
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        flexShrink={0}
-                                        mt="2px"
-                                      >
-                                        <Text fontSize="xs">!</Text>
-                                      </Box>
-                                      <Box>
-                                        <Text fontSize="xs" fontWeight="bold" color="orange.800" mb={1}>
-                                          Project Risk
-                                        </Text>
-                                        <Text fontSize="sm" color="orange.900">
-                                          Current projects may face delays of 2-4 weeks requiring replacement hiring
-                                        </Text>
-                                      </Box>
-                                    </HStack>
-                                  </VStack>
-                                </Box>
-                              </Box>
-                              
-                              <Box>
-                                <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={3}>
-                                  Remediation Plan
-                                </Text>
-                                <VStack align="stretch" gap={4}>
-                                  <Box>
-                                    <Text fontSize="sm" fontWeight="bold" color="gray.900" mb={3}>
-                                      Immediate (Within 1 week)
-                                    </Text>
-                                    <VStack align="stretch" gap={2}>
-                                      <Box bg="white" p={3} borderRadius="lg" border="1px" borderColor="gray.200" shadow="sm">
-                                        <HStack justify="space-between" align="start" mb={2}>
-                                          <Text fontSize="sm" color="gray.800" flex="1">
-                                            Schedule 1:1 meeting to discuss career aspirations and concerns
-                                          </Text>
-                                          <HStack gap={2}>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="blue.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="blue.700">Manager</Text>
-                                            </Box>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="gray.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="gray.700">pending</Text>
-                                            </Box>
-                                          </HStack>
-                                        </HStack>
-                                      </Box>
-                                      <Box bg="white" p={3} borderRadius="lg" border="1px" borderColor="gray.200" shadow="sm">
-                                        <HStack justify="space-between" align="start" mb={2}>
-                                          <Text fontSize="sm" color="gray.800" flex="1">
-                                            Review compensation package and consider adjustment
-                                          </Text>
-                                          <HStack gap={2}>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="blue.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="blue.700">HR</Text>
-                                            </Box>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="gray.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="gray.700">pending</Text>
-                                            </Box>
-                                          </HStack>
-                                        </HStack>
-                                      </Box>
-                                    </VStack>
-                                  </Box>
-                                  <Box>
-                                    <Text fontSize="sm" fontWeight="bold" color="gray.900" mb={3}>
-                                      Short-term (Within 1 month)
-                                    </Text>
-                                    <VStack align="stretch" gap={2}>
-                                      <Box bg="white" p={3} borderRadius="lg" border="1px" borderColor="gray.200" shadow="sm">
-                                        <HStack justify="space-between" align="start" mb={2}>
-                                          <Text fontSize="sm" color="gray.800" flex="1">
-                                            Provide clear career development plan with milestones
-                                          </Text>
-                                          <HStack gap={2}>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="blue.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="blue.700">Manager</Text>
-                                            </Box>
-                                            <Box px={2} py={0.5} borderRadius="md" bg="gray.100">
-                                              <Text fontSize="xs" fontWeight="bold" color="gray.700">pending</Text>
-                                            </Box>
-                                          </HStack>
-                                        </HStack>
-                                      </Box>
-                                    </VStack>
-                                  </Box>
-                                </VStack>
-                              </Box>
-                            </Box>
-                          )}
+                  <Text fontSize="12px" fontWeight="700" color={palette.mutedText}>
+                    {String(conversations.length).padStart(2, '0')} conversations
+                  </Text>
+                </Box>
+                <HStack gap={1}>
+                  <IconButton aria-label="New chat" size="sm" variant="ghost" onClick={handleNewChat} color={palette.secondaryText}>
+                    <Edit2 size={16} />
+                  </IconButton>
+                  <IconButton aria-label="Clear history" size="sm" variant="ghost" onClick={handleClearChat} color={palette.secondaryText}>
+                    <Trash2 size={16} />
+                  </IconButton>
+                </HStack>
+              </HStack>
 
-                          {/* Risk Analysis Table */}
-                          {dataSet.data && dataSet.data.some((row: any) => row.project_risk) && (
-                            <Box p={5}>
-                              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={4}>
-                                Projects At Risk &middot; Associate Attrition Risk &middot; Recommendations
-                              </Text>
-                              <Box bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" overflow="hidden" boxShadow="0 1px 3px rgba(0,0,0,0.04)">
-                                <Box bg="linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)" px={4} py={3}>
-                                  <HStack gap={4}>
-                                    <Box flex="1.4"><Text fontSize="xs" fontWeight="700" color="red.800" textTransform="uppercase">Project</Text></Box>
-                                    <Box flex="0.8"><Text fontSize="xs" fontWeight="700" color="red.800" textTransform="uppercase">Risk</Text></Box>
-                                    <Box flex="1.2"><Text fontSize="xs" fontWeight="700" color="red.800" textTransform="uppercase">At-Risk Associate</Text></Box>
-                                    <Box flex="0.8"><Text fontSize="xs" fontWeight="700" color="red.800" textTransform="uppercase">Attrition</Text></Box>
-                                    <Box flex="2"><Text fontSize="xs" fontWeight="700" color="red.800" textTransform="uppercase">Recommendation</Text></Box>
-                                  </HStack>
-                                </Box>
-                                {dataSet.data.map((row: any, idx: number) => {
-                                  const riskColor = row.project_risk === 'High' ? 'red' : row.project_risk === 'Medium' ? 'orange' : 'yellow';
-                                  const attrColor = row.attrition_level === 'High' ? 'red' : row.attrition_level === 'Medium' ? 'orange' : 'yellow';
-                                  return (
-                                    <HStack key={idx} gap={4} px={4} py={3} borderTop="1px solid" borderColor="gray.100" align="start" _hover={{ bg: "gray.50" }}>
-                                      <Box flex="1.4">
-                                        <Text fontSize="sm" fontWeight="600" color="gray.900">{row.project}</Text>
-                                        <Text fontSize="xs" color="gray.500">{row.client}</Text>
-                                      </Box>
-                                      <Box flex="0.8">
-                                        <Box display="inline-block" px={2} py={0.5} borderRadius="md" bg={`${riskColor}.100`}>
-                                          <Text fontSize="xs" fontWeight="700" color={`${riskColor}.700`}>{row.project_risk}</Text>
-                                        </Box>
-                                      </Box>
-                                      <Box flex="1.2">
-                                        <Text fontSize="sm" fontWeight="600" color="gray.900">{row.associate}</Text>
-                                        <Text fontSize="xs" color="gray.500">{row.role}</Text>
-                                      </Box>
-                                      <Box flex="0.8">
-                                        <Box display="inline-block" px={2} py={0.5} borderRadius="md" bg={`${attrColor}.100`}>
-                                          <Text fontSize="xs" fontWeight="700" color={`${attrColor}.700`}>{row.attrition_level}</Text>
-                                        </Box>
-                                        <Text fontSize="xs" color="gray.500" mt={0.5}>{row.attrition_score}%</Text>
-                                      </Box>
-                                      <Box flex="2">
-                                        <Text fontSize="sm" color="gray.800" lineHeight="1.4">{row.recommendation}</Text>
-                                      </Box>
-                                    </HStack>
-                                  );
-                                })}
-                              </Box>
-                            </Box>
-                          )}
+              <Box
+                flex="1"
+                overflowY="auto"
+                px={3}
+                py={3}
+                css={{
+                  '&::-webkit-scrollbar': { width: '6px' },
+                  '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' },
+                }}
+              >
+                {conversations.length === 0 ? (
+                  <Text fontSize="13px" color={palette.mutedText} textAlign="center" mt={8}>
+                    Start a new conversation below.
+                  </Text>
+                ) : (
+                  <VStack align="stretch" gap={2}>
+                    {conversations.map((conversation) => {
+                      const firstUserMessage = conversation.messages.find((message) => message.type === 'user');
+                      const lastAssistantMessage = [...conversation.messages].reverse().find((message) => message.type === 'assistant');
+                      const title = conversation.title || firstUserMessage?.content || 'New Conversation';
+                      const description = lastAssistantMessage?.content || firstUserMessage?.content || 'No messages yet';
+                      const isActive = currentConversation?.id === conversation.id;
 
-                          {/* Pending Actions Table */}
-                          {dataSet.data && dataSet.data.some((row: any) => row.task_status) && (
-                            <Box p={5}>
-                              <Text fontSize="xs" fontWeight="bold" color="gray.400" textTransform="uppercase" letterSpacing="wide" mb={4}>
-                                Pending Tasks From Plan of Actions
-                              </Text>
-                              <VStack align="stretch" gap={2}>
-                                {dataSet.data.map((row: any, idx: number) => {
-                                  const priorityColor = row.priority === 'High' ? 'red' : row.priority === 'Medium' ? 'orange' : 'blue';
-                                  const isOverdue = row.due_in && row.due_in.toLowerCase().includes('overdue');
-                                  return (
-                                    <Box key={idx} bg="white" borderRadius="lg" border="1px solid" borderColor="gray.200" p={3} boxShadow="0 1px 3px rgba(0,0,0,0.04)" _hover={{ borderColor: "blue.300", boxShadow: "0 4px 10px rgba(59, 130, 246, 0.1)" }} transition="all 0.2s">
-                                      <HStack justify="space-between" align="start" gap={3}>
-                                        <HStack gap={3} align="start" flex="1">
-                                          <Box w="6" h="6" borderRadius="md" bg={`${priorityColor}.100`} display="flex" alignItems="center" justifyContent="center" flexShrink={0} mt="2px">
-                                            <Text fontSize="xs" fontWeight="700" color={`${priorityColor}.700`}>{idx + 1}</Text>
-                                          </Box>
-                                          <Box flex="1">
-                                            <Text fontSize="sm" fontWeight="600" color="gray.900" mb={1}>{row.task}</Text>
-                                            <Text fontSize="xs" color="gray.500">For: <Text as="span" fontWeight="600" color="gray.700">{row.associate}</Text> &middot; {row.context}</Text>
-                                          </Box>
-                                        </HStack>
-                                        <VStack gap={1} align="end" flexShrink={0}>
-                                          <Box px={2} py={0.5} borderRadius="md" bg={`${priorityColor}.100`}>
-                                            <Text fontSize="2xs" fontWeight="700" color={`${priorityColor}.700`} textTransform="uppercase">{row.priority}</Text>
-                                          </Box>
-                                          <Box px={2} py={0.5} borderRadius="md" bg="blue.50">
-                                            <Text fontSize="2xs" fontWeight="700" color="blue.700">{row.owner}</Text>
-                                          </Box>
-                                          <Text fontSize="2xs" color={isOverdue ? "red.600" : "gray.500"} fontWeight={isOverdue ? "700" : "500"}>
-                                            {row.due_in}
-                                          </Text>
-                                        </VStack>
-                                      </HStack>
-                                    </Box>
-                                  );
-                                })}
-                              </VStack>
-                            </Box>
-                          )}
+                      return (
+                        <Box
+                          key={conversation.id}
+                          p={3}
+                          borderRadius="16px"
+                          cursor="pointer"
+                          bg={isActive ? 'rgba(231,240,252,0.96)' : 'transparent'}
+                          border="1px solid"
+                          borderColor={isActive ? '#D5E5FA' : 'transparent'}
+                          transition="all 0.15s ease"
+                          _hover={{ bg: isActive ? 'rgba(231,240,252,0.96)' : 'rgba(255,255,255,0.72)', borderColor: palette.border }}
+                          onClick={() => {
+                            loadConversation(conversation.id);
+                            setHasStartedChat(true);
+                          }}
+                          role="group"
+                        >
+                          <HStack justify="space-between" align="start" gap={2} mb={1}>
+                            <Text fontSize="13px" fontWeight="800" color={palette.primaryText} lineClamp={1} flex="1">
+                              {getTextPreview(title)}
+                            </Text>
+                            <Text fontSize="11px" fontWeight="700" color={palette.mutedText} flexShrink={0}>
+                              {formatConversationDate(conversation.created_at)}
+                            </Text>
+                          </HStack>
+                          <HStack justify="space-between" gap={2}>
+                            <Text fontSize="12px" fontWeight="600" color={palette.secondaryText} lineClamp={2} flex="1">
+                              {getTextPreview(description)}
+                            </Text>
+                            <IconButton
+                              aria-label="Delete conversation"
+                              size="xs"
+                              variant="ghost"
+                              color={palette.mutedText}
+                              opacity={0}
+                              _groupHover={{ opacity: 1 }}
+                              _hover={{ color: palette.danger, bg: '#FDEDEA' }}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                deleteConversation(conversation.id);
+                              }}
+                            >
+                              <Trash2 size={12} />
+                            </IconButton>
+                          </HStack>
                         </Box>
-                      ))}
-                    </Box>
-                  )}
-                  
-                  {/* Message Actions */}
-                  <HStack
-                    className="message-actions"
-                    position="absolute"
-                    top="-10px"
-                    right="-10px"
-                    bg="white"
-                    borderRadius="full"
-                    boxShadow="0 2px 8px rgba(0,0,0,0.15)"
-                    p={1}
-                    opacity={0}
-                    transition="opacity 0.2s"
-                    gap={1}
+                      );
+                    })}
+                  </VStack>
+                )}
+              </Box>
+            </Box>
+          )}
+
+          <Flex flex="1" direction="column" minW={0} position="relative" zIndex={1}>
+            {!isEmbedded && (
+              <HStack justify="space-between" align="center" px={{ base: 4, md: 7 }} py={5}>
+                <HStack gap={3} minW={0}>
+                  <IconButton
+                    aria-label="Go back"
+                    variant="ghost"
+                    display={{ base: 'flex', md: 'none' }}
+                    onClick={() => router.push('/')}
                   >
+                    <ArrowLeft size={19} />
+                  </IconButton>
+                  <Box minW={0}>
+                    <Text fontSize="13px" fontWeight="800" color={palette.mutedText}>
+                      Clyra AI
+                    </Text>
+                    <Text fontSize={{ base: '16px', md: '18px' }} fontWeight="800" color={palette.primaryText} lineClamp={1}>
+                      {activeConversationTitle}
+                    </Text>
+                  </Box>
+                </HStack>
+                <HStack gap={2}>
+                  <Button
+                    borderRadius="999px"
+                    bg="rgba(255,255,255,0.82)"
+                    border="1px solid"
+                    borderColor={palette.border}
+                    color={palette.primaryText}
+                    fontSize="13px"
+                    fontWeight="800"
+                    px={4}
+                    h="44px"
+                    boxShadow="0 14px 32px rgba(11, 12, 28, 0.05)"
+                    _hover={{ bg: palette.surface, borderColor: '#D5E5FA' }}
+                    onClick={handleNewChat}
+                  >
+                    <Edit2 size={16} />
+                    New Chat
+                  </Button>
+                  <IconButton aria-label="Close chat" variant="ghost" color={palette.secondaryText} onClick={() => router.push('/')}>
+                    <X size={18} />
+                  </IconButton>
+                </HStack>
+              </HStack>
+            )}
+
+            <Box
+              flex="1"
+              overflowY="auto"
+              px={isEmbedded ? 4 : { base: 4, md: 8 }}
+              py={isEmbedded ? 6 : 2}
+              css={{
+                '&::-webkit-scrollbar': { width: '7px' },
+                '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' },
+                '&::-webkit-scrollbar-track': { background: 'transparent' },
+              }}
+            >
+              {showWelcome ? (
+                <Flex
+                  minH={isEmbedded ? 'calc(100vh - 150px)' : 'calc(100vh - 268px)'}
+                  align="center"
+                  justify="center"
+                  direction="column"
+                  textAlign="center"
+                  px={{ base: 2, md: 6 }}
+                  pt={{ base: 6, md: 0 }}
+                >
+                  <Text
+                    maxW="760px"
+                    fontSize={{ base: '30px', md: '46px' }}
+                    lineHeight="1.08"
+                    fontWeight="800"
+                    color={palette.primaryText}
+                    letterSpacing="0"
+                    mb={{ base: 7, md: 10 }}
+                  >
+                    <Text as="span" color="rgba(11, 12, 28, 0.16)">
+                      AI Powers
+                    </Text>{' '}
+                    Clyra Insights And Voice Access
+                  </Text>
+
+                  <AssistantOrb compact={isEmbedded} />
+
+                  <HStack gap={2} mt={{ base: 10, md: 14 }} mb={5} flexWrap="wrap" justify="center" maxW="780px">
+                    {promptChips.map((chip) => {
+                      const Icon = chip.icon;
+                      return (
+                        <Button
+                          key={chip.prompt}
+                          h="36px"
+                          borderRadius="999px"
+                          bg="rgba(255,255,255,0.82)"
+                          border="1px solid"
+                          borderColor={palette.border}
+                          color={palette.secondaryText}
+                          fontSize="13px"
+                          fontWeight="700"
+                          px={4}
+                          _hover={{ bg: palette.surface, color: palette.primary, borderColor: '#D5E5FA' }}
+                          onClick={() => handleSendMessage(chip.prompt)}
+                        >
+                          <Icon size={15} />
+                          {chip.label}
+                        </Button>
+                      );
+                    })}
                     <IconButton
-                      aria-label="Copy message"
-                      size="xs"
-                      variant="ghost"
-                      onClick={() => copyMessage(message.content)}
+                      aria-label="More suggestions"
+                      h="36px"
+                      w="36px"
+                      borderRadius="full"
+                      bg="rgba(255,255,255,0.82)"
+                      border="1px solid"
+                      borderColor={palette.border}
+                      color={palette.secondaryText}
+                      _hover={{ bg: palette.surface, color: palette.primary }}
                     >
-                      <Copy size={12} />
+                      <MoreHorizontal size={16} />
                     </IconButton>
                   </HStack>
-                  
-                  <Text
-                    fontSize="xs"
-                    color={message.type === 'user' ? 'whiteAlpha.700' : 'gray.500'}
-                    mt={2}
-                  >
-                    {new Date(message.timestamp).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </Text>
-                </Box>
+                </Flex>
+              ) : (
+                <VStack gap={5} align="stretch" maxW="980px" mx="auto" pb={8}>
+                  {currentMessages.map((message) => (
+                    <Flex key={message.id} justify={message.type === 'user' ? 'flex-end' : 'flex-start'} align="flex-start" gap={3}>
+                      {message.type === 'assistant' && (
+                        <Flex
+                          w="36px"
+                          h="36px"
+                          borderRadius="14px"
+                          bg="linear-gradient(135deg, #E7F0FC, #FFFFFF)"
+                          border="1px solid"
+                          borderColor={palette.border}
+                          align="center"
+                          justify="center"
+                          flexShrink={0}
+                        >
+                          <Bot size={17} color={palette.primary} />
+                        </Flex>
+                      )}
 
-                {message.type === 'user' && (
-                  <Box
-                    w="32px"
-                    h="32px"
-                    borderRadius="full"
-                    bg="gray.300"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    flexShrink={0}
-                    mt={1}
-                  >
-                    <User size={16} color="gray.600" />
-                  </Box>
-                )}
-              </Flex>
-            ))}
-            {isLoading && (
-              <Flex justify="flex-start" align="flex-start" gap={3}>
-                <Box
-                  w="32px"
-                  h="32px"
-                  borderRadius="full"
-                  bg="linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  flexShrink={0}
-                  mt={1}
-                >
-                  <Bot size={16} color="white" />
-                </Box>
-                <Box
-                  bg="white"
-                  px={4}
-                  py={3}
-                  borderRadius="2xl"
-                  boxShadow="0 2px 8px rgba(0,0,0,0.1)"
-                >
-                  <HStack gap={2}>
-                    <Spinner size="sm" color="teal.500" />
-                    <Text fontSize="sm" color="gray.500">
-                      Clyra is thinking...
-                    </Text>
-                  </HStack>
-                </Box>
-              </Flex>
-            )}
-            <div ref={messagesEndRef} />
-          </VStack>
-        </Box>
+                      <Box
+                        maxW={{ base: '86%', md: message.type === 'assistant' ? '78%' : '66%' }}
+                        bg={message.type === 'user' ? palette.primary : 'rgba(255,255,255,0.9)'}
+                        color={message.type === 'user' ? 'white' : palette.primaryText}
+                        px={4}
+                        py={3}
+                        borderRadius={message.type === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px'}
+                        border="1px solid"
+                        borderColor={message.type === 'user' ? 'rgba(29,127,227,0.1)' : palette.border}
+                        boxShadow={message.type === 'user' ? '0 14px 32px rgba(29,127,227,0.2)' : '0 14px 34px rgba(11,12,28,0.055)'}
+                        position="relative"
+                        _hover={{ '& .message-actions': { opacity: 1 } }}
+                      >
+                        <Text fontSize="13px" lineHeight="1.65" whiteSpace="pre-wrap" fontWeight="600">
+                          {message.content}
+                        </Text>
 
-        {/* Input Area */}
-        <Box
-          bg="white"
-          borderTop={isEmbedded ? "none" : "1px solid"}
-          borderColor="gray.200"
-          px={isEmbedded ? 0 : 4}
-          py={isEmbedded ? 4 : 4}
-          boxShadow={isEmbedded ? "none" : "0 -2px 10px rgba(0,0,0,0.05)"}
-        >
-          <HStack gap={3} maxW={isEmbedded ? "85%" : "4xl"} mx="auto" px={isEmbedded ? 6 : 0}>
-            <Box flex="1" position="relative">
-              <Textarea
-                ref={inputRef}
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={isEmbedded ? "Type message" : "Type your message here... (Press Enter to send, Shift+Enter for new line)"}
-                bg={isEmbedded ? "#f5f3ff" : "gray.50"}
-                border="1px solid"
-                borderColor={isEmbedded ? "#ede9fe" : "gray.300"}
-                borderRadius={isEmbedded ? "full" : "xl"}
-                resize="none"
-                minH={isEmbedded ? "48px" : "50px"}
-                maxH="120px"
-                py={isEmbedded ? "14px" : 3}
-                pl={isEmbedded ? 6 : 4}
-                pr={isEmbedded ? 14 : 4}
-                color="black"
-                _focus={{
-                  borderColor: isEmbedded ? "#a855f7" : "teal.400",
-                  boxShadow: isEmbedded ? "0 0 0 1px #a855f7" : "0 0 0 1px teal.400"
-                }}
-                _placeholder={{
-                  color: "gray.500"
-                }}
-              />
-              {isEmbedded && (
-                <IconButton
-                  aria-label="Send message"
-                  position="absolute"
-                  right="6px"
-                  top="50%"
-                  transform="translateY(-50%)"
-                  bg="transparent"
-                  color={inputMessage.trim() ? "#a855f7" : "gray.400"}
-                  size="sm"
-                  borderRadius="full"
-                  _hover={{
-                    bg: "purple.50"
-                  }}
-                  transition="all 0.2s"
-                  onClick={() => handleSendMessage()}
-                  disabled={!inputMessage.trim() || isLoading}
-                >
-                  {isLoading ? <Spinner size="sm" /> : <Send size={18} />}
-                </IconButton>
+                        {message.response && message.type === 'assistant' && <StructuredResponse response={message.response} />}
+
+                        <HStack
+                          className="message-actions"
+                          position="absolute"
+                          top="-12px"
+                          right={message.type === 'user' ? '8px' : '-8px'}
+                          bg={palette.surface}
+                          borderRadius="full"
+                          border="1px solid"
+                          borderColor={palette.border}
+                          boxShadow="0 10px 24px rgba(11,12,28,0.12)"
+                          p={1}
+                          opacity={0}
+                          transition="opacity 0.2s"
+                        >
+                          <IconButton aria-label="Copy message" size="xs" variant="ghost" onClick={() => copyMessage(message.content)}>
+                            <Copy size={12} />
+                          </IconButton>
+                        </HStack>
+
+                        <Text
+                          fontSize="11px"
+                          color={message.type === 'user' ? 'rgba(255,255,255,0.72)' : palette.mutedText}
+                          mt={2}
+                          fontWeight="700"
+                        >
+                          {new Date(message.timestamp).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </Text>
+                      </Box>
+
+                      {message.type === 'user' && (
+                        <Flex
+                          w="36px"
+                          h="36px"
+                          borderRadius="14px"
+                          bg="rgba(255,255,255,0.86)"
+                          border="1px solid"
+                          borderColor={palette.border}
+                          align="center"
+                          justify="center"
+                          flexShrink={0}
+                        >
+                          <User size={17} color={palette.secondaryText} />
+                        </Flex>
+                      )}
+                    </Flex>
+                  ))}
+
+                  {isLoading && (
+                    <Flex justify="flex-start" align="flex-start" gap={3}>
+                      <Flex
+                        w="36px"
+                        h="36px"
+                        borderRadius="14px"
+                        bg="linear-gradient(135deg, #E7F0FC, #FFFFFF)"
+                        border="1px solid"
+                        borderColor={palette.border}
+                        align="center"
+                        justify="center"
+                        flexShrink={0}
+                      >
+                        <Bot size={17} color={palette.primary} />
+                      </Flex>
+                      <Box bg="rgba(255,255,255,0.92)" px={4} py={3} borderRadius="20px" border="1px solid" borderColor={palette.border}>
+                        <HStack gap={2}>
+                          <Spinner size="sm" color={palette.primary} />
+                          <Text fontSize="13px" color={palette.secondaryText} fontWeight="700">
+                            Clyra is thinking...
+                          </Text>
+                        </HStack>
+                      </Box>
+                    </Flex>
+                  )}
+                  <div ref={messagesEndRef} />
+                </VStack>
               )}
             </Box>
-            
-            {!isEmbedded && (
-              <IconButton
-                aria-label="Send message"
-                bg="linear-gradient(135deg, #0077b6 0%, #3b82f6 100%)"
-                color="white"
-                size="lg"
-                borderRadius="xl"
-                _hover={{
-                  transform: "scale(1.05)",
-                  boxShadow: "0 4px 12px rgba(59, 130, 246, 0.4)"
-                }}
-                _active={{
-                  transform: "scale(0.95)"
-                }}
-                transition="all 0.2s"
-                onClick={() => handleSendMessage()}
-                disabled={!inputMessage.trim() || isLoading}
-                boxShadow="0 2px 8px rgba(0,0,0,0.15)"
+
+            <Box px={isEmbedded ? 4 : { base: 4, md: 8 }} pb={isEmbedded ? 4 : 7} pt={2}>
+              <Box
+                maxW={showWelcome ? '680px' : '980px'}
+                mx="auto"
+                bg="linear-gradient(135deg, rgba(255,248,216,0.85), rgba(255,255,255,0.92) 35%, rgba(213,229,250,0.96))"
+                border="1px solid rgba(230,234,240,0.95)"
+                borderRadius="24px"
+                p="8px"
+                boxShadow="0 20px 54px rgba(29, 127, 227, 0.13), 0 12px 36px rgba(253,184,63,0.08)"
               >
-                {isLoading ? <Spinner size="sm" /> : <Send size={20} />}
-              </IconButton>
-            )}
-          </HStack>
-        </Box>
+                <Box bg="rgba(255,255,255,0.94)" borderRadius="19px" border="1px solid rgba(255,255,255,0.85)" p={3}>
+                  <Textarea
+                    ref={inputRef}
+                    value={inputMessage}
+                    onChange={(event) => setInputMessage(event.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={isEmbedded ? 'Type message' : 'Ask me anything...'}
+                    bg="transparent"
+                    border="none"
+                    resize="none"
+                    minH={isEmbedded ? '44px' : '58px'}
+                    maxH="132px"
+                    px={1}
+                    py={1}
+                    color={palette.primaryText}
+                    fontSize="14px"
+                    fontWeight="600"
+                    _focus={{ boxShadow: 'none', outline: 'none' }}
+                    _placeholder={{ color: palette.mutedText }}
+                  />
+
+                  <HStack justify="space-between" gap={3} mt={2} flexWrap="wrap">
+                    <HStack gap={2}>
+                      <Button
+                        h="34px"
+                        px={3}
+                        borderRadius="999px"
+                        bg="rgba(250,251,253,0.92)"
+                        border="1px solid"
+                        borderColor={palette.border}
+                        color={palette.secondaryText}
+                        fontSize="12px"
+                        fontWeight="800"
+                        disabled
+                        title="Attachment upload is visual only for now"
+                      >
+                        <Paperclip size={14} />
+                        Attach
+                      </Button>
+                      <Button
+                        h="34px"
+                        px={3}
+                        borderRadius="999px"
+                        bg="rgba(250,251,253,0.92)"
+                        border="1px solid"
+                        borderColor={palette.border}
+                        color={palette.secondaryText}
+                        fontSize="12px"
+                        fontWeight="800"
+                        disabled
+                        title="Deep Think is visual only for now"
+                      >
+                        <Brain size={14} />
+                        Deep Think
+                      </Button>
+                    </HStack>
+
+                    <HStack gap={2}>
+                      <Button
+                        h="34px"
+                        px={3}
+                        borderRadius="999px"
+                        bg="rgba(250,251,253,0.92)"
+                        border="1px solid"
+                        borderColor={palette.border}
+                        color={palette.secondaryText}
+                        fontSize="12px"
+                        fontWeight="800"
+                        disabled
+                        title="Voice input is visual only for now"
+                      >
+                        <Mic size={14} />
+                        Voice
+                      </Button>
+                      <Button
+                        h="34px"
+                        px={4}
+                        borderRadius="999px"
+                        bg={inputMessage.trim() ? palette.primary : '#E6EAF0'}
+                        color={inputMessage.trim() ? 'white' : palette.mutedText}
+                        fontSize="12px"
+                        fontWeight="800"
+                        _hover={{ bg: inputMessage.trim() ? '#176FC7' : '#E6EAF0' }}
+                        onClick={() => handleSendMessage()}
+                        disabled={!inputMessage.trim() || isLoading}
+                      >
+                        {isLoading ? <Spinner size="xs" /> : <Send size={14} />}
+                        Send
+                      </Button>
+                    </HStack>
+                  </HStack>
+                </Box>
+              </Box>
+            </Box>
+          </Flex>
+        </Flex>
       </Box>
-      </Flex>
     </Box>
   );
 }
