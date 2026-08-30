@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Box, Flex, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import { cardBorder, cardRadius, cardShadow, colors } from "../../types/styles";
 
 export function LogoMark() {
@@ -81,10 +82,14 @@ export function AnalyticsCard({
 export function DetailCard({
   title,
   actionLabel,
+  actionHref,
+  action,
   children,
 }: {
   title: string;
   actionLabel?: string;
+  actionHref?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -110,17 +115,32 @@ export function DetailCard({
         >
           {title}
         </Text>
-        {actionLabel && (
-          <Text
-            color={colors.primary}
-            fontSize="14px"
-            fontWeight="700"
-            lineHeight="1"
-            whiteSpace="nowrap"
-          >
-            {actionLabel}
-          </Text>
-        )}
+        {action ??
+          (actionLabel &&
+            (actionHref ? (
+              <NextLink href={actionHref} style={{ textDecoration: "none" }}>
+                <Text
+                  color={colors.primary}
+                  fontSize="14px"
+                  fontWeight="700"
+                  lineHeight="1"
+                  whiteSpace="nowrap"
+                  cursor="pointer"
+                >
+                  {actionLabel}
+                </Text>
+              </NextLink>
+            ) : (
+              <Text
+                color={colors.primary}
+                fontSize="14px"
+                fontWeight="700"
+                lineHeight="1"
+                whiteSpace="nowrap"
+              >
+                {actionLabel}
+              </Text>
+            )))}
       </Flex>
       {children}
     </Box>

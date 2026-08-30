@@ -177,3 +177,14 @@ export const upcomingDeadlines = [
     dateColor: colors.warning,
   },
 ] as const;
+
+const nearingDeadlineDaysThreshold = 14;
+
+function getDaysRemaining(daysLeft: string) {
+  const matchedDays = daysLeft.match(/(\d+)/);
+  return matchedDays ? Number(matchedDays[1]) : Number.POSITIVE_INFINITY;
+}
+
+export const nearingDeadlineProjectsCount = upcomingDeadlines.filter(
+  (deadline) => getDaysRemaining(deadline.daysLeft) <= nearingDeadlineDaysThreshold,
+).length;

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Flex, Grid, HStack, Text, VStack } from "@chakra-ui/react";
 import type { ChartData } from "chart.js";
 import { ChevronDown } from "lucide-react";
 import { Doughnut, Line } from "react-chartjs-2";
 import {
-  donutChartData,
   donutChartOptions,
   lineChartOptions,
 } from "../../config/chartConfig";
@@ -68,6 +67,27 @@ async function fetchAttritionTrendData(range: TrendRangeOption): Promise<TrendDa
 }
 
 function AttritionOverviewCard() {
+  const [activeSegment, setActiveSegment] = useState<string | null>(null);
+  const activeSegmentData = attritionOverview.find((item) => item.label === activeSegment);
+  const attritionChartData = useMemo<ChartData<"doughnut", number[], string>>(
+    () => ({
+      labels: attritionOverview.map((item) => item.label),
+      datasets: [
+        {
+          data: attritionOverview.map((item) => item.value),
+          backgroundColor: attritionOverview.map((item) =>
+            activeSegment && activeSegment !== item.label ? `${item.color}2E` : item.color,
+          ),
+          borderColor: colors.surface,
+          borderWidth: 0,
+          hoverBorderWidth: 0,
+          spacing: 0,
+        },
+      ],
+    }),
+    [activeSegment],
+  );
+
   return (
     <AnalyticsCard title="Attrition Overview">
       <Flex
@@ -83,7 +103,7 @@ function AttritionOverviewCard() {
           h={{ base: "188px", md: "194px" }}
           flexShrink={0}
         >
-          <Doughnut data={donutChartData} options={donutChartOptions} />
+          <Doughnut data={attritionChartData} options={donutChartOptions} />
           <VStack
             position="absolute"
             inset="0"
@@ -98,10 +118,10 @@ function AttritionOverviewCard() {
               fontWeight="800"
               lineHeight="1"
             >
-              47%
+              {activeSegmentData ? activeSegmentData.value : 47}%
             </Text>
             <Text color={colors.primaryText} fontSize="13px" fontWeight="800" lineHeight="1">
-              At Risk
+              {activeSegmentData ? activeSegmentData.label : "At Risk"}
             </Text>
           </VStack>
         </Box>
@@ -113,7 +133,21 @@ function AttritionOverviewCard() {
           w={{ base: "full", sm: "auto" }}
         >
           {attritionOverview.map((item) => (
-            <HStack key={item.label} justify="space-between" gap={8}>
+            <HStack
+              as="button"
+              key={item.label}
+              justify="space-between"
+              gap={8}
+              w="full"
+              type="button"
+              textAlign="left"
+              cursor="pointer"
+              opacity={activeSegment && activeSegment !== item.label ? 0.45 : 1}
+              transition="opacity 0.2s ease, transform 0.2s ease"
+              _hover={{ transform: "translateX(2px)" }}
+              aria-pressed={activeSegment === item.label}
+              onClick={() => setActiveSegment((current) => (current === item.label ? null : item.label))}
+            >
               <HStack gap={3}>
                 <Box w="12px" h="12px" borderRadius="full" bg={item.color} flexShrink={0} />
                 <Text
