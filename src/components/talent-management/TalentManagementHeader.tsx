@@ -2,10 +2,16 @@
 
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { colors } from "@/types/styles";
-import { talentManagementPageCopy } from "./talentManagementData";
+import { talentManagementPageCopy, type TalentManagementTabId } from "./talentManagementData";
 import { TalentTabs } from "./TalentTabs";
 
-export function TalentManagementHeader() {
+export function TalentManagementHeader({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: TalentManagementTabId;
+  onTabChange: (tab: TalentManagementTabId) => void;
+}) {
   return (
     <VStack align="stretch" gap={{ base: "16px", md: "18px" }}>
       <Box>
@@ -30,7 +36,7 @@ export function TalentManagementHeader() {
         </Text>
       </Box>
 
-      <TalentTabs />
+      <TalentTabs activeTab={activeTab} onTabChange={onTabChange} />
     </VStack>
   );
 }
