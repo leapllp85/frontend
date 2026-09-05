@@ -1,14 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Box, Button, Flex, HStack, IconButton, Input, Text, VStack } from "@chakra-ui/react";
-import { Bell, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut, Search } from "lucide-react";
+import { Box, Button, Flex, HStack, IconButton, Input, Text } from "@chakra-ui/react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut, Search } from "lucide-react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { logout as logoutFromApi } from "@/lib/apis/auth";
 import { LogoMark } from "../manager-overview/shared";
 import { colors } from "../../types/styles";
+import { NotificationBell, type NavbarNotification } from "./NotificationBell";
 
 const navItems = [
   { label: "Overview", href: "/manager-overview" },
@@ -83,6 +84,14 @@ const mockNotifications: readonly ManagerNotification[] = [
     isUnread: false,
   },
 ];
+
+const navbarNotifications: readonly NavbarNotification[] = mockNotifications.map((notification, index) => ({
+  id: `${notification.id}-${index}`,
+  title: notification.title,
+  message: notification.message,
+  time: notification.time,
+  isUnread: notification.isUnread,
+}));
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -167,7 +176,7 @@ export function TopNavbar() {
   const displayDate = useMemo(() => formatDisplayDate(selectedDate), [selectedDate]);
   const calendarDays = useMemo(() => getCalendarDays(calendarMonth), [calendarMonth]);
   const unreadNotificationCount = useMemo(
-    () => mockNotifications.filter((notification) => notification.isUnread).length,
+    () => navbarNotifications.filter((notification) => notification.isUnread).length,
     [],
   );
   const canGoNextMonth = addMonths(calendarMonth, 1).getTime() <= startOfMonth(today).getTime();
@@ -526,153 +535,16 @@ export function TopNavbar() {
             )}
           </Box>
 
-          <Box position="relative" flexShrink={0}>
-            <IconButton
-              aria-label="Notifications"
-              h="44px"
-              w="44px"
-              minW="44px"
-              bg={isNotificationsOpen ? colors.primarySoft : "transparent"}
-              color={colors.primaryText}
-              borderRadius="full"
-              _hover={{ bg: colors.primarySoft }}
-              onClick={() => {
-                setIsCalendarOpen(false);
-                setIsUserMenuOpen(false);
-                setIsNotificationsOpen((isOpen) => !isOpen);
-              }}
-              aria-expanded={isNotificationsOpen}
-              aria-haspopup="dialog"
-            >
-              <Bell size={20} />
-            </IconButton>
-            {unreadNotificationCount > 0 && (
-              <Box
-                position="absolute"
-                top="4px"
-                right="4px"
-                minW="17px"
-                h="17px"
-                px="3px"
-                borderRadius="999px"
-                bg={colors.primary}
-                color={colors.surface}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontSize="10px"
-                fontWeight="800"
-                lineHeight="1"
-                border="2px solid"
-                borderColor={colors.surface}
-              >
-                {unreadNotificationCount}
-              </Box>
-            )}
-
-            {isNotificationsOpen && (
-              <Box
-                position="absolute"
-                right="0"
-                top="calc(100% + 8px)"
-                zIndex={30}
-                w={{ base: "calc(100vw - 32px)", sm: "352px" }}
-                maxW="352px"
-                bg={colors.surface}
-                border="1px solid"
-                borderColor={colors.border}
-                borderRadius="10px"
-                boxShadow="0 14px 34px rgba(11, 12, 28, 0.14)"
-                overflow="hidden"
-              >
-                <HStack
-                  justify="space-between"
-                  px="16px"
-                  py="14px"
-                  borderBottom="1px solid"
-                  borderColor={colors.lightBorder}
-                >
-                  <Box>
-                    <Text color={colors.primaryText} fontSize="14px" fontWeight="800">
-                      Notifications
-                    </Text>
-                    <Text color={colors.mutedText} fontSize="12px" fontWeight="600" mt="2px">
-                      {unreadNotificationCount} unread updates
-                    </Text>
-                  </Box>
-                  <Box
-                    px="8px"
-                    h="24px"
-                    borderRadius="999px"
-                    bg={colors.primarySoft}
-                    color={colors.primary}
-                    display="flex"
-                    alignItems="center"
-                    fontSize="12px"
-                    fontWeight="800"
-                  >
-                    New
-                  </Box>
-                </HStack>
-
-                <VStack align="stretch" gap={0} maxH="332px" overflowY="auto">
-                  {mockNotifications.map((notification) => (
-                    <Box
-                      key={notification.id}
-                      px="16px"
-                      py="13px"
-                      bg={notification.isUnread ? "#F4F8FE" : colors.surface}
-                      borderBottom="1px solid"
-                      borderColor={colors.lightBorder}
-                    >
-                      <HStack align="flex-start" gap="10px">
-                        <Box
-                          mt="5px"
-                          w="8px"
-                          h="8px"
-                          borderRadius="full"
-                          bg={notification.isUnread ? colors.primary : "transparent"}
-                          border={notification.isUnread ? "0" : "1px solid"}
-                          borderColor={colors.lightBorder}
-                          flexShrink={0}
-                        />
-                        <Box minW={0} flex="1">
-                          <HStack justify="space-between" align="flex-start" gap="10px">
-                            <Text
-                              color={colors.primaryText}
-                              fontSize="13px"
-                              fontWeight={notification.isUnread ? "800" : "700"}
-                              lineHeight="1.25"
-                            >
-                              {notification.title}
-                            </Text>
-                            <Text
-                              color={colors.mutedText}
-                              fontSize="11px"
-                              fontWeight="700"
-                              lineHeight="1.2"
-                              whiteSpace="nowrap"
-                            >
-                              {notification.time}
-                            </Text>
-                          </HStack>
-                          <Text
-                            color={colors.secondaryText}
-                            fontSize="12px"
-                            fontWeight="600"
-                            lineHeight="1.35"
-                            mt="5px"
-                          >
-                            {notification.message}
-                          </Text>
-                        </Box>
-                      </HStack>
-                    </Box>
-                  ))}
-                </VStack>
-              </Box>
-            )}
-          </Box>
+          <NotificationBell
+            notifications={navbarNotifications}
+            isOpen={isNotificationsOpen}
+            onOpenChange={(isOpen) => {
+              setIsCalendarOpen(false);
+              setIsUserMenuOpen(false);
+              setIsNotificationsOpen(isOpen);
+            }}
+            summaryLabel={`${unreadNotificationCount} unread updates`}
+          />
 
           <Box position="relative" flexShrink={0}>
             <Button
