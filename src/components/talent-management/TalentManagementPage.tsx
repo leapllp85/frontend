@@ -39,7 +39,7 @@ export function TalentManagementPage() {
               alignItems="stretch"
             >
               <SkillsInDemand />
-              <TopAvailableTalent />
+              <TopAvailableTalent onViewAll={() => setActiveTab("pool")} />
             </Grid>
           </>
         ) : (

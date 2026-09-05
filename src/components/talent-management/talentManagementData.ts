@@ -279,6 +279,17 @@ export const availableTalent = [
     availability: 50,
     availabilityLabel: "50%",
   },
+  {
+    id: "alice-brown",
+    name: "Alice Brown",
+    role: "Senior Cloud Engineer",
+    initials: "AB",
+    avatarBg: "linear-gradient(135deg, #B7D0E9 0%, #2C415C 100%)",
+    skills: ["AWS", "Python", "Docker"],
+    availability: 50,
+    availabilityLabel: "50%",
+  },
+  
 ] as const;
 
 export const talentPoolMembers: readonly TalentPoolMember[] = [

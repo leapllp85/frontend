@@ -67,10 +67,6 @@ export function TalentMetricStrip() {
           );
         })}
       </Grid>
-
-      <HStack justify="flex-end" mt={{ base: "18px", xl: "-4px" }}>
-        <ActionLink>View full insights</ActionLink>
-      </HStack>
     </TalentCard>
   );
 }
