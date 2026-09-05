@@ -32,13 +32,12 @@ function TalentAvatar({
   );
 }
 
-export function TopAvailableTalent() {
+export function TopAvailableTalent({ onViewAll }: { onViewAll: () => void }) {
   return (
     <TalentCard minH={{ base: "auto", xl: "344px" }}>
       <SectionHeader
         title="Top Available Talent"
         description="Best available resources to fill your skill gaps."
-        action={<ActionLink>View all available</ActionLink>}
       />
 
       <VStack align="stretch" gap="0">
@@ -68,12 +67,6 @@ export function TopAvailableTalent() {
             </HStack>
 
             <Flex align="center" gap="18px" wrap="wrap" minW={0}>
-              <HStack gap="8px">
-                <Box w="8px" h="8px" bg={colors.success} borderRadius="full" />
-                <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
-                  Available
-                </Text>
-              </HStack>
               <VStack align="flex-start" gap="7px" minW={0}>
                 <Text color={colors.secondaryText} fontSize="11px" fontWeight="800" lineHeight="1">
                   Top Skills
@@ -85,6 +78,13 @@ export function TopAvailableTalent() {
                 </HStack>
               </VStack>
             </Flex>
+
+            <HStack gap="8px">
+                <Box w="8px" h="8px" bg={colors.success} borderRadius="full" />
+                <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
+                  Available
+                </Text>
+              </HStack>
 
             <VStack align={{ base: "flex-start", md: "flex-start" }} gap="5px">
               <Text color={colors.secondaryText} fontSize="11px" fontWeight="800" lineHeight="1">
@@ -105,15 +105,15 @@ export function TopAvailableTalent() {
               </Box>
             </VStack>
 
-            <Text color={colors.primary} fontSize="12px" fontWeight="800" textAlign={{ base: "left", md: "right" }}>
+            {/* <Text color={colors.primary} fontSize="12px" fontWeight="800" textAlign={{ base: "left", md: "right" }}>
               View profile
-            </Text>
+            </Text> */}
           </Grid>
         ))}
       </VStack>
 
       <HStack mt="18px">
-        <ActionLink>View all available talent</ActionLink>
+        <ActionLink onClick={onViewAll}>View all available talent</ActionLink>
       </HStack>
     </TalentCard>
   );

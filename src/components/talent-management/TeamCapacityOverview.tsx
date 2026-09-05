@@ -219,7 +219,6 @@ export function TeamCapacityOverview() {
             {capacitySummaryAlert.message}
           </Text>
         </HStack>
-        <ActionLink>View capacity details</ActionLink>
       </Flex>
     </TalentCard>
   );
