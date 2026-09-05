@@ -94,7 +94,7 @@ export function IconBubble({
   );
 }
 
-export function ActionLink({ children }: { children: ReactNode }) {
+export function ActionLink({ children, onClick }: { children: ReactNode; onClick?: () => void }) {
   return (
     <HStack
       as="button"
@@ -106,6 +106,7 @@ export function ActionLink({ children }: { children: ReactNode }) {
       whiteSpace="nowrap"
       cursor="pointer"
       _hover={{ color: "#1668BA" }}
+      onClick={onClick}
     >
       <Text as="span">{children}</Text>
       <ArrowRight size={15} strokeWidth={2.3} />

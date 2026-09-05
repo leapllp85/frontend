@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Box, Grid, HStack, Text, VStack } from "@chakra-ui/react";
 import { colors } from "@/types/styles";
 import { skillsInDemand, type SkillDemandStatus } from "./talentManagementData";
 import { ActionLink, SectionHeader, TalentCard } from "./shared";
+import { SkillGapsModal } from "./SkillGapsModal";
 
 const statusStyle: Record<SkillDemandStatus, { bg: string; color: string; bar: string }> = {
   High: { bg: "#FDEDEA", color: colors.danger, bar: colors.danger },
@@ -28,6 +30,8 @@ function CoverageBar({ value, status }: { value: number; status: SkillDemandStat
 }
 
 export function SkillsInDemand() {
+  const [isSkillGapsOpen, setIsSkillGapsOpen] = useState(false);
+
   return (
     <TalentCard minH={{ base: "auto", xl: "344px" }}>
       <SectionHeader
@@ -51,7 +55,7 @@ export function SkillsInDemand() {
             ))}
           </Grid>
 
-          {skillsInDemand.map((skill) => {
+          {skillsInDemand.slice(0, 5).map((skill) => {
             const style = statusStyle[skill.status];
 
             return (
@@ -100,8 +104,14 @@ export function SkillsInDemand() {
       </Box>
 
       <HStack mt="18px">
-        <ActionLink>View all skill gaps</ActionLink>
+        <ActionLink onClick={() => setIsSkillGapsOpen(true)}>View all skill gaps</ActionLink>
       </HStack>
+
+      <SkillGapsModal
+        isOpen={isSkillGapsOpen}
+        skills={skillsInDemand}
+        onClose={() => setIsSkillGapsOpen(false)}
+      />
     </TalentCard>
   );
 }
