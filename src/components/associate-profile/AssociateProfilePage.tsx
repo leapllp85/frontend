@@ -19,7 +19,6 @@ import {
 } from "@chakra-ui/react";
 import {
   ArrowRight,
-  Bell,
   BookOpen,
   BriefcaseBusiness,
   Building2,
@@ -54,6 +53,7 @@ import type {
   ProjectsPaginatedResponse,
 } from "@/services";
 import type { UserProfile } from "@/services/userApi";
+import { NotificationBell, type NavbarNotification } from "@/components/topnavbar/NotificationBell";
 import { cardBorder, cardRadius, cardShadow, colors } from "@/types/styles";
 
 const ASSOCIATE_CAREER_STATE_KEY = "associateProfileCareerState";
@@ -751,7 +751,7 @@ export function AssociateProfilePage() {
 
   return (
     <Box minH="100vh" bg={colors.background} color={colors.primaryText} fontFamily="Arial, Helvetica, sans-serif">
-      <AssociateTopNav identity={identity} unreadCount={state.notifications?.unread_count || 0} />
+      <AssociateTopNav identity={identity} updates={viewModel.updates} />
 
       <Box
         as="main"
@@ -778,7 +778,6 @@ export function AssociateProfilePage() {
               <VStack align="stretch" gap={{ base: "18px", xl: "20px" }}>
                 <ProfileCard identity={identity} />
                 <FocusForYouCard tasks={viewModel.focusTasks} />
-                <UpdatesCard updates={viewModel.updates} />
               </VStack>
 
               <VStack align="stretch" gap={{ base: "18px", xl: "20px" }}>
@@ -801,12 +800,25 @@ export function AssociateProfilePage() {
 
 function AssociateTopNav({
   identity,
-  unreadCount,
+  updates,
 }: {
   identity: AssociateIdentity | null;
-  unreadCount: number;
+  updates: AssociateUpdateSummary[];
 }) {
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const navItems = ["Overview", "Teams", "Projects", "Talent Pool", "Surveys", "Reports"];
+  const notifications = useMemo<NavbarNotification[]>(
+    () =>
+      updates.map((update) => ({
+        id: update.id,
+        title: update.title,
+        message: update.description,
+        time: update.timestamp,
+        isUnread: true,
+      })),
+    [updates],
+  );
+  const unreadCount = notifications.filter((notification) => notification.isUnread !== false).length;
   const todayLabel = new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
     day: "numeric",
@@ -833,7 +845,7 @@ function AssociateTopNav({
         <HStack gap="14px" flexShrink={0}>
           <LogoMark />
           <Text fontSize={{ base: "17px", md: "18px" }} fontWeight="800" letterSpacing="0">
-            Attrition Hub
+            Clyra
           </Text>
         </HStack>
 
@@ -899,41 +911,14 @@ function AssociateTopNav({
             {todayLabel}
           </Button>
 
-          <Box position="relative">
-            <IconButton
-              aria-label="Notifications"
-              h="40px"
-              w="40px"
-              minW="40px"
-              bg="transparent"
-              borderRadius="full"
-              color={colors.primaryText}
-              _hover={{ bg: colors.primarySoft }}
-            >
-              <Bell size={20} />
-            </IconButton>
-            {unreadCount > 0 && (
-              <Box
-                position="absolute"
-                top="2px"
-                right="1px"
-                minW="17px"
-                h="17px"
-                borderRadius="999px"
-                bg={colors.primary}
-                color={colors.surface}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontSize="10px"
-                fontWeight="800"
-                border="2px solid"
-                borderColor={colors.surface}
-              >
-                {unreadCount}
-              </Box>
-            )}
-          </Box>
+          <NotificationBell
+            notifications={notifications}
+            isOpen={isNotificationsOpen}
+            onOpenChange={setIsNotificationsOpen}
+            title="Updates & Alerts"
+            summaryLabel={`${unreadCount} associate updates`}
+            size="sm"
+          />
 
           <HStack gap="12px">
             <Avatar identity={identity} size="42px" />
@@ -1201,9 +1186,9 @@ function CareerPathCard({
           )}
         </Box>
 
-        <Grid templateColumns={{ base: "1fr", md: "1fr 32px 1fr" }} gap="18px" alignItems="center">
+        <Grid templateColumns={{ base: "1fr", "2xl": "minmax(0, 1fr) 32px minmax(0, 1fr)" }} gap="14px" alignItems="center" minW={0}>
           <CareerStep icon={User} label="Current Role" value={viewModel.identity?.title || "Unavailable"} tone="primary" />
-          <Box display={{ base: "none", md: "flex" }} justifyContent="center" color={colors.mutedText}>
+          <Box display={{ base: "none", "2xl": "flex" }} justifyContent="center" color={colors.mutedText}>
             <ArrowRight size={18} />
           </Box>
           <CareerStep icon={Flag} label="Next Goal" value={career.selectedGoal || "No goal saved"} tone="success" />
@@ -1217,9 +1202,9 @@ function CareerPathCard({
               Growth Timeline
             </Text>
             <Box position="relative" px="8px" pb="2px">
-              <Box position="absolute" left="18px" right="18px" top="9px" h="2px" bg={colors.lightBorder} />
-              <Box position="absolute" left="18px" right="50%" top="9px" h="2px" bg={colors.primary} />
-              <SimpleGrid columns={3} gap="12px" position="relative">
+              <Box display={{ base: "none", sm: "block" }} position="absolute" left="18px" right="18px" top="9px" h="2px" bg={colors.lightBorder} />
+              <Box display={{ base: "none", sm: "block" }} position="absolute" left="18px" right="50%" top="9px" h="2px" bg={colors.primary} />
+              <SimpleGrid columns={{ base: 1, sm: 3 }} gap="12px" position="relative">
                 <TimelineMilestone year={currentYear} label="Joined" tone="primary" />
                 <TimelineMilestone year="Now" label={viewModel.identity?.title || "Current role"} tone="success" />
                 <TimelineMilestone year={targetYear} label={selectedAspiration.label} tone="warning" />
@@ -1400,39 +1385,6 @@ function LearningCard({ learning }: { learning: LearningSummary[] }) {
   );
 }
 
-function UpdatesCard({ updates }: { updates: AssociateUpdateSummary[] }) {
-  return (
-    <DashboardCard title="Updates & Alerts" actionLabel="View all updates" minH="230px">
-      {updates.length === 0 ? (
-        <EmptyState icon={Bell} title="No updates" message="Notifications from the API will appear here." compact />
-      ) : (
-        <VStack align="stretch" gap="14px" px="22px" pb="22px">
-          {updates.slice(0, 3).map((update) => (
-            <HStack key={update.id} gap="14px" align="flex-start">
-              <IconTile tone={update.type === "warning" ? "warning" : update.type === "error" ? "danger" : "primary"} size="42px">
-                <Bell size={18} />
-              </IconTile>
-              <Box flex="1" minW={0}>
-                <HStack justify="space-between" gap="12px" align="start">
-                  <Text fontSize="13px" fontWeight="800" truncate>
-                    {update.title}
-                  </Text>
-                  <Text color={colors.secondaryText} fontSize="12px" fontWeight="700" whiteSpace="nowrap">
-                    {update.timestamp}
-                  </Text>
-                </HStack>
-                <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" mt="5px" truncate>
-                  {update.description}
-                </Text>
-              </Box>
-            </HStack>
-          ))}
-        </VStack>
-      )}
-    </DashboardCard>
-  );
-}
-
 function QuickActionsCard() {
   const actions = [
     { label: "Validate Skills", icon: ShieldCheck },
@@ -1535,15 +1487,15 @@ function CareerStep({
   tone: "primary" | "success";
 }) {
   return (
-    <HStack gap="13px" border="1px solid" borderColor={colors.border} borderRadius="10px" p="16px">
+    <HStack gap="13px" border="1px solid" borderColor={colors.border} borderRadius="10px" p="14px" w="full" minW={0}>
       <IconTile tone={tone} size="40px">
         <Icon size={19} />
       </IconTile>
-      <Box minW={0}>
+      <Box minW={0} flex="1">
         <Text color={colors.mutedText} fontSize="11px" fontWeight="800">
           {label}
         </Text>
-        <Text fontSize="13px" fontWeight="800" mt="5px" truncate>
+        <Text fontSize="13px" fontWeight="800" mt="5px" truncate maxW="full">
           {value}
         </Text>
       </Box>

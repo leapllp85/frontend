@@ -48,13 +48,13 @@ export const summaryMetrics: readonly SummaryMetric[] = [
   },
   {
     label: "Projects At Risk",
-    value: "0",
+    value: "3",
     valueColor: colors.primaryText,
     icon: ShieldCheck,
     iconColor: colors.primary,
     iconBg: colors.primarySoft,
-    trend: "0%",
-    trendPrefix: "flat",
+    trend: "10%",
+    trendPrefix: "down",
   },
 ];
 
