@@ -760,22 +760,6 @@ export function TalentPoolTab() {
         >
           Clear
         </Button>
-
-        {/* <Button
-          h="42px"
-          px="14px"
-          borderRadius="6px"
-          bg={colors.surface}
-          color={colors.secondaryText}
-          border="1px solid"
-          borderColor={colors.border}
-          fontSize="13px"
-          fontWeight="800"
-          _hover={{ bg: colors.primarySoft }}
-        >
-          <Bookmark size={16} />
-          Save View
-        </Button> */}
       </Grid>
 
       <Flex
