@@ -13,6 +13,7 @@ export type NavbarNotification = {
 };
 
 type NotificationBellProps = {
+  notificationBellRef: React.RefObject<HTMLDivElement>;
   notifications: readonly NavbarNotification[];
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
@@ -23,6 +24,7 @@ type NotificationBellProps = {
 };
 
 export function NotificationBell({
+  notificationBellRef,
   notifications,
   isOpen,
   onOpenChange,
@@ -140,6 +142,7 @@ export function NotificationBell({
 
                 return (
                   <Box
+                  ref={notificationBellRef}
                     key={notification.id}
                     px="16px"
                     py="13px"
