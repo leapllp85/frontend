@@ -1,488 +1,430 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Box, VStack, HStack, Text, Heading, Button } from '@chakra-ui/react';
-import { TrendingUp, TrendingDown, Minus, X, Battery, Briefcase } from 'lucide-react';
+import React from "react";
+import { Badge, Box, Button, Flex, Grid, HStack, IconButton, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import { Battery, BriefcaseBusiness, CalendarDays, CheckCircle2, Minus, TrendingDown, TrendingUp, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { colors } from "@/types/styles";
 
 interface TrendData {
-    date: string;
-    energy: string;
-    workload: string;
+  date: string;
+  energy: string;
+  workload: string;
 }
 
 interface TrendModalProps {
-    isOpen: boolean;
-    onClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const TrendModal: React.FC<TrendModalProps> = ({ isOpen, onClose }) => {
-    console.log('📊 TrendModal render - isOpen:', isOpen);
-    
-    if (!isOpen) return null;
-
-    // Get historical data
-    const historyStr = localStorage.getItem('checkInHistory');
-    const history: TrendData[] = historyStr ? JSON.parse(historyStr) : [];
-    const last7Days = history.slice(-7);
-    
-    console.log('📊 TrendModal showing with', last7Days.length, 'days of data');
-
-    // Calculate trends
-    const calculateEnergyTrend = (data: TrendData[]) => {
-        const values = data.map(d => d.energy === 'high' ? 3 : d.energy === 'medium' ? 2 : 1);
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
-        
-        if (avg >= 2.5) return { status: 'Improving', emoji: '📈', color: '#10b981', icon: TrendingUp };
-        if (avg >= 1.8) return { status: 'Stable', emoji: '➡️', color: '#f59e0b', icon: Minus };
-        return { status: 'Declining', emoji: '📉', color: '#ef4444', icon: TrendingDown };
-    };
-
-    const calculateWorkloadTrend = (data: TrendData[]) => {
-        const yesCount = data.filter(d => d.workload === 'yes').length;
-        const percentage = (yesCount / data.length) * 100;
-        
-        if (percentage >= 70) return { status: 'Manageable', emoji: '✅', color: '#10b981', icon: TrendingUp };
-        if (percentage >= 40) return { status: 'Moderate', emoji: '⚠️', color: '#f59e0b', icon: Minus };
-        return { status: 'Overwhelming', emoji: '🔴', color: '#ef4444', icon: TrendingDown };
-    };
-
-    const energyTrend = last7Days.length > 0 ? calculateEnergyTrend(last7Days) : null;
-    const workloadTrend = last7Days.length > 0 ? calculateWorkloadTrend(last7Days) : null;
-
-    // Format date
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    };
-
-    // Get energy color
-    const getEnergyColor = (energy: string) => {
-        if (energy === 'high') return '#10b981';
-        if (energy === 'medium') return '#f59e0b';
-        return '#ef4444';
-    };
-
-    // Get workload color
-    const getWorkloadColor = (workload: string) => {
-        return workload === 'yes' ? '#10b981' : '#ef4444';
-    };
-
-    return (
-        <Box
-            position="fixed"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            bg="blackAlpha.600"
-            backdropFilter="blur(8px)"
-            zIndex={9999}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                    onClose();
-                }
-            }}
-        >
-            <Box
-                bg="white"
-                borderRadius="2xl"
-                shadow="2xl"
-                maxW="1200px"
-                w="98%"
-                maxH="95vh"
-                p={6}
-                position="relative"
-                m={2}
-            >
-                {/* Close Button - Top Right */}
-                <Box
-                    position="absolute"
-                    top={4}
-                    right={4}
-                    cursor="pointer"
-                    onClick={onClose}
-                    p={2}
-                    borderRadius="full"
-                    bg="gray.100"
-                    _hover={{ bg: 'gray.200', transform: 'scale(1.1)' }}
-                    transition="all 0.2s"
-                    zIndex={10}
-                >
-                    <X size={24} color="#64748b" />
-                </Box>
-
-                {/* Header */}
-                <VStack gap={1} mb={4}>
-                    <Box
-                        fontSize="36px"
-                        style={{
-                            animation: 'bounce 1s ease-in-out infinite'
-                        }}
-                    >
-                        📊
-                    </Box>
-                    <Heading size="lg" color="gray.800">
-                        Your 7-Day Wellness Trend
-                    </Heading>
-                    <Text color="gray.600" fontSize="sm">
-                        Track your energy and workload patterns
-                    </Text>
-                </VStack>
-
-                {last7Days.length === 0 ? (
-                    <Box textAlign="center" py={8}>
-                        <Text color="gray.500" fontSize="lg">
-                            No data available yet. Complete your daily check-ins to see trends!
-                        </Text>
-                    </Box>
-                ) : (
-                    <VStack gap={4} align="stretch">
-                        {/* Trend Summary Cards */}
-                        <HStack gap={4}>
-                            {/* Energy Trend */}
-                            {energyTrend && (
-                                <Box
-                                    flex={1}
-                                    p={4}
-                                    borderRadius="xl"
-                                    bg={`${energyTrend.color}15`}
-                                    border="2px solid"
-                                    borderColor={energyTrend.color}
-                                >
-                                    <HStack justify="space-between" mb={2}>
-                                        <HStack gap={2}>
-                                            <Battery size={24} color={energyTrend.color} />
-                                            <Text fontWeight="bold" fontSize="lg" color="gray.800">
-                                                Energy Level
-                                            </Text>
-                                        </HStack>
-                                        <Text fontSize="32px">{energyTrend.emoji}</Text>
-                                    </HStack>
-                                    <Text
-                                        fontSize="2xl"
-                                        fontWeight="bold"
-                                        color={energyTrend.color}
-                                    >
-                                        {energyTrend.status}
-                                    </Text>
-                                </Box>
-                            )}
-
-                            {/* Workload Trend */}
-                            {workloadTrend && (
-                                <Box
-                                    flex={1}
-                                    p={4}
-                                    borderRadius="xl"
-                                    bg={`${workloadTrend.color}15`}
-                                    border="2px solid"
-                                    borderColor={workloadTrend.color}
-                                >
-                                    <HStack justify="space-between" mb={2}>
-                                        <HStack gap={2}>
-                                            <Briefcase size={24} color={workloadTrend.color} />
-                                            <Text fontWeight="bold" fontSize="lg" color="gray.800">
-                                                Workload
-                                            </Text>
-                                        </HStack>
-                                        <Text fontSize="32px">{workloadTrend.emoji}</Text>
-                                    </HStack>
-                                    <Text
-                                        fontSize="2xl"
-                                        fontWeight="bold"
-                                        color={workloadTrend.color}
-                                    >
-                                        {workloadTrend.status}
-                                    </Text>
-                                </Box>
-                            )}
-                        </HStack>
-
-                        {/* Bar Graph Visualization */}
-                        <Box>
-                            <Text fontWeight="bold" fontSize="lg" color="gray.800" mb={4}>
-                                7-Day Trend Graph
-                            </Text>
-                            
-                            {/* Energy Line Graph */}
-                            <Box mb={3} p={4} bg="linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)" borderRadius="xl" border="1px solid" borderColor="blue.200" position="relative">
-                                <HStack gap={2} mb={3}>
-                                    <Text fontSize="24px">⚡</Text>
-                                    <Text fontWeight="700" color="gray.800" fontSize="md">Energy Levels</Text>
-                                </HStack>
-                                <Box position="relative" h="120px">
-                                    {/* Data Points with Emojis at different heights */}
-                                    <HStack gap={2} h="120px" justify="space-between" position="relative">
-                                        {last7Days.map((day, index) => {
-                                            // High at TOP (10px), Medium at MIDDLE (55px), Low at BOTTOM (100px)
-                                            const topPosition = day.energy === 'high' ? '10px' : day.energy === 'medium' ? '55px' : '100px';
-                                            const emoji = day.energy === 'high' ? '🚀' : day.energy === 'medium' ? '😊' : '😴';
-                                            const color = day.energy === 'high' ? '#10b981' : day.energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                            
-                                            return (
-                                                <Box key={index} flex={1} position="relative" h="full">
-                                                    <Box
-                                                        position="absolute"
-                                                        top={topPosition}
-                                                        left="50%"
-                                                        transform="translateX(-50%)"
-                                                    >
-                                                        <Box
-                                                            bg={color}
-                                                            borderRadius="full"
-                                                            p={2}
-                                                            boxShadow="0 4px 12px rgba(0,0,0,0.2)"
-                                                            border="3px solid white"
-                                                            transition="all 0.3s"
-                                                            _hover={{
-                                                                transform: 'scale(1.3)',
-                                                                boxShadow: '0 6px 20px rgba(0,0,0,0.3)'
-                                                            }}
-                                                            style={{
-                                                                animation: `popIn 0.4s ease-out ${index * 0.2 + 0.3}s both`
-                                                            }}
-                                                        >
-                                                            <Text fontSize="20px">
-                                                                {emoji}
-                                                            </Text>
-                                                        </Box>
-                                                    </Box>
-                                                </Box>
-                                            );
-                                        })}
-                                    </HStack>
-                                    
-                                    {/* Connecting Lines passing through emojis */}
-                                    <svg width="100%" height="120" style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}>
-                                        {last7Days.map((day, index) => {
-                                            if (index === last7Days.length - 1) return null;
-                                            
-                                            // Match emoji positions: High=TOP (30), Medium=MIDDLE (75), Low=BOTTOM (120)
-                                            const getYPosition = (energy: string) => {
-                                                if (energy === 'high') return 30; // top
-                                                if (energy === 'medium') return 75; // middle
-                                                return 120; // bottom
-                                            };
-                                            
-                                            const currentY = getYPosition(day.energy);
-                                            const nextY = getYPosition(last7Days[index + 1].energy);
-                                            
-                                            const currentColor = day.energy === 'high' ? '#10b981' : day.energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                            const nextColor = last7Days[index + 1].energy === 'high' ? '#10b981' : last7Days[index + 1].energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                            
-                                            // Calculate X positions to match emoji centers
-                                            const columnWidth = 100 / last7Days.length;
-                                            const x1 = `${(index * columnWidth) + (columnWidth / 2)}%`;
-                                            const x2 = `${((index + 1) * columnWidth) + (columnWidth / 2)}%`;
-                                            
-                                            // Use solid color if same energy level, gradient if different
-                                            const strokeColor = currentY === nextY ? currentColor : `url(#gradient-${index})`;
-                                            
-                                            return (
-                                                <line
-                                                    key={index}
-                                                    x1={x1}
-                                                    y1={currentY}
-                                                    x2={x2}
-                                                    y2={nextY}
-                                                    stroke={strokeColor}
-                                                    strokeWidth="4"
-                                                    strokeLinecap="round"
-                                                    style={{
-                                                        animation: `drawLine 0.5s ease-out ${index * 0.2}s both`
-                                                    }}
-                                                />
-                                            );
-                                        })}
-                                        <defs>
-                                            {last7Days.map((day, index) => {
-                                                if (index === last7Days.length - 1) return null;
-                                                const currentColor = day.energy === 'high' ? '#10b981' : day.energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                                const nextColor = last7Days[index + 1].energy === 'high' ? '#10b981' : last7Days[index + 1].energy === 'medium' ? '#f59e0b' : '#ef4444';
-                                                return (
-                                                    <linearGradient key={index} id={`gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                                        <stop offset="0%" stopColor={currentColor} />
-                                                        <stop offset="100%" stopColor={nextColor} />
-                                                    </linearGradient>
-                                                );
-                                            })}
-                                        </defs>
-                                    </svg>
-                                </Box>
-                                {/* Date Labels */}
-                                <HStack gap={0} justify="space-between" mt={2}>
-                                    {last7Days.map((day, index) => (
-                                        <Box key={index} flex={1} textAlign="center">
-                                            <Text fontSize="2xs" color="gray.700" fontWeight="700">
-                                                {formatDate(day.date).split(' ')[1]}
-                                            </Text>
-                                        </Box>
-                                    ))}
-                                </HStack>
-                            </Box>
-
-                            {/* Workload Bar Graph */}
-                            <Box p={4} bg="linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)" borderRadius="xl" border="1px solid" borderColor="yellow.300">
-                                <HStack gap={2} mb={3}>
-                                    <Text fontSize="24px">💼</Text>
-                                    <Text fontWeight="700" color="gray.800" fontSize="md">Workload Status</Text>
-                                </HStack>
-                                <HStack gap={2} align="end" h="120px">
-                                    {last7Days.map((day, index) => {
-                                        const isManageable = day.workload === 'yes';
-                                        const height = isManageable ? '100%' : '50%';
-                                        const emoji = isManageable ? '✅' : '😰';
-                                        const gradient = isManageable
-                                            ? 'linear-gradient(180deg, #10b981 0%, #059669 100%)'
-                                            : 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)';
-                                        
-                                        return (
-                                            <VStack key={index} flex={1} gap={1} justify="end" h="full" align="center">
-                                                <Box
-                                                    w="60%"
-                                                    maxW="40px"
-                                                    h={height}
-                                                    bg={gradient}
-                                                    borderRadius="xl"
-                                                    position="relative"
-                                                    transition="all 0.3s"
-                                                    boxShadow="0 2px 8px rgba(0,0,0,0.1)"
-                                                    _hover={{
-                                                        transform: 'translateY(-6px) scale(1.05)',
-                                                        boxShadow: '0 8px 20px rgba(0,0,0,0.2)'
-                                                    }}
-                                                    display="flex"
-                                                    flexDirection="column"
-                                                    alignItems="center"
-                                                    justifyContent="center"
-                                                    border="2px solid"
-                                                    borderColor="whiteAlpha.400"
-                                                    style={{
-                                                        animation: `growBar 1s ease-out ${(index + 7) * 0.2}s both`
-                                                    }}
-                                                >
-                                                    <Text fontSize="24px" mb={1}>
-                                                        {emoji}
-                                                    </Text>
-                                                    <Text
-                                                        color="white"
-                                                        fontSize="2xs"
-                                                        fontWeight="bold"
-                                                        textTransform="uppercase"
-                                                        letterSpacing="wide"
-                                                        textShadow="0 1px 2px rgba(0,0,0,0.3)"
-                                                    >
-                                                        {isManageable ? 'OK' : 'HIGH'}
-                                                    </Text>
-                                                </Box>
-                                                <Text fontSize="2xs" color="gray.700" fontWeight="700">
-                                                    {formatDate(day.date).split(' ')[1]}
-                                                </Text>
-                                            </VStack>
-                                        );
-                                    })}
-                                </HStack>
-                            </Box>
-                        </Box>
-
-                        {/* Encouragement Message */}
-                        <Box
-                            p={3}
-                            borderRadius="xl"
-                            bg="linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)"
-                            color="white"
-                            textAlign="center"
-                        >
-                            <Text fontSize="md" fontWeight="600">
-                                💪 Keep tracking your wellbeing!
-                            </Text>
-                        </Box>
-
-                        {/* Close Button - Bottom */}
-                        <HStack justify="center" mt={3}>
-                            <Button
-                                size="md"
-                                onClick={onClose}
-                                bg="gray.800"
-                                color="white"
-                                px={6}
-                                py={3}
-                                fontSize="md"
-                                fontWeight="bold"
-                                borderRadius="lg"
-                                _hover={{
-                                    bg: 'gray.700',
-                                    transform: 'translateY(-2px)',
-                                    shadow: 'xl'
-                                }}
-                                _active={{
-                                    transform: 'translateY(0)'
-                                }}
-                                transition="all 0.2s"
-                            >
-                                <HStack gap={2}>
-                                    <X size={20} />
-                                    <Text>Close</Text>
-                                </HStack>
-                            </Button>
-                        </HStack>
-                    </VStack>
-                )}
-            </Box>
-
-            <style>{`
-                @keyframes bounce {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
-                
-                @keyframes growBar {
-                    0% {
-                        transform: scaleY(0);
-                        opacity: 0;
-                    }
-                    50% {
-                        opacity: 1;
-                    }
-                    100% {
-                        transform: scaleY(1);
-                        opacity: 1;
-                    }
-                }
-                
-                @keyframes drawLine {
-                    0% {
-                        stroke-dasharray: 1000;
-                        stroke-dashoffset: 1000;
-                        opacity: 0;
-                    }
-                    20% {
-                        opacity: 1;
-                    }
-                    100% {
-                        stroke-dasharray: 1000;
-                        stroke-dashoffset: 0;
-                        opacity: 1;
-                    }
-                }
-                
-                @keyframes popIn {
-                    0% {
-                        transform: scale(0);
-                        opacity: 0;
-                    }
-                    50% {
-                        transform: scale(1.2);
-                    }
-                    100% {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-                }
-            `}</style>
-        </Box>
-    );
+type TrendSummary = {
+  status: string;
+  color: string;
+  softBg: string;
+  icon: LucideIcon;
 };
+
+export const TrendModal: React.FC<TrendModalProps> = ({ isOpen, onClose }) => {
+  if (!isOpen) {
+    return null;
+  }
+
+  const history = readCheckInHistory();
+  const last7Days = history.slice(-7);
+  const energyTrend = last7Days.length > 0 ? calculateEnergyTrend(last7Days) : null;
+  const workloadTrend = last7Days.length > 0 ? calculateWorkloadTrend(last7Days) : null;
+  const manageableDays = last7Days.filter((day) => day.workload === "yes").length;
+  const averageEnergy = getAverageEnergy(last7Days);
+
+  return (
+    <Box
+      position="fixed"
+      inset="0"
+      bg="rgba(18, 31, 50, 0.62)"
+      backdropFilter="blur(8px)"
+      zIndex={9999}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      px={{ base: "14px", md: "28px" }}
+      py={{ base: "18px", md: "30px" }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <Box
+        bg={colors.surface}
+        border="1px solid"
+        borderColor={colors.border}
+        borderRadius="14px"
+        boxShadow="0 28px 80px rgba(7, 15, 31, 0.28)"
+        w="full"
+        maxW="920px"
+        maxH="90vh"
+        overflow="hidden"
+      >
+        <Flex align="center" justify="space-between" gap="18px" px={{ base: "18px", md: "24px" }} py={{ base: "17px", md: "20px" }} borderBottom="1px solid" borderColor={colors.lightBorder}>
+          <HStack gap="14px" minW={0}>
+            <Flex w="46px" h="46px" borderRadius="12px" bg={colors.primarySoft} color={colors.primary} align="center" justify="center" flexShrink={0}>
+              <TrendingUp size={22} />
+            </Flex>
+            <Box minW={0}>
+              <Text color={colors.primaryText} fontSize={{ base: "18px", md: "21px" }} fontWeight="800" lineHeight="1.15">
+                Your 7-Day Wellness Trend
+              </Text>
+              <Text color={colors.secondaryText} fontSize={{ base: "12px", md: "13px" }} fontWeight="600" mt="6px">
+                Track your energy and workload patterns
+              </Text>
+            </Box>
+          </HStack>
+
+          <IconButton aria-label="Close trend modal" variant="ghost" color={colors.secondaryText} borderRadius="8px" _hover={{ bg: "#F8FAFD" }} onClick={onClose}>
+            <X size={20} />
+          </IconButton>
+        </Flex>
+
+        <Box px={{ base: "18px", md: "24px" }} py={{ base: "18px", md: "22px" }} overflowY="auto" maxH="calc(90vh - 86px)">
+          {last7Days.length === 0 ? (
+            <EmptyTrendState />
+          ) : (
+            <VStack align="stretch" gap="16px">
+              <SimpleGrid columns={{ base: 1, md: 2 }} gap="14px">
+                {energyTrend ? (
+                  <SummaryCard
+                    icon={Battery}
+                    title="Energy Level"
+                    status={energyTrend.status}
+                    metric={averageEnergy}
+                    caption="Average mood score"
+                    color={energyTrend.color}
+                    softBg={energyTrend.softBg}
+                    TrendIcon={energyTrend.icon}
+                  />
+                ) : null}
+                {workloadTrend ? (
+                  <SummaryCard
+                    icon={BriefcaseBusiness}
+                    title="Workload"
+                    status={workloadTrend.status}
+                    metric={`${manageableDays}/${last7Days.length}`}
+                    caption="Manageable days"
+                    color={workloadTrend.color}
+                    softBg={workloadTrend.softBg}
+                    TrendIcon={workloadTrend.icon}
+                  />
+                ) : null}
+              </SimpleGrid>
+
+              <Grid templateColumns={{ base: "1fr", lg: "minmax(0, 1.35fr) minmax(260px, 0.65fr)" }} gap="16px" alignItems="stretch">
+                <TrendChart days={last7Days} />
+                <DailyBreakdown days={last7Days} />
+              </Grid>
+
+              <Flex
+                align="center"
+                justify="space-between"
+                gap="14px"
+                flexWrap={{ base: "wrap", md: "nowrap" }}
+                bg="#F8FBFF"
+                border="1px solid"
+                borderColor={colors.border}
+                borderRadius="12px"
+                px="16px"
+                py="14px"
+              >
+                <HStack gap="12px">
+                  <Flex w="36px" h="36px" borderRadius="full" bg={colors.primarySoft} color={colors.primary} align="center" justify="center">
+                    <CheckCircle2 size={18} />
+                  </Flex>
+                  <Box>
+                    <Text color={colors.primaryText} fontSize="13px" fontWeight="800">
+                      Keep tracking your wellbeing
+                    </Text>
+                    <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" mt="4px">
+                      More check-ins make these insights more useful.
+                    </Text>
+                  </Box>
+                </HStack>
+                <Button h="40px" px="18px" bg={colors.primary} color={colors.surface} borderRadius="7px" fontSize="13px" fontWeight="800" _hover={{ bg: "#1668BA" }} onClick={onClose}>
+                  Close
+                </Button>
+              </Flex>
+            </VStack>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+function readCheckInHistory() {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const historyStr = window.localStorage.getItem("checkInHistory");
+    const parsedHistory = historyStr ? JSON.parse(historyStr) : [];
+    return Array.isArray(parsedHistory) ? (parsedHistory as TrendData[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function calculateEnergyTrend(data: TrendData[]): TrendSummary {
+  const values = data.map((day) => getEnergyValue(day.energy));
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+
+  if (avg >= 2.5) {
+    return { status: "Improving", color: colors.success, softBg: "#E8F8F0", icon: TrendingUp };
+  }
+  if (avg >= 1.8) {
+    return { status: "Stable", color: colors.warning, softBg: "#FFF3DE", icon: Minus };
+  }
+  return { status: "Needs Attention", color: colors.danger, softBg: "#FDEDEA", icon: TrendingDown };
+}
+
+function calculateWorkloadTrend(data: TrendData[]): TrendSummary {
+  const manageableCount = data.filter((day) => day.workload === "yes").length;
+  const percentage = (manageableCount / data.length) * 100;
+
+  if (percentage >= 70) {
+    return { status: "Manageable", color: colors.success, softBg: "#E8F8F0", icon: TrendingUp };
+  }
+  if (percentage >= 40) {
+    return { status: "Moderate", color: colors.warning, softBg: "#FFF3DE", icon: Minus };
+  }
+  return { status: "Overwhelming", color: colors.danger, softBg: "#FDEDEA", icon: TrendingDown };
+}
+
+function getEnergyValue(energy: string) {
+  if (energy === "high") {
+    return 3;
+  }
+  if (energy === "medium") {
+    return 2;
+  }
+  return 1;
+}
+
+function getWorkloadValue(workload: string) {
+  return workload === "yes" ? 3 : 1;
+}
+
+function getAverageEnergy(days: TrendData[]) {
+  if (days.length === 0) {
+    return "0.0";
+  }
+
+  const average = days.reduce((sum, day) => sum + getEnergyValue(day.energy), 0) / days.length;
+  return average.toFixed(1);
+}
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) {
+    return dateStr;
+  }
+
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function SummaryCard({
+  icon: Icon,
+  title,
+  status,
+  metric,
+  caption,
+  color,
+  softBg,
+  TrendIcon,
+}: {
+  icon: LucideIcon;
+  title: string;
+  status: string;
+  metric: string;
+  caption: string;
+  color: string;
+  softBg: string;
+  TrendIcon: LucideIcon;
+}) {
+  return (
+    <Box bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="12px" p="16px" boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+      <Flex justify="space-between" align="flex-start" gap="14px">
+        <HStack gap="12px">
+          <Flex w="40px" h="40px" borderRadius="10px" bg={softBg} color={color} align="center" justify="center">
+            <Icon size={20} />
+          </Flex>
+          <Box>
+            <Text color={colors.primaryText} fontSize="14px" fontWeight="800">
+              {title}
+            </Text>
+            <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" mt="5px">
+              {caption}
+            </Text>
+          </Box>
+        </HStack>
+        <Flex w="32px" h="32px" borderRadius="full" bg={softBg} color={color} align="center" justify="center">
+          <TrendIcon size={17} />
+        </Flex>
+      </Flex>
+
+      <HStack mt="18px" align="end" justify="space-between">
+        <Text color={colors.primaryText} fontSize="28px" fontWeight="800" lineHeight="1">
+          {metric}
+        </Text>
+        <Badge bg={softBg} color={color} borderRadius="999px" px="10px" py="5px" fontSize="11px" fontWeight="800" textTransform="none">
+          {status}
+        </Badge>
+      </HStack>
+    </Box>
+  );
+}
+
+function TrendChart({ days }: { days: TrendData[] }) {
+  const chartWidth = 520;
+  const chartHeight = 190;
+  const leftPadding = 42;
+  const rightPadding = 24;
+  const topPadding = 20;
+  const bottomPadding = 38;
+  const usableWidth = chartWidth - leftPadding - rightPadding;
+  const usableHeight = chartHeight - topPadding - bottomPadding;
+  const xStep = days.length > 1 ? usableWidth / (days.length - 1) : 0;
+  const getPoint = (value: number, index: number) => {
+    const x = leftPadding + index * xStep;
+    const y = topPadding + ((3 - value) / 2) * usableHeight;
+    return `${x},${y}`;
+  };
+  const energyPoints = days.map((day, index) => getPoint(getEnergyValue(day.energy), index));
+  const workloadPoints = days.map((day, index) => getPoint(getWorkloadValue(day.workload), index));
+
+  return (
+    <Box bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="12px" p="16px" boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+      <HStack justify="space-between" align="flex-start" gap="14px" mb="14px">
+        <Box>
+          <Text color={colors.primaryText} fontSize="15px" fontWeight="800">
+            Energy & Workload Trend
+          </Text>
+          <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" mt="5px">
+            Last {days.length} check-ins
+          </Text>
+        </Box>
+        <HStack gap="14px" color={colors.secondaryText} flexWrap="wrap" justify="flex-end">
+          <LegendDot color={colors.primaryLight} label="Energy" />
+          <LegendDot color={colors.success} label="Workload" />
+        </HStack>
+      </HStack>
+
+      <Box overflowX="auto">
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} width="100%" height="214" role="img" aria-label="Energy trend over recent check-ins">
+          {[0, 1, 2].map((line) => {
+            const y = topPadding + line * (usableHeight / 2);
+            return <line key={line} x1={leftPadding} y1={y} x2={chartWidth - rightPadding} y2={y} stroke={colors.lightBorder} strokeWidth="1" />;
+          })}
+          <text x="8" y={topPadding + 4} fill={colors.mutedText} fontSize="11px" fontWeight="700">
+            High
+          </text>
+          <text x="8" y={topPadding + usableHeight / 2 + 4} fill={colors.mutedText} fontSize="11px" fontWeight="700">
+            Med
+          </text>
+          <text x="8" y={topPadding + usableHeight + 4} fill={colors.mutedText} fontSize="11px" fontWeight="700">
+            Low
+          </text>
+          <polyline points={workloadPoints.join(" ")} fill="none" stroke={colors.success} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" opacity="0.55" />
+          <polyline points={energyPoints.join(" ")} fill="none" stroke={colors.primaryLight} strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" opacity="0.82" />
+          {days.map((day, index) => {
+            const [energyX, energyY] = energyPoints[index].split(",").map(Number);
+            const [workloadX, workloadY] = workloadPoints[index].split(",").map(Number);
+            return (
+              <g key={`${day.date}-${index}`}>
+                <circle cx={workloadX} cy={workloadY} r="4.5" fill={colors.surface} stroke={colors.success} strokeWidth="2.4" opacity="0.78" />
+                <circle cx={energyX} cy={energyY} r="5" fill={colors.surface} stroke={colors.primaryLight} strokeWidth="2.6" />
+                <text x={energyX} y={chartHeight - 8} textAnchor="middle" fill={colors.secondaryText} fontSize="11px" fontWeight="700">
+                  {formatDate(day.date).split(" ")[1] || formatDate(day.date)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </Box>
+    </Box>
+  );
+}
+
+function DailyBreakdown({ days }: { days: TrendData[] }) {
+  return (
+    <Box bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="12px" p="16px" boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+      <HStack gap="10px" mb="14px">
+        <Flex w="34px" h="34px" borderRadius="9px" bg={colors.primarySoft} color={colors.primary} align="center" justify="center">
+          <CalendarDays size={17} />
+        </Flex>
+        <Box>
+          <Text color={colors.primaryText} fontSize="15px" fontWeight="800">
+            Daily Breakdown
+          </Text>
+          <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" mt="4px">
+            Recent submissions
+          </Text>
+        </Box>
+      </HStack>
+
+      <VStack align="stretch" gap="9px" maxH="234px" overflowY="auto" pr="3px">
+        {days.map((day, index) => (
+          <HStack key={`${day.date}-${index}`} justify="space-between" gap="12px" border="1px solid" borderColor={colors.lightBorder} borderRadius="9px" px="12px" py="10px">
+            <Box>
+              <Text color={colors.primaryText} fontSize="12px" fontWeight="800">
+                {formatDate(day.date)}
+              </Text>
+              <Text color={colors.secondaryText} fontSize="11px" fontWeight="600" mt="4px">
+                Workload {day.workload === "yes" ? "manageable" : "high"}
+              </Text>
+            </Box>
+            <Badge bg={getEnergyTone(day.energy).bg} color={getEnergyTone(day.energy).color} borderRadius="999px" px="9px" py="5px" fontSize="10px" fontWeight="800" textTransform="capitalize">
+              {day.energy}
+            </Badge>
+          </HStack>
+        ))}
+      </VStack>
+    </Box>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <HStack gap="6px">
+      <Box w="8px" h="8px" borderRadius="full" bg={color} />
+      <Text fontSize="11px" fontWeight="700">
+        {label}
+      </Text>
+    </HStack>
+  );
+}
+
+function EmptyTrendState() {
+  return (
+    <Box textAlign="center" py="54px" px="20px">
+      <Flex mx="auto" w="54px" h="54px" borderRadius="14px" bg={colors.primarySoft} color={colors.primary} align="center" justify="center">
+        <TrendingUp size={24} />
+      </Flex>
+      <Text color={colors.primaryText} fontSize="17px" fontWeight="800" mt="18px">
+        No trend data yet
+      </Text>
+      <Text color={colors.secondaryText} fontSize="13px" fontWeight="600" mt="8px">
+        Complete your daily check-ins to see wellness patterns here.
+      </Text>
+    </Box>
+  );
+}
+
+function getEnergyTone(energy: string) {
+  if (energy === "high") {
+    return { bg: "#E8F8F0", color: colors.success };
+  }
+  if (energy === "medium") {
+    return { bg: "#FFF3DE", color: "#B66A12" };
+  }
+  return { bg: "#FDEDEA", color: colors.danger };
+}
