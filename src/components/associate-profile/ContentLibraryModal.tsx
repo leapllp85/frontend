@@ -252,7 +252,6 @@ function SectionHeader({ title, meta }: { title: string; meta: string }) {
       </Text>
       <HStack as="button" gap="9px" color={colors.primary} fontSize={{ base: "14px", xl: "12px", "2xl": "14px" }} fontWeight="800">
         <Text>{meta}</Text>
-        <ArrowRight size={17} />
       </HStack>
     </HStack>
   );
