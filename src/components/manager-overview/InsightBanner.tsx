@@ -1,10 +1,18 @@
 "use client";
 
-import { Box, Button, Flex, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Text, VStack, Spinner } from "@chakra-ui/react";
 import { ChevronRight, Lightbulb } from "lucide-react";
 import { cardRadius, colors } from "../../types/styles";
+import dynamic from 'next/dynamic';
+import { useState } from "react";
+
+const ManagerWellnessDashboard = dynamic(() => import('@/components/common/ManagerWellnessDashboard').then(mod => ({ default: mod.ManagerWellnessDashboard })), {
+  loading: () => <Box p={4}><Spinner size="lg" /></Box>,
+  ssr: false,
+});
 
 export function InsightBanner() {
+  const [showWellnessDashboard, setShowWellnessDashboard] = useState(false);
   return (
     <Flex
       mt={{ base: "18px", md: "18px" }}
@@ -60,14 +68,27 @@ export function InsightBanner() {
         borderRadius="8px"
         fontSize="14px"
         fontWeight="800"
+        onClick={() => setShowWellnessDashboard(!showWellnessDashboard)}
         flexShrink={0}
         _hover={{ bg: "#F8FAFD", borderColor: colors.primaryLight }}
       >
         <HStack gap={3}>
-          <Text>View Detailed Analytics</Text>
-          <ChevronRight size={18} />
+            <Text>View Detailed Analytics</Text>
+            <ChevronRight size={18} />
+          {/* </Button> */}
         </HStack>
       </Button>
+      <ManagerWellnessDashboard
+        isOpen={showWellnessDashboard}
+        onClose={() => {
+          console.log('🔴 Closing wellness dashboard');
+          setShowWellnessDashboard(false);
+          // Mark as shown for today only after user closes it
+          const today = new Date().toDateString();
+          localStorage.setItem('managerWellnessDashboardShown', today);
+          console.log('Dashboard marked as shown for today:', today);
+        }}
+      />
     </Flex>
   );
 }
