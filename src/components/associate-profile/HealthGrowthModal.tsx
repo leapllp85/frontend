@@ -38,6 +38,7 @@ import { cardBorder, colors } from "@/types/styles";
 type HealthGrowthModalProps = {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: "skills" | "wellness";
 };
 
 type Tone = "primary" | "success" | "warning" | "purple" | "orange";
@@ -180,8 +181,8 @@ const toneStyles: Record<Tone, { bg: string; color: string; border?: string }> =
   orange: { bg: "#FFF0E5", color: "#D86B2B" },
 };
 
-export function HealthGrowthModal({ isOpen, onClose }: HealthGrowthModalProps) {
-  const [activeTab, setActiveTab] = useState<"skills" | "wellness">("wellness");
+export function HealthGrowthModal({ isOpen, onClose, initialTab = "wellness" }: HealthGrowthModalProps) {
+  const [activeTab, setActiveTab] = useState<"skills" | "wellness">(initialTab);
   const [isExpertChatOpen, setIsExpertChatOpen] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -189,13 +190,19 @@ export function HealthGrowthModal({ isOpen, onClose }: HealthGrowthModalProps) {
 
   useEffect(() => {
     if (!isOpen) {
-      setActiveTab("wellness");
+      setActiveTab(initialTab);
       setIsExpertChatOpen(false);
       setIsAnonymous(false);
       setIsConnecting(false);
       setShowWelcome(false);
     }
-  }, [isOpen]);
+  }, [initialTab, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, isOpen]);
 
   useEffect(() => {
     if (!isConnecting) {
@@ -390,21 +397,6 @@ function SkillAnalysisView() {
               Your current skill profile and expertise level.
             </Text>
           </Box>
-          <Button
-            h={{ base: "38px", xl: "32px", "2xl": "38px" }}
-            px={{ base: "16px", xl: "12px", "2xl": "16px" }}
-            bg={colors.surface}
-            border="1px solid"
-            borderColor="#DCE6F4"
-            borderRadius="8px"
-            color="#092558"
-            fontSize={{ base: "12px", xl: "11px", "2xl": "12px" }}
-            fontWeight="800"
-            _hover={{ bg: "#F8FBFF" }}
-          >
-            All Skills
-            <ChevronRight size={14} style={{ transform: "rotate(90deg)" }} />
-          </Button>
         </Flex>
 
         <SimpleGrid columns={{ base: 2, md: 4 }} gap={{ base: "18px", xl: "14px", "2xl": "24px" }} mt={{ base: "30px", xl: "22px", "2xl": "34px" }}>
@@ -490,7 +482,6 @@ function SkillBreakdownRow({ skill }: { skill: SkillBreakdownItem }) {
           {skill.score}%
         </Text>
       </Box>
-      <ChevronRight size={18} color="#71809B" />
     </Grid>
   );
 }
@@ -542,7 +533,7 @@ function CareerGrowthCard() {
 function GrowthLineChart() {
   const width = 410;
   const height = 190;
-  const left = 34;
+  const left = 55;
   const right = 18;
   const top = 14;
   const bottom = 34;
@@ -572,7 +563,7 @@ function GrowthLineChart() {
           return (
             <g key={tick}>
               <line x1={left} x2={width - right} y1={y} y2={y} stroke="#EEF1F5" strokeWidth="1" />
-              <text x="3" y={y + 4} fill="#6D83AA" fontSize="12" fontWeight="700">
+              <text x="3" y={y + 4} fill="#6D83AA" fontWeight="500" style={{ fontSize: "12px" }}>
                 {tick}%
               </text>
             </g>
@@ -590,7 +581,7 @@ function GrowthLineChart() {
         {growthChartPoints.map((point, index) => {
           const x = left + (index / (growthChartPoints.length - 1)) * chartWidth;
           return (
-            <text key={point.label} x={x} y={height - 8} textAnchor="middle" fill="#6D83AA" fontSize="12" fontWeight="700">
+            <text key={point.label} x={x} y={height - 8} textAnchor="middle" fill="#6D83AA" style={{ fontSize: "12px"}}>
               {point.label}
             </text>
           );
@@ -672,7 +663,6 @@ function TimelineQuarterCard({ item }: { item: LearningQuarter }) {
           </Text>
         </Box>
       </HStack>
-      <ChevronRight size={18} color="#71809B" />
     </HStack>
   );
 }
@@ -725,7 +715,7 @@ function ActionCard({ item }: { item: ActionTile }) {
       cursor="pointer"
       _hover={{ borderColor: "#BFD4F2", boxShadow: "0 12px 28px rgba(29, 66, 117, 0.06)" }}
     >
-      <Flex direction="column" h="full" justify="space-between" gap={{ base: "20px", xl: "16px", "2xl": "22px" }}>
+      <Flex direction="column" h="full" align="center" justify="space-between" gap={{ base: "20px", xl: "16px", "2xl": "22px" }}>
         <IconBadge icon={Icon} tone={item.tone} size={{ base: "45px", xl: "39px", "2xl": "49px" }} iconSize={21} />
         <HStack justify="space-between" gap="10px">
           <Box minW={0}>
@@ -736,7 +726,6 @@ function ActionCard({ item }: { item: ActionTile }) {
               {item.detail}
             </Text>
           </Box>
-          <RoundArrowButton label={`Open ${item.title}`} />
         </HStack>
       </Flex>
     </Box>
@@ -797,7 +786,6 @@ function ScheduleRow({ item, index }: { item: ScheduleItem; index: number }) {
             </Text>
           </Box>
         </HStack>
-        <ChevronRight size={18} color="#174A89" strokeWidth={2} />
       </HStack>
     </Grid>
   );
@@ -872,10 +860,6 @@ function StressReliefCard() {
             Quick Stress Relief
           </Text>
         </HStack>
-        <HStack as="button" color="#0E5AFF" gap="7px" fontSize="12px" fontWeight="800" _hover={{ color: "#164FCB" }}>
-          <Text as="span">View all</Text>
-          <ChevronRight size={15} />
-        </HStack>
       </Flex>
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap={{ base: "16px", xl: "12px", "2xl": "16px" }}>
@@ -938,31 +922,6 @@ function SupportCard() {
             ))}
           </VStack>
         </Box>
-      </HStack>
-
-      <HStack
-        as="button"
-        mt={{ base: "20px", xl: "14px", "2xl": "20px" }}
-        w="full"
-        justify="space-between"
-        bg="#EAF5FF"
-        borderRadius="10px"
-        px="15px"
-        py={{ base: "12px", xl: "9px", "2xl": "12px" }}
-        _hover={{ bg: "#E1F0FF" }}
-      >
-        <HStack gap="14px">
-          <IconBadge icon={Building2} tone="primary" size="38px" iconSize={20} radius="9px" />
-          <Box textAlign="left">
-            <Text color="#092558" fontSize="12px" fontWeight="800">
-              Company Resources
-            </Text>
-            <Text color="#6D83AA" fontSize="12px" fontWeight="600" mt="5px">
-              Contact HR for EAP & counselling
-            </Text>
-          </Box>
-        </HStack>
-        <ChevronRight size={18} color="#0E5AFF" />
       </HStack>
     </Panel>
   );
