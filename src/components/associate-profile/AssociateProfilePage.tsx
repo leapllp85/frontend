@@ -29,11 +29,14 @@ import {
   Layers3,
   MapPin,
   MessageSquareText,
+  Plus,
   Search,
   ShieldCheck,
   Star,
   Target,
+  Trash2,
   User,
+  X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -53,19 +56,46 @@ import type {
   ProjectsPaginatedResponse,
 } from "@/services";
 import type { UserProfile } from "@/services/userApi";
+import { ContentLibraryModal } from "@/components/associate-profile/ContentLibraryModal";
+import { DailyCheckInModal } from "@/components/associate-profile/DailyCheckInModal";
+import { EventCalendarModal } from "@/components/associate-profile/EventCalendarModal";
+import { HealthGrowthModal } from "@/components/associate-profile/HealthGrowthModal";
+import { ReportsModal } from "@/components/associate-profile/ReportsModal";
+import { TrendModal } from "@/components/common/TrendModal";
 import { NotificationBell, type NavbarNotification } from "@/components/topnavbar/NotificationBell";
 import { cardBorder, cardRadius, cardShadow, colors } from "@/types/styles";
 
 const ASSOCIATE_CAREER_STATE_KEY = "associateProfileCareerState";
 const ASSOCIATE_SKILLS_STATE_KEY = "associateProfileSkillsState";
+const ASSOCIATE_SKILL_METADATA_STATE_KEY = "associateProfileSkillMetadataState";
 const ASSOCIATE_LEARNING_STATE_KEY = "associateProfileLearningState";
 const FALLBACK_USER_ID = "1";
+const subtleScrollbar = {
+  scrollbarWidth: "thin",
+  scrollbarColor: "#CFE1FA transparent",
+  "&::-webkit-scrollbar": {
+    width: "6px",
+  },
+  "&::-webkit-scrollbar-track": {
+    background: "transparent",
+  },
+  "&::-webkit-scrollbar-thumb": {
+    background: "#D7E6F8",
+    borderRadius: "999px",
+  },
+  "&::-webkit-scrollbar-thumb:hover": {
+    background: "#BDD5F2",
+  },
+} as const;
 
 type LoadStatus = "idle" | "loading" | "ready" | "error";
 
 type SkillLevel = 1 | 2 | 3 | 4 | 5;
 
 type SkillProficiencyState = Record<string, SkillLevel>;
+type SkillCategory = "frontend" | "backend" | "database" | "tools" | "other";
+type SkillValidationStatus = "self_declared" | "has_knowledge" | "project_experience";
+type SkillMetadataState = Record<string, { category: SkillCategory; validationStatus: SkillValidationStatus }>;
 
 type LearningProgressState = Record<string, number>;
 
@@ -130,6 +160,8 @@ type AssociateUpdateSummary = {
 type AssociateSkillSummary = {
   name: string;
   level: number;
+  category: SkillCategory;
+  validationStatus: SkillValidationStatus;
 };
 
 type CareerProgressSummary = {
@@ -144,6 +176,18 @@ type AspirationOption = {
   label: string;
   targetDate: string;
   requiredSkills: string[];
+};
+
+type AssociateModalKey = "content-library" | "event-calendar" | "health-growth" | "reports";
+
+type DailyCheckInData = {
+  energy: string;
+  workload: string;
+};
+
+type DailyCheckInHistoryEntry = DailyCheckInData & {
+  date: string;
+  timestamp: string;
 };
 
 type AssociateProfileViewModel = {
@@ -169,6 +213,7 @@ type AssociateProfileState = {
   notifications: NotificationsResponse | null;
   careerState: CareerGoalState;
   skillLevels: SkillProficiencyState;
+  skillMetadata: SkillMetadataState;
   learningProgress: LearningProgressState;
 };
 
@@ -185,6 +230,14 @@ const defaultSkillLevels: SkillProficiencyState = {
   "Node.js": 3,
   SQL: 3,
   "System Design": 2,
+};
+
+const defaultSkillMetadata: SkillMetadataState = {
+  React: { category: "frontend", validationStatus: "project_experience" },
+  TypeScript: { category: "frontend", validationStatus: "project_experience" },
+  "Node.js": { category: "backend", validationStatus: "has_knowledge" },
+  SQL: { category: "database", validationStatus: "has_knowledge" },
+  "System Design": { category: "other", validationStatus: "self_declared" },
 };
 
 const defaultLearningProgress: LearningProgressState = {
@@ -409,6 +462,7 @@ const initialState: AssociateProfileState = {
   notifications: fallbackNotifications,
   careerState: defaultCareerState,
   skillLevels: defaultSkillLevels,
+  skillMetadata: defaultSkillMetadata,
   learningProgress: defaultLearningProgress,
 };
 
@@ -551,8 +605,20 @@ function normalizeUpdates(notifications: NotificationsResponse | null): Associat
   }));
 }
 
-function normalizeSkills(skillLevels: SkillProficiencyState): AssociateSkillSummary[] {
-  return Object.entries(skillLevels).map(([name, level]) => ({ name, level }));
+function normalizeSkills(
+  skillLevels: SkillProficiencyState,
+  skillMetadata: SkillMetadataState,
+): AssociateSkillSummary[] {
+  return Object.entries(skillLevels).map(([name, level]) => {
+    const metadata = skillMetadata[name] || { category: "other", validationStatus: "self_declared" };
+
+    return {
+      name,
+      level,
+      category: metadata.category,
+      validationStatus: metadata.validationStatus,
+    };
+  });
 }
 
 function getAspirationByLabel(label: string) {
@@ -644,7 +710,7 @@ function buildAssociateProfileViewModel(state: AssociateProfileState): Associate
     updates: normalizeUpdates(state.notifications),
     career: state.careerState,
     skillLevels: state.skillLevels,
-    skills: normalizeSkills(state.skillLevels),
+    skills: normalizeSkills(state.skillLevels, state.skillMetadata),
     careerProgress: calculateCareerProgress(state.careerState, state.skillLevels),
   };
 }
@@ -654,6 +720,7 @@ export function useAssociateProfileModel() {
     ...initialState,
     careerState: readStoredJson(ASSOCIATE_CAREER_STATE_KEY, defaultCareerState),
     skillLevels: readStoredJson(ASSOCIATE_SKILLS_STATE_KEY, defaultSkillLevels),
+    skillMetadata: readStoredJson(ASSOCIATE_SKILL_METADATA_STATE_KEY, defaultSkillMetadata),
     learningProgress: readStoredJson(ASSOCIATE_LEARNING_STATE_KEY, defaultLearningProgress),
   }));
 
@@ -712,9 +779,49 @@ export function useAssociateProfileModel() {
   const setSkillLevel = useCallback((skillName: string, level: SkillLevel) => {
     setState((currentState) => {
       const skillLevels = { ...currentState.skillLevels, [skillName]: level };
+      const skillMetadata = currentState.skillMetadata[skillName]
+        ? currentState.skillMetadata
+        : {
+            ...currentState.skillMetadata,
+            [skillName]: { category: "other" as SkillCategory, validationStatus: "self_declared" as SkillValidationStatus },
+          };
       writeStoredJson(ASSOCIATE_SKILLS_STATE_KEY, skillLevels);
+      writeStoredJson(ASSOCIATE_SKILL_METADATA_STATE_KEY, skillMetadata);
 
-      return { ...currentState, skillLevels };
+      return { ...currentState, skillLevels, skillMetadata };
+    });
+  }, []);
+
+  const addSkill = useCallback((skillName: string, category: SkillCategory, level: SkillLevel) => {
+    const normalizedSkillName = skillName.trim();
+
+    if (!normalizedSkillName) {
+      return;
+    }
+
+    setState((currentState) => {
+      const skillLevels = { ...currentState.skillLevels, [normalizedSkillName]: level };
+      const skillMetadata = {
+        ...currentState.skillMetadata,
+        [normalizedSkillName]: { category, validationStatus: "self_declared" as SkillValidationStatus },
+      };
+      writeStoredJson(ASSOCIATE_SKILLS_STATE_KEY, skillLevels);
+      writeStoredJson(ASSOCIATE_SKILL_METADATA_STATE_KEY, skillMetadata);
+
+      return { ...currentState, skillLevels, skillMetadata };
+    });
+  }, []);
+
+  const removeSkill = useCallback((skillName: string) => {
+    setState((currentState) => {
+      const skillLevels = { ...currentState.skillLevels };
+      const skillMetadata = { ...currentState.skillMetadata };
+      delete skillLevels[skillName];
+      delete skillMetadata[skillName];
+      writeStoredJson(ASSOCIATE_SKILLS_STATE_KEY, skillLevels);
+      writeStoredJson(ASSOCIATE_SKILL_METADATA_STATE_KEY, skillMetadata);
+
+      return { ...currentState, skillLevels, skillMetadata };
     });
   }, []);
 
@@ -738,20 +845,128 @@ export function useAssociateProfileModel() {
     reload: loadAssociateProfile,
     setCareerState,
     setSkillLevel,
+    addSkill,
+    removeSkill,
     setLearningProgress,
   };
 }
 
 export function AssociateProfilePage() {
-  const { state, viewModel, reload, setCareerState } = useAssociateProfileModel();
+  const { state, viewModel, reload, setCareerState, addSkill, removeSkill } = useAssociateProfileModel();
+  const [activeModal, setActiveModal] = useState<AssociateModalKey | null>(null);
+  const [healthGrowthInitialTab, setHealthGrowthInitialTab] = useState<"skills" | "wellness">("wellness");
+  const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
+  const [showTrendModal, setShowTrendModal] = useState(false);
+  const [hasPromptedDailyCheckIn, setHasPromptedDailyCheckIn] = useState(false);
+  const [isEditSkillsOpen, setIsEditSkillsOpen] = useState(false);
   const identity = viewModel.identity;
   const hasRenderableData = Boolean(identity);
   const displayName = identity?.name || "Associate";
   const firstName = displayName.split(" ")[0] || "Associate";
+  const isPageReady = state.status !== "loading" && state.status !== "idle" && hasRenderableData;
+
+  const isDailyCheckInDue = useCallback(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    const lastCheckIn = window.localStorage.getItem("lastDailyCheckIn");
+    const today = new Date().toDateString();
+    return lastCheckIn !== today;
+  }, []);
+
+  const openDailyCheckInIfDue = useCallback(() => {
+    if (isPageReady && isDailyCheckInDue() && !showDailyCheckIn) {
+      setShowDailyCheckIn(true);
+    }
+  }, [isDailyCheckInDue, isPageReady, showDailyCheckIn]);
+
+  useEffect(() => {
+    if (!isPageReady || hasPromptedDailyCheckIn || !isDailyCheckInDue() || showDailyCheckIn) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setHasPromptedDailyCheckIn(true);
+      setShowDailyCheckIn(true);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [hasPromptedDailyCheckIn, isDailyCheckInDue, isPageReady, showDailyCheckIn]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        openDailyCheckInIfDue();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [openDailyCheckInIfDue]);
+
+  useEffect(() => {
+    const interval = window.setInterval(openDailyCheckInIfDue, 5 * 60 * 1000);
+    return () => window.clearInterval(interval);
+  }, [openDailyCheckInIfDue]);
+
+  const handleDailyCheckInComplete = useCallback((data: DailyCheckInData) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    let history: DailyCheckInHistoryEntry[] = [];
+
+    try {
+      const historyValue = window.localStorage.getItem("checkInHistory");
+      const parsedHistory = historyValue ? JSON.parse(historyValue) : [];
+      history = Array.isArray(parsedHistory) ? parsedHistory : [];
+    } catch {
+      history = [];
+    }
+
+    const today = {
+      date: new Date().toISOString().split("T")[0],
+      energy: data.energy,
+      workload: data.workload,
+      timestamp: new Date().toISOString(),
+    };
+
+    const last30Days = [...history, today].slice(-30);
+    window.localStorage.setItem("checkInHistory", JSON.stringify(last30Days));
+    window.localStorage.setItem("lastDailyCheckIn", new Date().toDateString());
+    window.localStorage.setItem("todayEnergy", data.energy);
+    window.localStorage.setItem("todayWorkload", data.workload);
+
+    setShowDailyCheckIn(false);
+    window.setTimeout(() => setShowTrendModal(true), 100);
+  }, []);
+
+  const openHealthGrowthModal = useCallback((initialTab: "skills" | "wellness" = "wellness") => {
+    setHealthGrowthInitialTab(initialTab);
+    setActiveModal("health-growth");
+  }, []);
 
   return (
     <Box minH="100vh" bg={colors.background} color={colors.primaryText} fontFamily="Arial, Helvetica, sans-serif">
-      <AssociateTopNav identity={identity} updates={viewModel.updates} />
+      <AssociateTopNav
+        identity={identity}
+        updates={viewModel.updates}
+        onOpenModal={(modal) => {
+          if (modal === "health-growth") {
+            openHealthGrowthModal("wellness");
+            return;
+          }
+
+          setActiveModal(modal);
+        }}
+      />
+      <ContentLibraryModal isOpen={activeModal === "content-library"} onClose={() => setActiveModal(null)} />
+      <EventCalendarModal isOpen={activeModal === "event-calendar"} onClose={() => setActiveModal(null)} />
+      <HealthGrowthModal isOpen={activeModal === "health-growth"} initialTab={healthGrowthInitialTab} onClose={() => setActiveModal(null)} />
+      <ReportsModal isOpen={activeModal === "reports"} onClose={() => setActiveModal(null)} />
+      <DailyCheckInModal isOpen={showDailyCheckIn} onClose={() => setShowDailyCheckIn(false)} onComplete={handleDailyCheckInComplete} />
+      <TrendModal isOpen={showTrendModal} onClose={() => setShowTrendModal(false)} />
 
       <Box
         as="main"
@@ -782,13 +997,25 @@ export function AssociateProfilePage() {
 
               <VStack align="stretch" gap={{ base: "18px", xl: "20px" }}>
                 <CareerPathCard viewModel={viewModel} onCareerChange={setCareerState} />
-                <SkillsOverviewCard viewModel={viewModel} />
+                {/* <SkillsOverviewCard viewModel={viewModel} /> */}
+                <QuickActionsCard
+                  onValidateSkills={() => setIsEditSkillsOpen(true)}
+                  onViewLearning={() => openHealthGrowthModal("skills")}
+                  onRequestFeedback={() => setActiveModal("reports")}
+                />
               </VStack>
 
               <VStack align="stretch" gap={{ base: "18px", xl: "20px" }}>
                 <MyProjectsCard projects={viewModel.projects} />
-                <LearningCard learning={viewModel.learning} />
-                <QuickActionsCard />
+                {/* <LearningCard learning={viewModel.learning} /> */}
+                <SkillsOverviewCard
+                  viewModel={viewModel}
+                  isEditOpen={isEditSkillsOpen}
+                  onEditOpenChange={setIsEditSkillsOpen}
+                  onAddSkill={addSkill}
+                  onRemoveSkill={removeSkill}
+                />
+                {/* <QuickActionsCard /> */}
               </VStack>
             </Grid>
           )}
@@ -801,12 +1028,19 @@ export function AssociateProfilePage() {
 function AssociateTopNav({
   identity,
   updates,
+  onOpenModal,
 }: {
   identity: AssociateIdentity | null;
   updates: AssociateUpdateSummary[];
+  onOpenModal: (modal: AssociateModalKey) => void;
 }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const navItems = ["Overview", "Teams", "Projects", "Talent Pool", "Surveys", "Reports"];
+  const navItems: Array<{ label: string; modal: AssociateModalKey }> = [
+    { label: "Content Library", modal: "content-library" },
+    { label: "Event Calendar", modal: "event-calendar" },
+    { label: "Health & Growth", modal: "health-growth" },
+    { label: "Reports", modal: "reports" },
+  ];
   const notifications = useMemo<NavbarNotification[]>(
     () =>
       updates.map((update) => ({
@@ -858,20 +1092,24 @@ function AssociateTopNav({
           gap={{ md: "28px", xl: "44px" }}
           minW={0}
         >
-          {navItems.map((item, index) => (
-            <Box key={item} position="relative" h="74px" display="flex" alignItems="center">
+          {navItems.map((item) => (
+            <Box key={item.modal} position="relative" h="74px" display="flex" alignItems="center">
               <Text
-                color={index === 0 ? colors.primary : colors.primaryText}
+                as="button"
+                color={colors.primaryText}
                 fontSize="13px"
                 fontWeight="800"
                 lineHeight="1"
                 whiteSpace="nowrap"
+                cursor="pointer"
+                _hover={{ color: colors.primary }}
+                onClick={() => {
+                  setIsNotificationsOpen(false);
+                  onOpenModal(item.modal);
+                }}
               >
-                {item}
+                {item.label}
               </Text>
-              {index === 0 && (
-                <Box position="absolute" left="0" right="0" bottom="0" h="3px" bg={colors.primary} />
-              )}
             </Box>
           ))}
         </HStack>
@@ -992,7 +1230,7 @@ function DashboardCard({
   showArrow=true,
 }: {
   title: string;
-  actionLabel?: string;
+  actionLabel?: ReactNode;
   children: ReactNode;
   minH?: string;
   showArrow?: boolean;
@@ -1003,10 +1241,12 @@ function DashboardCard({
         <Text as="h2" fontSize="15px" fontWeight="800" lineHeight="1">
           {title}
         </Text>
-        {actionLabel && (
+        {typeof actionLabel === "string" ? (
           <ActionLink showArrow={showArrow}>
             {actionLabel}
           </ActionLink>
+        ) : (
+          actionLabel
         )}
       </Flex>
       {children}
@@ -1068,8 +1308,8 @@ function FocusForYouCard({ tasks }: { tasks: FocusTaskSummary[] }) {
       {tasks.length === 0 ? (
         <EmptyState icon={Star} title="No focus tasks" message="Action items assigned to you will appear here." />
       ) : (
-        <VStack align="stretch" gap="0">
-          {tasks.slice(0, 4).map((task) => (
+        <VStack align="stretch" gap="0" maxH="312px" overflowY="auto" css={subtleScrollbar}>
+          {tasks.map((task) => (
             <HStack key={task.id} justify="space-between" gap="14px" px="22px" py="18px" borderTop="1px solid" borderColor={colors.lightBorder}>
               <HStack gap="14px" minW={0}>
                 <PriorityPill priority={task.priority} />
@@ -1082,9 +1322,6 @@ function FocusForYouCard({ tasks }: { tasks: FocusTaskSummary[] }) {
                   </Text>
                 </Box>
               </HStack>
-              <IconButton aria-label={`Open ${task.title}`} h="30px" w="30px" minW="30px" bg={colors.primarySoft} color={colors.primary} borderRadius="6px">
-                <ArrowRight size={15} />
-              </IconButton>
             </HStack>
           ))}
         </VStack>
@@ -1113,7 +1350,7 @@ function CareerPathCard({
   };
 
   return (
-    <DashboardCard title="Career Path" actionLabel="View details" minH="352px">
+    <DashboardCard title="Career Path" minH="352px">
       <VStack align="stretch" gap="18px" px="22px" pb="22px">
         <Box position="relative">
           <Text color={colors.secondaryText} fontSize="12px" fontWeight="800" mb="9px">
@@ -1247,64 +1484,293 @@ function CareerPathCard({
   );
 }
 
-function SkillsOverviewCard({ viewModel }: { viewModel: AssociateProfileViewModel }) {
+function SkillsOverviewCard({
+  viewModel,
+  isEditOpen,
+  onEditOpenChange,
+  onAddSkill,
+  onRemoveSkill,
+}: {
+  viewModel: AssociateProfileViewModel;
+  isEditOpen: boolean;
+  onEditOpenChange: (isOpen: boolean) => void;
+  onAddSkill: (skillName: string, category: SkillCategory, level: SkillLevel) => void;
+  onRemoveSkill: (skillName: string) => void;
+}) {
   return (
-    <DashboardCard title="Skills Overview" actionLabel="View all skills" minH="236px">
+    <>
+      <DashboardCard title="Skills Overview" actionLabel={<EditSkillsButton onClick={() => onEditOpenChange(true)} />} minH="388px" showArrow={false}>
       {viewModel.skills.length === 0 ? (
         <EmptyState icon={ShieldCheck} title="No skills saved" message="Skill proficiency saved by the associate will appear here." compact />
       ) : (
-        <Grid templateColumns={{ base: "1fr", lg: "1fr minmax(210px, 0.92fr)" }} gap="20px" px="22px" pb="22px">
-          <VStack align="stretch" gap="13px">
-            {viewModel.skills.slice(0, 6).map((skill) => (
-              <HStack key={skill.name} justify="space-between" gap="18px">
-                <Text fontSize="13px" fontWeight="800" color={colors.primaryText}>
-                  {skill.name}
-                </Text>
-                <HStack gap="8px">
-                  {[1, 2, 3, 4, 5].map((level) => (
-                    <Box
-                      key={level}
-                      w="11px"
-                      h="11px"
-                      borderRadius="full"
-                      bg={level <= skill.level ? colors.primary : colors.surface}
-                      border="1px solid"
-                      borderColor={level <= skill.level ? colors.primary : "#AEB9CA"}
-                    />
-                  ))}
-                </HStack>
-              </HStack>
+        <Grid gap="20px" px="22px" pb="22px">
+          <VStack align="stretch" gap="12px" maxH="292px" overflowY="auto" pr="5px" css={subtleScrollbar}>
+            {viewModel.skills.map((skill) => (
+              <SkillOverviewRow key={skill.name} skill={skill} />
             ))}
           </VStack>
-
-          <Box borderLeft={{ lg: "1px solid" }} borderColor={colors.lightBorder} pl={{ lg: "22px" }}>
-            <Box bg="#F8FBFF" border="1px solid" borderColor={colors.border} borderRadius="10px" p="18px">
-              <Text color={colors.primary} fontSize="12px" fontWeight="800">
-                Recommended for you
-              </Text>
-              <Text fontSize="14px" fontWeight="800" mt="12px">
-                {viewModel.careerProgress.skillsToStrengthen[0] || "No skill gap calculated"}
-              </Text>
-              <Text color={colors.secondaryText} fontSize="13px" fontWeight="700" mt="10px">
-                Based on your saved career goal
-              </Text>
-              <ActionLink mt="18px">Explore learning</ActionLink>
-            </Box>
-          </Box>
         </Grid>
       )}
     </DashboardCard>
+      <EditSkillsModal
+        isOpen={isEditOpen}
+        skills={viewModel.skills}
+        onClose={() => onEditOpenChange(false)}
+        onAddSkill={onAddSkill}
+        onRemoveSkill={onRemoveSkill}
+      />
+    </>
   );
+}
+
+function EditSkillsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <HStack as="button" gap="8px" color={colors.primary} fontSize="13px" fontWeight="800" lineHeight="1" whiteSpace="nowrap" _hover={{ color: "#1668BA" }} onClick={onClick}>
+      <Plus size={15} strokeWidth={2.3} />
+      <Text as="span">Edit Skills</Text>
+    </HStack>
+  );
+}
+
+function SkillOverviewRow({ skill }: { skill: AssociateSkillSummary }) {
+  return (
+    <Box border="1px solid" borderColor={colors.border} borderRadius="10px" bg={colors.surface} p="13px">
+      <Grid templateColumns={{ base: "1fr", sm: "minmax(0, 1fr) 120px" }} gap="12px" alignItems="center">
+        <Box minW={0}>
+          <HStack gap="8px" flexWrap="wrap">
+            <Text fontSize="13px" fontWeight="800" color={colors.primaryText}>
+              {skill.name}
+            </Text>
+            <ValidationBadge status={skill.validationStatus} />
+          </HStack>
+          <Text color={colors.mutedText} fontSize="11px" fontWeight="700" mt="7px">
+            {formatSkillCategory(skill.category)} • Level {skill.level}/5
+          </Text>
+        </Box>
+        <HStack gap="8px" justify={{ base: "flex-start", sm: "flex-end" }}>
+          {[1, 2, 3, 4, 5].map((level) => (
+            <Box
+              key={level}
+              w="11px"
+              h="11px"
+              borderRadius="full"
+              bg={level <= skill.level ? colors.primary : colors.surface}
+              border="1px solid"
+              borderColor={level <= skill.level ? colors.primary : "#AEB9CA"}
+            />
+          ))}
+        </HStack>
+      </Grid>
+    </Box>
+  );
+}
+
+function SkillStatTile({ value, label, tone }: { value: number; label: string; tone: "primary" | "success" | "warning" }) {
+  const styles = {
+    primary: { bg: colors.primarySoft, color: colors.primary },
+    success: { bg: "#E8F8F0", color: colors.success },
+    warning: { bg: "#FFF3DE", color: "#C66A16" },
+  }[tone];
+
+  return (
+    <Box bg={styles.bg} border="1px solid" borderColor={colors.border} borderRadius="8px" p="11px" textAlign="center">
+      <Text color={styles.color} fontSize="17px" fontWeight="800" lineHeight="1">
+        {value}
+      </Text>
+      <Text color={colors.secondaryText} fontSize="10px" fontWeight="800" mt="7px">
+        {label}
+      </Text>
+    </Box>
+  );
+}
+
+function ValidationLegend({ status, label }: { status: SkillValidationStatus; label: string }) {
+  return (
+    <HStack justify="space-between" gap="10px">
+      <Text color={colors.secondaryText} fontSize="12px" fontWeight="700">
+        {label}
+      </Text>
+      <ValidationBadge status={status} />
+    </HStack>
+  );
+}
+
+function ValidationBadge({ status }: { status: SkillValidationStatus }) {
+  const styles = {
+    self_declared: { label: "Self Declared", bg: "#F8FAFD", color: colors.secondaryText, border: colors.border },
+    has_knowledge: { label: "Has Knowledge", bg: colors.primarySoft, color: colors.primary, border: "#CFE1FA" },
+    project_experience: { label: "Project Experience", bg: "#E8F8F0", color: colors.success, border: "#C8EBD9" },
+  }[status];
+
+  return (
+    <Badge bg={styles.bg} color={styles.color} border="1px solid" borderColor={styles.border} borderRadius="999px" px="8px" py="3px" fontSize="10px" fontWeight="800" textTransform="none">
+      {styles.label}
+    </Badge>
+  );
+}
+
+function EditSkillsModal({
+  isOpen,
+  skills,
+  onClose,
+  onAddSkill,
+  onRemoveSkill,
+}: {
+  isOpen: boolean;
+  skills: AssociateSkillSummary[];
+  onClose: () => void;
+  onAddSkill: (skillName: string, category: SkillCategory, level: SkillLevel) => void;
+  onRemoveSkill: (skillName: string) => void;
+}) {
+  const [newSkillName, setNewSkillName] = useState("");
+  const [newSkillCategory, setNewSkillCategory] = useState<SkillCategory>("frontend");
+  const [newSkillLevel, setNewSkillLevel] = useState<SkillLevel>(3);
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const handleAddSkill = () => {
+    if (!newSkillName.trim()) {
+      return;
+    }
+
+    onAddSkill(newSkillName, newSkillCategory, newSkillLevel);
+    setNewSkillName("");
+    setNewSkillCategory("frontend");
+    setNewSkillLevel(3);
+  };
+
+  return (
+    <Box position="fixed" inset="0" zIndex={1400} bg="rgba(15, 27, 46, 0.58)" backdropFilter="blur(8px)" display="flex" alignItems="center" justifyContent="center" p={{ base: "18px", md: "28px" }} onClick={onClose}>
+      <Box bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="12px" boxShadow="0 28px 80px rgba(7, 15, 31, 0.28)" w="full" maxW="640px" maxH="88vh" overflow="hidden" onClick={(event) => event.stopPropagation()}>
+        <Flex justify="space-between" align="center" gap="16px" px="22px" py="18px" borderBottom="1px solid" borderColor={colors.lightBorder}>
+          <Box>
+            <Text color={colors.primaryText} fontSize="18px" fontWeight="800">
+              Edit Skills
+            </Text>
+            <Text color={colors.secondaryText} fontSize="13px" fontWeight="600" mt="6px">
+              Add self-declared skills and manage your current profile.
+            </Text>
+          </Box>
+          <IconButton aria-label="Close edit skills" variant="ghost" borderRadius="8px" color={colors.secondaryText} _hover={{ bg: "#F8FAFD" }} onClick={onClose}>
+            <X size={20} />
+          </IconButton>
+        </Flex>
+
+        <Box p="22px" overflowY="auto" maxH="calc(88vh - 88px)">
+          <Box bg="#F8FBFF" border="1px solid" borderColor={colors.border} borderRadius="10px" p="16px">
+            <Text color={colors.primaryText} fontSize="14px" fontWeight="800" mb="14px">
+              Add New Skill
+            </Text>
+            <Grid templateColumns={{ base: "1fr", md: "minmax(0, 1fr) 132px 96px 82px" }} gap="10px">
+              <Input
+                value={newSkillName}
+                onChange={(event) => setNewSkillName(event.target.value)}
+                placeholder="Skill name"
+                h="40px"
+                bg={colors.surface}
+                borderColor={colors.border}
+                borderRadius="6px"
+                fontSize="13px"
+              />
+              <Box
+                as="select"
+                value={newSkillCategory}
+                onChange={(event) => setNewSkillCategory(event.currentTarget.value as SkillCategory)}
+                h="40px"
+                bg={colors.surface}
+                border="1px solid"
+                borderColor={colors.border}
+                borderRadius="6px"
+                px="10px"
+                fontSize="13px"
+                fontWeight="700"
+                color={colors.secondaryText}
+              >
+                <option value="frontend">Frontend</option>
+                <option value="backend">Backend</option>
+                <option value="database">Database</option>
+                <option value="tools">Tools</option>
+                <option value="other">Other</option>
+              </Box>
+              <Box
+                as="select"
+                value={newSkillLevel}
+                onChange={(event) => setNewSkillLevel(Number(event.currentTarget.value) as SkillLevel)}
+                h="40px"
+                bg={colors.surface}
+                border="1px solid"
+                borderColor={colors.border}
+                borderRadius="6px"
+                px="10px"
+                fontSize="13px"
+                fontWeight="700"
+                color={colors.secondaryText}
+              >
+                {[1, 2, 3, 4, 5].map((level) => (
+                  <option key={level} value={level}>
+                    L{level}
+                  </option>
+                ))}
+              </Box>
+              <Button h="40px" bg={colors.primary} color={colors.surface} borderRadius="6px" fontSize="13px" fontWeight="800" _hover={{ bg: "#1668BA" }} onClick={handleAddSkill}>
+                Add
+              </Button>
+            </Grid>
+          </Box>
+
+          <Box mt="20px">
+            <Text color={colors.primaryText} fontSize="14px" fontWeight="800" mb="12px">
+              Current Skills
+            </Text>
+            <VStack align="stretch" gap="10px">
+              {skills.map((skill) => (
+                <HStack key={skill.name} justify="space-between" gap="14px" bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="10px" p="13px">
+                  <Box minW={0}>
+                    <HStack gap="8px" flexWrap="wrap">
+                      <Text color={colors.primaryText} fontSize="13px" fontWeight="800">
+                        {skill.name}
+                      </Text>
+                      <ValidationBadge status={skill.validationStatus} />
+                    </HStack>
+                    <Text color={colors.mutedText} fontSize="12px" fontWeight="700" mt="7px">
+                      {formatSkillCategory(skill.category)} • Level {skill.level}/5
+                    </Text>
+                  </Box>
+                  <IconButton aria-label={`Remove ${skill.name}`} h="34px" w="34px" minW="34px" bg="#FDEDEA" color={colors.danger} borderRadius="8px" _hover={{ bg: "#F9D8D4" }} onClick={() => onRemoveSkill(skill.name)}>
+                    <Trash2 size={16} />
+                  </IconButton>
+                </HStack>
+              ))}
+            </VStack>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
+function formatSkillCategory(category: SkillCategory) {
+  const labels: Record<SkillCategory, string> = {
+    frontend: "Frontend",
+    backend: "Backend",
+    database: "Database",
+    tools: "Tools",
+    other: "Other",
+  };
+
+  return labels[category];
 }
 
 function MyProjectsCard({ projects }: { projects: AssociateProjectSummary[] }) {
   return (
-    <DashboardCard title="My Projects" actionLabel="View all projects" minH="310px">
+    <DashboardCard title="My Projects" minH="310px">
       {projects.length === 0 ? (
         <EmptyState icon={BriefcaseBusiness} title="No active projects" message="Projects returned by your account will appear here." />
       ) : (
-        <VStack align="stretch" gap="0" px="22px" pb="14px">
-          {projects.slice(0, 3).map((project, index) => (
+        <VStack align="stretch" gap="0" px="22px" pb="14px" maxH="238px" overflowY="auto" css={subtleScrollbar}>
+          {projects.map((project, index) => (
             <HStack key={project.id} align="center" gap="16px" py="18px" borderTop={index === 0 ? "1px solid" : undefined} borderColor={colors.lightBorder}>
               <IconTile tone={index % 2 === 0 ? "primary" : "success"}>
                 <Layers3 size={27} />
@@ -1346,7 +1812,7 @@ function MyProjectsCard({ projects }: { projects: AssociateProjectSummary[] }) {
 
 function LearningCard({ learning }: { learning: LearningSummary[] }) {
   return (
-    <DashboardCard title="Learning & Development" actionLabel="View all" minH="284px">
+    <DashboardCard title="Learning & Development" minH="284px">
       {learning.length === 0 ? (
         <EmptyState icon={BookOpen} title="No learning items" message="Courses returned by the learning service will appear here." compact />
       ) : (
@@ -1385,12 +1851,20 @@ function LearningCard({ learning }: { learning: LearningSummary[] }) {
   );
 }
 
-function QuickActionsCard() {
+function QuickActionsCard({
+  onValidateSkills,
+  onViewLearning,
+  onRequestFeedback,
+}: {
+  onValidateSkills: () => void;
+  onViewLearning: () => void;
+  onRequestFeedback: () => void;
+}) {
   const actions = [
-    { label: "Validate Skills", icon: ShieldCheck },
-    { label: "View Learning", icon: BookOpen },
-    { label: "Request Feedback", icon: MessageSquareText },
-    { label: "Update Profile", icon: User },
+    { label: "Validate Skills", icon: ShieldCheck, onClick: onValidateSkills },
+    { label: "View Learning", icon: BookOpen, onClick: onViewLearning },
+    { label: "Request Feedback", icon: MessageSquareText, onClick: onRequestFeedback },
+    { label: "Update Profile", icon: User, onClick: undefined },
   ];
 
   return (
@@ -1413,6 +1887,7 @@ function QuickActionsCard() {
               flexDirection="column"
               gap="8px"
               _hover={{ bg: "#F8FAFD", borderColor: colors.primaryLight }}
+              onClick={action.onClick}
             >
               <Icon size={22} color={colors.primary} />
               {action.label}
