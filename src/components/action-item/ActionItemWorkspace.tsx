@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { colors } from "@/types/styles";
 import {
-  actionTimelineItems,
   actionItemTabs,
+  type ActionItemTimelineEntry,
   type ActionItemPriority,
   type ActionItemSource,
   type ActionItemTab,
@@ -16,10 +16,11 @@ import { ActionTimeline } from "./ActionTimeline";
 const pageSize = 5;
 
 type ActionItemWorkspaceProps = {
+  items: readonly ActionItemTimelineEntry[];
   selectedWeekDate: string | null;
 };
 
-export function ActionItemWorkspace({ selectedWeekDate }: ActionItemWorkspaceProps) {
+export function ActionItemWorkspace({ items, selectedWeekDate }: ActionItemWorkspaceProps) {
   const [viewMode, setViewMode] = useState<"Timeline" | "Overview">("Timeline");
   const [activeTab, setActiveTab] = useState<ActionItemTab>(actionItemTabs[0]);
   const [search, setSearch] = useState("");
@@ -31,7 +32,7 @@ export function ActionItemWorkspace({ selectedWeekDate }: ActionItemWorkspacePro
   const filteredItems = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
 
-    return actionTimelineItems
+    return items
       .filter((item) => {
         const matchesSearch =
           normalizedSearch.length === 0 ||
@@ -42,14 +43,15 @@ export function ActionItemWorkspace({ selectedWeekDate }: ActionItemWorkspacePro
         const matchesPriority = priority === "All priorities" || item.priority === priority;
         const matchesWeekDate = selectedWeekDate === null || item.dueSort === selectedWeekDate;
         const matchesTab =
-          (activeTab === "Due Soon" && item.status !== "Completed") ||
+          activeTab === "All" ||
+          (activeTab === "Due Soon" && item.status !== "Completed" && !item.dueLabel.includes("overdue")) ||
           (activeTab === "Overdue" && item.dueLabel.includes("overdue")) ||
           (activeTab === "Completed" && item.status === "Completed");
 
         return matchesSearch && matchesSource && matchesPriority && matchesWeekDate && matchesTab;
       })
       .sort((firstItem, secondItem) => firstItem.dueSort.localeCompare(secondItem.dueSort));
-  }, [activeTab, priority, search, selectedWeekDate, source]);
+  }, [activeTab, items, priority, search, selectedWeekDate, source]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const pageItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -70,12 +72,12 @@ export function ActionItemWorkspace({ selectedWeekDate }: ActionItemWorkspacePro
         priority={priority}
         search={search}
         source={source}
-        viewMode={viewMode}
+        // viewMode={viewMode}
         onActiveTabChange={setActiveTab}
         onPriorityChange={setPriority}
         onSearchChange={setSearch}
         onSourceChange={setSource}
-        onViewModeChange={setViewMode}
+        // onViewModeChange={setViewMode}
       />
 
       {viewMode === "Timeline" ? (

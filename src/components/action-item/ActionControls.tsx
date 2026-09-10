@@ -10,12 +10,12 @@ type ActionControlsProps = {
   priority: "All priorities" | ActionItemPriority;
   search: string;
   source: "All sources" | ActionItemSource;
-  viewMode: "Timeline" | "Overview";
+  // viewMode: "Timeline" | "Overview";
   onActiveTabChange: (tab: ActionItemTab) => void;
   onPriorityChange: (priority: "All priorities" | ActionItemPriority) => void;
   onSearchChange: (value: string) => void;
   onSourceChange: (source: "All sources" | ActionItemSource) => void;
-  onViewModeChange: (mode: "Timeline" | "Overview") => void;
+  // onViewModeChange: (mode: "Timeline" | "Overview") => void;
 };
 
 function SelectButton<T extends string>({
@@ -60,16 +60,16 @@ export function ActionControls({
   priority,
   search,
   source,
-  viewMode,
+  // viewMode,
   onActiveTabChange,
   onPriorityChange,
   onSearchChange,
   onSourceChange,
-  onViewModeChange,
+  // onViewModeChange,
 }: ActionControlsProps) {
   return (
     <>
-      <HStack align="center" gap="8px" flexWrap="wrap">
+      {/* <HStack align="center" gap="8px" flexWrap="wrap">
         <Text color={colors.primaryText} fontSize="13px" fontWeight="800">
           View:
         </Text>
@@ -78,21 +78,21 @@ export function ActionControls({
             key={mode}
             h="32px"
             px="14px"
-            bg={viewMode === mode ? colors.primarySoft : colors.surface}
+            bg={colors.primarySoft}
             border="1px solid"
-            borderColor={viewMode === mode ? colors.primary : colors.border}
+            borderColor={colors.primary}
             borderRadius="6px"
-            color={viewMode === mode ? colors.primary : colors.secondaryText}
+            color={colors.primary}
             fontSize="11px"
             fontWeight="800"
             _hover={{ bg: colors.primarySoft }}
-            onClick={() => onViewModeChange(mode)}
+            // onClick={() => onViewModeChange(mode)}
           >
             {mode === "Timeline" && <BarChart3 size={13} />}
             <Text ml={mode === "Timeline" ? "6px" : "0"}>{mode}</Text>
           </Button>
         ))}
-      </HStack>
+      </HStack> */}
 
       <HStack mt="16px" gap={{ base: "18px", md: "30px" }} overflowX="auto" borderBottom="1px solid" borderColor={colors.lightBorder}>
         {actionItemTabs.map((tab) => (
@@ -143,12 +143,12 @@ export function ActionControls({
         </HStack>
         <SelectButton label="Source" options={sources} value={source} onChange={onSourceChange} />
         <SelectButton label="Priority" options={priorities} value={priority} onChange={onPriorityChange} />
-        <Button h="32px" px="11px" bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="6px" fontSize="11px" fontWeight="800" color={colors.primaryText} _hover={{ bg: "#F8FAFD" }}>
+        {/* <Button h="32px" px="11px" bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="6px" fontSize="11px" fontWeight="800" color={colors.primaryText} _hover={{ bg: "#F8FAFD" }}>
           <HStack gap="7px">
             <Text>Sort by: Due Date</Text>
             <ChevronDown size={14} />
           </HStack>
-        </Button>
+        </Button> */}
         <Box display={{ base: "none", xl: "block" }} w="0" />
       </HStack>
     </>
