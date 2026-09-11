@@ -30,7 +30,6 @@ import {
   MapPin,
   MessageSquareText,
   Plus,
-  Search,
   ShieldCheck,
   Star,
   Target,
@@ -62,7 +61,8 @@ import { EventCalendarModal } from "@/components/associate-profile/EventCalendar
 import { HealthGrowthModal } from "@/components/associate-profile/HealthGrowthModal";
 import { ReportsModal } from "@/components/associate-profile/ReportsModal";
 import { TrendModal } from "@/components/common/TrendModal";
-import { NotificationBell, type NavbarNotification } from "@/components/topnavbar/NotificationBell";
+import { TopNavbar, type AssociateNavbarModal } from "@/components/topnavbar/TopNavbar";
+import type { NavbarNotification } from "@/components/topnavbar/NotificationBell";
 import { cardBorder, cardRadius, cardShadow, colors } from "@/types/styles";
 
 const ASSOCIATE_CAREER_STATE_KEY = "associateProfileCareerState";
@@ -502,6 +502,15 @@ function getPersonName(userProfile: UserProfile | null) {
   const fullName = `${firstName} ${lastName}`.trim();
 
   return fullName || userProfile?.user?.username || userProfile?.profile?.username || "";
+}
+
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function formatDateLabel(dateValue?: string | null) {
@@ -947,19 +956,57 @@ export function AssociateProfilePage() {
     setActiveModal("health-growth");
   }, []);
 
+  const associateNotifications = useMemo<NavbarNotification[]>(
+    () =>
+      viewModel.updates.map((update) => ({
+        id: update.id,
+        title: update.title,
+        message: update.description,
+        time: update.timestamp,
+        isUnread: true,
+      })),
+    [viewModel.updates],
+  );
+
+  const openAssociateNavbarModal = useCallback(
+    (modal: AssociateNavbarModal) => {
+      if (modal === "health-growth") {
+        openHealthGrowthModal("wellness");
+        return;
+      }
+
+      setActiveModal(modal);
+    },
+    [openHealthGrowthModal],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const modal = params.get("modal");
+    const validModals: AssociateNavbarModal[] = ["content-library", "event-calendar", "health-growth", "reports"];
+
+    if (!modal || !validModals.includes(modal as AssociateNavbarModal)) {
+      return;
+    }
+
+    openAssociateNavbarModal(modal as AssociateNavbarModal);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [openAssociateNavbarModal]);
+
   return (
     <Box minH="100vh" bg={colors.background} color={colors.primaryText} fontFamily="Arial, Helvetica, sans-serif">
-      <AssociateTopNav
-        identity={identity}
-        updates={viewModel.updates}
-        onOpenModal={(modal) => {
-          if (modal === "health-growth") {
-            openHealthGrowthModal("wellness");
-            return;
-          }
-
-          setActiveModal(modal);
-        }}
+      <TopNavbar
+        notifications={associateNotifications}
+        notificationTitle="Updates & Alerts"
+        notificationSummaryLabel={`${associateNotifications.filter((notification) => notification.isUnread !== false).length} associate updates`}
+        userDisplayName={identity?.name || "Associate"}
+        userRoleLabel={identity?.role || "Associate"}
+        userInitials={getInitials(identity?.name || "Associate")}
+        onAssociateModalOpen={openAssociateNavbarModal}
       />
       <ContentLibraryModal isOpen={activeModal === "content-library"} onClose={() => setActiveModal(null)} />
       <EventCalendarModal isOpen={activeModal === "event-calendar"} onClose={() => setActiveModal(null)} />
@@ -1021,157 +1068,6 @@ export function AssociateProfilePage() {
           )}
         </VStack>
       </Box>
-    </Box>
-  );
-}
-
-function AssociateTopNav({
-  identity,
-  updates,
-  onOpenModal,
-}: {
-  identity: AssociateIdentity | null;
-  updates: AssociateUpdateSummary[];
-  onOpenModal: (modal: AssociateModalKey) => void;
-}) {
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const navItems: Array<{ label: string; modal: AssociateModalKey }> = [
-    { label: "Content Library", modal: "content-library" },
-    { label: "Event Calendar", modal: "event-calendar" },
-    { label: "Health & Growth", modal: "health-growth" },
-    { label: "Reports", modal: "reports" },
-  ];
-  const notifications = useMemo<NavbarNotification[]>(
-    () =>
-      updates.map((update) => ({
-        id: update.id,
-        title: update.title,
-        message: update.description,
-        time: update.timestamp,
-        isUnread: true,
-      })),
-    [updates],
-  );
-  const unreadCount = notifications.filter((notification) => notification.isUnread !== false).length;
-  const todayLabel = new Intl.DateTimeFormat("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date());
-
-  return (
-    <Box
-      as="header"
-      bg={colors.surface}
-      borderBottom="1px solid"
-      borderColor={colors.border}
-      boxShadow="0 1px 8px rgba(11, 12, 28, 0.04)"
-    >
-      <Flex
-        minH="74px"
-        px={{ base: "16px", md: "28px", xl: "48px" }}
-        align="center"
-        justify="space-between"
-        gap={{ base: 4, xl: 8 }}
-        flexWrap={{ base: "wrap", xl: "nowrap" }}
-      >
-        <HStack gap="14px" flexShrink={0}>
-          <LogoMark />
-          <Text fontSize={{ base: "17px", md: "18px" }} fontWeight="800" letterSpacing="0">
-            Clyra
-          </Text>
-        </HStack>
-
-        <HStack
-          as="nav"
-          aria-label="Associate profile sections"
-          display={{ base: "none", md: "flex" }}
-          flex="1"
-          justify="center"
-          gap={{ md: "28px", xl: "44px" }}
-          minW={0}
-        >
-          {navItems.map((item) => (
-            <Box key={item.modal} position="relative" h="74px" display="flex" alignItems="center">
-              <Text
-                as="button"
-                color={colors.primaryText}
-                fontSize="13px"
-                fontWeight="800"
-                lineHeight="1"
-                whiteSpace="nowrap"
-                cursor="pointer"
-                _hover={{ color: colors.primary }}
-                onClick={() => {
-                  setIsNotificationsOpen(false);
-                  onOpenModal(item.modal);
-                }}
-              >
-                {item.label}
-              </Text>
-            </Box>
-          ))}
-        </HStack>
-
-        <HStack gap={{ base: 2.5, md: 3 }} flexShrink={0}>
-          <Box position="relative" display={{ base: "none", "2xl": "block" }} w="260px">
-            <Box position="absolute" left="13px" top="50%" transform="translateY(-50%)" color={colors.mutedText}>
-              <Search size={16} />
-            </Box>
-            <Input
-              aria-label="Search"
-              h="40px"
-              pl="40px"
-              bg="#F8FAFD"
-              border="1px solid"
-              borderColor={colors.lightBorder}
-              borderRadius="6px"
-              fontSize="13px"
-              placeholder="Search"
-            />
-          </Box>
-
-          <Button
-            display={{ base: "none", lg: "inline-flex" }}
-            h="40px"
-            px="14px"
-            bg={colors.surface}
-            border="1px solid"
-            borderColor={colors.border}
-            borderRadius="6px"
-            color={colors.primaryText}
-            fontSize="13px"
-            fontWeight="800"
-            _hover={{ bg: "#F8FAFD" }}
-          >
-            <CalendarDays size={15} color={colors.secondaryText} />
-            {todayLabel}
-          </Button>
-
-          <NotificationBell
-            notifications={notifications}
-            isOpen={isNotificationsOpen}
-            onOpenChange={setIsNotificationsOpen}
-            title="Updates & Alerts"
-            summaryLabel={`${unreadCount} associate updates`}
-            size="sm"
-          />
-
-          <HStack gap="12px">
-            <Avatar identity={identity} size="42px" />
-            <Box display={{ base: "none", sm: "block" }}>
-              <Text fontSize="13px" fontWeight="800" lineHeight="1.15">
-                {identity?.name || "Associate"}
-              </Text>
-              <Text color={colors.mutedText} fontSize="12px" fontWeight="700" mt="3px">
-                {identity?.role || "Associate"}
-              </Text>
-            </Box>
-            <ChevronDown size={16} color={colors.secondaryText} />
-          </HStack>
-        </HStack>
-      </Flex>
     </Box>
   );
 }
@@ -1896,16 +1792,6 @@ function QuickActionsCard({
         })}
       </SimpleGrid>
     </DashboardCard>
-  );
-}
-
-function LogoMark() {
-  return (
-    <Box w="36px" h="36px" position="relative" flexShrink={0}>
-      <Box position="absolute" inset="0" bg="linear-gradient(135deg, #5F7BF3 0%, #1D7FE3 100%)" clipPath="polygon(50% 0%, 92% 25%, 92% 76%, 50% 100%, 8% 76%, 8% 25%)" />
-      <Box position="absolute" inset="7px" bg={colors.surface} clipPath="polygon(50% 0%, 92% 25%, 92% 76%, 50% 100%, 8% 76%, 8% 25%)" />
-      <Box position="absolute" right="0" bottom="2px" w="16px" h="16px" bg={colors.primaryLight} clipPath="polygon(50% 0%, 92% 25%, 92% 76%, 50% 100%, 8% 76%, 8% 25%)" />
-    </Box>
   );
 }
 

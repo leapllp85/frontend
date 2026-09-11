@@ -15,9 +15,12 @@ import { NotificationBell, type NavbarNotification } from "./NotificationBell";
 
 type TopNavItem = {
   label: string;
-  href: string;
+  href?: string;
+  modal?: AssociateNavbarModal;
   roles: readonly UserRole[];
 };
+
+export type AssociateNavbarModal = "content-library" | "event-calendar" | "health-growth" | "reports";
 
 const topNavItems: readonly TopNavItem[] = [
   { label: "Overview", href: "/associate-profile", roles: ["Associate"] },
@@ -30,6 +33,10 @@ const topNavItems: readonly TopNavItem[] = [
   { label: "Survey", href: "/action-survey", roles: ["Manager"] },
   { label: "Action Items", href: "/action-item", roles: ["Associate"] },
   { label: "Survey", href: "/survey-info", roles: ["Associate"] },
+  { label: "Content Library", modal: "content-library", roles: ["Associate"] },
+  { label: "Event Calendar", modal: "event-calendar", roles: ["Associate"] },
+  { label: "Health & Growth", modal: "health-growth", roles: ["Associate"] },
+  { label: "Reports", modal: "reports", roles: ["Associate"] },
   // { label: "Survey", href: "/surveys", roles: ["Associate"] },
   // { label: "Survey Responses", href: "/survey-responses", roles: ["Associate"] },
   // { label: "Action Items", href: "/action-items", roles: ["Associate"] },
@@ -105,6 +112,16 @@ const navbarNotifications: readonly NavbarNotification[] = mockNotifications.map
   isUnread: notification.isUnread,
 }));
 
+type TopNavbarProps = {
+  notifications?: readonly NavbarNotification[];
+  notificationTitle?: string;
+  notificationSummaryLabel?: string;
+  userDisplayName?: string;
+  userRoleLabel?: string;
+  userInitials?: string;
+  onAssociateModalOpen?: (modal: AssociateNavbarModal) => void;
+};
+
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -175,7 +192,15 @@ function getCalendarDays(monthDate: Date) {
   return days;
 }
 
-export function TopNavbar() {
+export function TopNavbar({
+  notifications,
+  notificationTitle,
+  notificationSummaryLabel,
+  userDisplayName,
+  userRoleLabel,
+  userInitials,
+  onAssociateModalOpen,
+}: TopNavbarProps = {}) {
   const NotificationBellRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { user, logout: clearAuthContext } = useAuth();
@@ -194,9 +219,13 @@ export function TopNavbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const displayDate = useMemo(() => formatDisplayDate(selectedDate), [selectedDate]);
   const calendarDays = useMemo(() => getCalendarDays(calendarMonth), [calendarMonth]);
+  const effectiveNotifications = notifications ?? navbarNotifications;
+  const effectiveUserName = (userDisplayName ?? `${user?.first_name ?? ""} ${user?.last_name ?? ""}`.trim()) || (userRole === "Associate" ? "Associate" : "Manager User");
+  const effectiveRoleLabel = userRoleLabel ?? userRole;
+  const effectiveInitials = (userInitials ?? effectiveUserName.split(" ").map((name) => name[0]).join("").slice(0, 2).toUpperCase()) || (userRole === "Associate" ? "AS" : "MU");
   const unreadNotificationCount = useMemo(
-    () => navbarNotifications.filter((notification) => notification.isUnread).length,
-    [],
+    () => effectiveNotifications.filter((notification) => notification.isUnread).length,
+    [effectiveNotifications],
   );
   const canGoNextMonth = addMonths(calendarMonth, 1).getTime() <= startOfMonth(today).getTime();
   const isActivePath = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
@@ -204,6 +233,81 @@ export function TopNavbar() {
     setIsUserMenuOpen(false);
     clearAuthContext();
     await logoutFromApi();
+  };
+  const getModalHref = (modal: AssociateNavbarModal) => `/associate-profile?modal=${modal}`;
+  const closeOpenMenus = () => {
+    setIsCalendarOpen(false);
+    setIsNotificationsOpen(false);
+    setIsUserMenuOpen(false);
+  };
+
+  const renderNavItem = (item: TopNavItem, variant: "desktop" | "mobile") => {
+    const href = item.href ?? (item.modal ? getModalHref(item.modal) : "#");
+    const isActive = item.href ? isActivePath(item.href) : false;
+    const isDesktop = variant === "desktop";
+    const content = (
+      <Box
+        position="relative"
+        h={isDesktop ? "68px" : undefined}
+        pb={isDesktop ? undefined : 2}
+        display={isDesktop ? "flex" : undefined}
+        alignItems={isDesktop ? "center" : undefined}
+        flexShrink={0}
+        cursor="pointer"
+      >
+        <Text
+          color={colors.primaryText}
+          fontSize={isDesktop ? "14px" : "13px"}
+          fontWeight={isActive ? "800" : "700"}
+          lineHeight="1"
+          whiteSpace="nowrap"
+        >
+          {item.label}
+        </Text>
+        {isActive && (
+          <Box
+            position="absolute"
+            left="0"
+            right="0"
+            bottom={isDesktop ? "4px" : "0"}
+            h="3px"
+            bg={colors.primary}
+            borderRadius="999px"
+          />
+        )}
+      </Box>
+    );
+
+    if (item.modal && onAssociateModalOpen) {
+      return (
+        <Box
+          key={item.modal}
+          as="button"
+          aria-label={item.label}
+          onClick={() => {
+            closeOpenMenus();
+            onAssociateModalOpen(item.modal!);
+          }}
+          bg="transparent"
+          border="0"
+          p="0"
+          style={{ flexShrink: 0 }}
+        >
+          {content}
+        </Box>
+      );
+    }
+
+    return (
+      <NextLink
+        key={item.href ?? item.modal}
+        href={href}
+        aria-current={isActive ? "page" : undefined}
+        style={{ textDecoration: "none", flexShrink: 0 }}
+      >
+        {content}
+      </NextLink>
+    );
   };
 
   useEffect(() => {
@@ -263,47 +367,7 @@ export function TopNavbar() {
           justify={{ md: "center", xl: "flex-start" }}
           minW={0}
         >
-          {navItems.map((item) => {
-            const isActive = isActivePath(item.href);
-
-            return (
-              <NextLink
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                style={{ textDecoration: "none" }}
-              >
-                <Box
-                  position="relative"
-                  h="68px"
-                  display="flex"
-                  alignItems="center"
-                  cursor="pointer"
-                >
-                  <Text
-                    color={isActive ? colors.primaryText : colors.primaryText}
-                    fontSize="14px"
-                    fontWeight={isActive ? "800" : "700"}
-                    lineHeight="1"
-                    whiteSpace="nowrap"
-                  >
-                    {item.label}
-                  </Text>
-                  {isActive && (
-                    <Box
-                      position="absolute"
-                      left="0"
-                      right="0"
-                      bottom="4px"
-                      h="3px"
-                      bg={colors.primary}
-                      borderRadius="999px"
-                    />
-                  )}
-                </Box>
-              </NextLink>
-            );
-          })}
+          {navItems.map((item) => renderNavItem(item, "desktop"))}
         </HStack>
 
         <HStack
@@ -317,44 +381,7 @@ export function TopNavbar() {
           pt={1}
           pb={0.5}
         >
-          {navItems.map((item) => {
-            const isActive = isActivePath(item.href);
-
-            return (
-              <NextLink
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? "page" : undefined}
-                style={{ textDecoration: "none", flexShrink: 0 }}
-              >
-                <Box
-                  position="relative"
-                  pb={2}
-                  flexShrink={0}
-                  cursor="pointer"
-                >
-                  <Text
-                    color={colors.primaryText}
-                    fontSize="13px"
-                    fontWeight={isActive ? "800" : "700"}
-                  >
-                    {item.label}
-                  </Text>
-                  {isActive && (
-                    <Box
-                      position="absolute"
-                      left="0"
-                      right="0"
-                      bottom="0"
-                      h="3px"
-                      bg={colors.primary}
-                      borderRadius="999px"
-                    />
-                  )}
-                </Box>
-              </NextLink>
-            );
-          })}
+          {navItems.map((item) => renderNavItem(item, "mobile"))}
         </HStack>
 
         <HStack
@@ -536,14 +563,15 @@ export function TopNavbar() {
 
           <NotificationBell
             notificationBellRef={NotificationBellRef}
-            notifications={navbarNotifications}
+            notifications={effectiveNotifications}
             isOpen={isNotificationsOpen}
             onOpenChange={(isOpen) => {
               setIsCalendarOpen(false);
               setIsUserMenuOpen(false);
               setIsNotificationsOpen(isOpen);
             }}
-            summaryLabel={`${unreadNotificationCount} unread updates`}
+            title={notificationTitle}
+            summaryLabel={notificationSummaryLabel ?? `${unreadNotificationCount} unread updates`}
           />
 
           <Box position="relative" flexShrink={0}>
@@ -575,7 +603,7 @@ export function TopNavbar() {
                   overflow="hidden"
                 >
                   <Text color={colors.primaryText} fontSize="14px" fontWeight="800">
-                    MU
+                    {effectiveInitials}
                   </Text>
                 </Box>
                 <HStack gap={1.5} display={{ base: "none", md: "flex" }} pr="2px">
@@ -585,7 +613,7 @@ export function TopNavbar() {
                     fontWeight="800"
                     whiteSpace="nowrap"
                   >
-                    Manager User
+                    {effectiveUserName}
                   </Text>
                   <ChevronDown size={15} color={colors.secondaryText} />
                 </HStack>
@@ -608,10 +636,10 @@ export function TopNavbar() {
               >
                 <Box px="14px" py="12px" borderBottom="1px solid" borderColor={colors.lightBorder}>
                   <Text color={colors.primaryText} fontSize="13px" fontWeight="800">
-                    Manager User
+                    {effectiveUserName}
                   </Text>
                   <Text color={colors.mutedText} fontSize="12px" fontWeight="600" mt="2px">
-                    Manager
+                    {effectiveRoleLabel}
                   </Text>
                 </Box>
 
