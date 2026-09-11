@@ -20,19 +20,19 @@ type TopNavItem = {
 };
 
 const topNavItems: readonly TopNavItem[] = [
+  { label: "Overview", href: "/associate-profile", roles: ["Associate"] },
   { label: "Overview", href: "/manager-overview", roles: ["Manager"] },
   { label: "Team", href: "/teams-info", roles: ["Manager"] },
-  { label: "Projects", href: "/projects-info", roles: ["Manager"] },
+  { label: "Projects", href: "/projects-info", roles: ["Manager", 'Associate'] },
   { label: "Talent", href: "/talent-management", roles: ["Manager"] },
   { label: "Organization", href: "/organization-info", roles: ["Manager"] },
-  { label: "Analytics", href: "/talent-analytics", roles: ["Manager"] },
+  // { label: "Analytics", href: "/talent-analytics", roles: ["Manager"] },
   { label: "Survey", href: "/action-survey", roles: ["Manager"] },
-  { label: "Action Items", href: "/action-item", roles: ["Manager"] },
-  { label: "Overview", href: "/associate-profile", roles: ["Associate"] },
-  { label: "Projects", href: "/projects", roles: ["Associate"] },
-  { label: "Surveys", href: "/surveys", roles: ["Associate"] },
-  { label: "Survey Responses", href: "/survey-responses", roles: ["Associate"] },
-  { label: "Action Items", href: "/action-items", roles: ["Associate"] },
+  { label: "Action Items", href: "/action-item", roles: ["Associate"] },
+  { label: "Survey", href: "/survey-info", roles: ["Associate"] },
+  // { label: "Survey", href: "/surveys", roles: ["Associate"] },
+  // { label: "Survey Responses", href: "/survey-responses", roles: ["Associate"] },
+  // { label: "Action Items", href: "/action-items", roles: ["Associate"] },
 ] as const;
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -179,7 +179,7 @@ export function TopNavbar() {
   const NotificationBellRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { user, logout: clearAuthContext } = useAuth();
-  const userRole = useMemo<UserRole>(() => (user ? getUserRole(user) : "Manager"), [user]);
+  const userRole = useMemo<UserRole>(() => (user ? getUserRole(user) : "Associate"), [user]);
   const navItems = useMemo(
     () => topNavItems.filter((item) => item.roles.includes(userRole)),
     [userRole],
