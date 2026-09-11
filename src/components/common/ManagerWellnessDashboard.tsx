@@ -305,7 +305,7 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                         {showChat ? <LayoutDashboard size={20} color="white" /> : <MessageCircle size={20} color="white" />}
                     </Box>
                     
-                    <Box
+                    {/* <Box
                         cursor="pointer"
                         onClick={() => {
                             const baseUrl = window.location.origin;
@@ -324,7 +324,7 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                         title="Open Full Application"
                     >
                         <ExternalLink size={20} color="white" />
-                    </Box>
+                    </Box> */}
                     
                     <Box
                         cursor="pointer"

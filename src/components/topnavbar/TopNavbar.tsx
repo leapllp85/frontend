@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Box, Button, Flex, HStack, IconButton, Input, Text } from "@chakra-ui/react";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut, Search } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Box, Button, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,7 +19,6 @@ const navItems = [
   { label: "Organization", href: "/organization-info" },
   { label: "Analytics", href: "/talent-analytics" },
   { label: "Survey", href: "/action-survey" },
-  { label: "Survey", href: "/survey-info" },
   { label: "Action Items", href: "/action-item" },
 ] as const;
 
@@ -164,6 +163,7 @@ function getCalendarDays(monthDate: Date) {
 }
 
 export function TopNavbar() {
+  const NotificationBellRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { logout: clearAuthContext } = useAuth();
   const today = useMemo(() => startOfDay(new Date()), []);
@@ -188,6 +188,22 @@ export function TopNavbar() {
     await logoutFromApi();
   };
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (NotificationBellRef.current && !NotificationBellRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    }
+
+    if (isNotificationsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotificationsOpen]);
+
   return (
     <Box
       as="header"
@@ -203,20 +219,22 @@ export function TopNavbar() {
         align="center"
         justify="space-between"
         gap={{ base: 4, xl: 8 }}
-        flexWrap={{ base: "wrap", xl: "nowrap" }}
+        flexWrap={{ base: "wrap", "2xl": "nowrap" }}
       >
-        <HStack gap={{ base: 3, md: 4 }} flexShrink={0}>
-          <LogoMark />
-          <Text
-            color={colors.primaryText}
-            fontSize={{ base: "17px", md: "18px" }}
-            fontWeight="800"
-            letterSpacing="0"
-            whiteSpace="nowrap"
-          >
-            CLYRA
-          </Text>
-        </HStack>
+        <NextLink href="/manager-overview" aria-label="Go to overview" style={{ textDecoration: "none", flexShrink: 0 }}>
+          <HStack gap={{ base: 3, md: 4 }}>
+            <LogoMark />
+            <Text
+              color={colors.primaryText}
+              fontSize={{ base: "17px", md: "18px" }}
+              fontWeight="800"
+              letterSpacing="0"
+              whiteSpace="nowrap"
+            >
+              CLYRA
+            </Text>
+          </HStack>
+        </NextLink>
 
         <HStack
           as="nav"
@@ -327,43 +345,6 @@ export function TopNavbar() {
           justify={{ base: "flex-end", xl: "flex-start" }}
           minW={0}
         >
-          <Box
-            position="relative"
-            w={{ base: "100%", sm: "288px", lg: "320px" }}
-            maxW={{ base: "100%", xl: "320px" }}
-            display={{ base: "none", sm: "block" }}
-          >
-            <Box
-              position="absolute"
-              left="14px"
-              top="50%"
-              transform="translateY(-50%)"
-              color={colors.secondaryText}
-              zIndex={1}
-              pointerEvents="none"
-            >
-              <Search size={17} strokeWidth={2} />
-            </Box>
-            <Input
-              aria-label="Search"
-              placeholder="Search anything..."
-              h="44px"
-              pl="44px"
-              pr="16px"
-              bg="#F8FAFD"
-              border="1px solid"
-              borderColor={colors.lightBorder}
-              borderRadius="6px"
-              color={colors.secondaryText}
-              fontSize="13px"
-              _placeholder={{ color: colors.mutedText }}
-              _focus={{
-                borderColor: colors.primaryLight,
-                boxShadow: "0 0 0 1px #6EA0E6",
-              }}
-            />
-          </Box>
-
           <Box position="relative" flexShrink={0}>
             <Button
               h="44px"
@@ -536,6 +517,7 @@ export function TopNavbar() {
           </Box>
 
           <NotificationBell
+            notificationBellRef={NotificationBellRef}
             notifications={navbarNotifications}
             isOpen={isNotificationsOpen}
             onOpenChange={(isOpen) => {

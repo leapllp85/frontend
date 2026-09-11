@@ -286,7 +286,7 @@ function SummaryCard({
 function TrendChart({ days }: { days: TrendData[] }) {
   const chartWidth = 520;
   const chartHeight = 190;
-  const leftPadding = 42;
+  const leftPadding = 76;
   const rightPadding = 24;
   const topPadding = 20;
   const bottomPadding = 38;
