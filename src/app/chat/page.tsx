@@ -5,10 +5,10 @@ import {
   Box,
   Button,
   Flex,
-  Grid,
   HStack,
   IconButton,
   Spinner,
+  Table,
   Text,
   Textarea,
   VStack,
@@ -17,6 +17,8 @@ import {
   ArrowLeft,
   Bot,
   Brain,
+  ChevronLeft,
+  ChevronRight,
   Copy,
   Edit2,
   FileText,
@@ -58,6 +60,11 @@ const promptChips = [
   { label: 'Attrition Trend', prompt: 'Show attrition trend for the last 6 months', icon: MessageSquare },
 ] as const;
 
+const compactDatasetColumns: Record<string, string[]> = {
+  risk: ['project', 'client', 'project_risk', 'associate', 'role', 'attrition_level'],
+  pending: ['task', 'associate', 'owner', 'priority', 'due_in', 'task_status'],
+};
+
 function getTextPreview(content?: string) {
   if (!content) return 'No messages yet';
   return content.length > 78 ? `${content.slice(0, 78)}...` : content;
@@ -71,9 +78,11 @@ function formatConversationDate(date: Date | string) {
 function AssistantOrb({ compact = false }: { compact?: boolean }) {
   return (
     <Box
+      className="assistant-orb"
       position="relative"
-      w={compact ? '170px' : { base: '210px', md: '310px' }}
-      h={compact ? '170px' : { base: '210px', md: '310px' }}
+      w={compact ? '140px' : { base: '132px', md: 'clamp(150px, 24vh, 220px)', xl: 'clamp(170px, 26vh, 260px)', '2xl': 'clamp(190px, 28vh, 300px)' }}
+      h={compact ? '140px' : { base: '132px', md: 'clamp(150px, 24vh, 220px)', xl: 'clamp(170px, 26vh, 260px)', '2xl': 'clamp(190px, 28vh, 300px)' }}
+      flexShrink={0}
     >
       <Box
         position="absolute"
@@ -143,7 +152,7 @@ function SidebarButton({
       h="52px"
       minW="52px"
       borderRadius="18px"
-      bg={isActive ? 'linear-gradient(135deg, rgba(255,239,216,0.95), rgba(231,240,252,0.96))' : 'transparent'}
+      bg={isActive ? 'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(231,240,252,0.96))' : 'transparent'}
       color={isActive ? palette.primaryText : palette.secondaryText}
       border={isActive ? '1px solid rgba(255,255,255,0.9)' : '1px solid transparent'}
       boxShadow={isActive ? '0 12px 28px rgba(29, 127, 227, 0.12)' : 'none'}
@@ -159,14 +168,14 @@ function DataValue({ value }: { value: unknown }) {
   if (value === null || value === undefined) return <Text color={palette.mutedText}>-</Text>;
   if (typeof value === 'object') {
     return (
-      <Text color={palette.secondaryText} whiteSpace="pre-wrap">
+      <Text color={palette.secondaryText} whiteSpace="normal" lineHeight="1.35">
         {JSON.stringify(value)}
       </Text>
     );
   }
 
   return (
-    <Text color={palette.secondaryText} whiteSpace="pre-wrap">
+    <Text color={palette.secondaryText} whiteSpace="normal" lineHeight="1.35">
       {String(value)}
     </Text>
   );
@@ -229,49 +238,47 @@ function StructuredResponse({ response }: { response: RAGApiResponse }) {
 
       {dataSets.map(([key, dataSet]) => {
         const rows = Array.isArray(dataSet?.data) ? dataSet.data : [];
-        const columns = Array.isArray(dataSet?.columns)
+        const allColumns = Array.isArray(dataSet?.columns)
           ? dataSet.columns
           : rows[0]
             ? Object.keys(rows[0])
             : [];
+        const preferredColumns = Object.entries(compactDatasetColumns).find(([matcher]) => key.toLowerCase().includes(matcher))?.[1];
+        const columns = preferredColumns?.filter((column) => allColumns.includes(column)) ?? allColumns.slice(0, 6);
 
         return (
-          <Box key={key} bg={palette.surface} border="1px solid" borderColor={palette.border} borderRadius="18px" overflow="hidden">
-            <Box px={4} py={3} bg="rgba(250, 251, 253, 0.84)" borderBottom="1px solid" borderColor={palette.lightBorder}>
+          <Box key={key} bg={palette.surface} border="1px solid" borderColor={palette.border} borderRadius="16px" overflow="hidden">
+            <Box px={4} py="12px" bg="rgba(250, 251, 253, 0.84)" borderBottom="1px solid" borderColor={palette.lightBorder}>
               <Text fontSize="13px" fontWeight="800" color={palette.primaryText}>
                 {dataSet?.description ?? key}
               </Text>
             </Box>
             {rows.length > 0 ? (
               <Box overflowX="auto">
-                <Grid
-                  minW="620px"
-                  templateColumns={`repeat(${Math.max(columns.length, 1)}, minmax(120px, 1fr))`}
-                  bg={palette.surface}
-                >
-                  {columns.map((column: string) => (
-                    <Box key={column} px={4} py={3} borderBottom="1px solid" borderColor={palette.lightBorder}>
-                      <Text fontSize="11px" fontWeight="800" color={palette.mutedText} textTransform="uppercase">
-                        {column.replaceAll('_', ' ')}
-                      </Text>
-                    </Box>
-                  ))}
-                  {rows.slice(0, 8).flatMap((row: any, rowIndex: number) =>
-                    columns.map((column: string) => (
-                      <Box
-                        key={`${rowIndex}-${column}`}
-                        px={4}
-                        py={3}
-                        borderBottom="1px solid"
-                        borderColor={palette.lightBorder}
-                        fontSize="12px"
-                        fontWeight="600"
-                      >
-                          <DataValue value={row[column]} />
-                      </Box>
-                    )),
-                  )}
-                </Grid>
+                <Table.Root minW="680px" size="sm" variant="line">
+                  <Table.Header bg="rgba(250,251,253,0.74)">
+                    <Table.Row>
+                      {columns.map((column: string) => (
+                        <Table.ColumnHeader key={column} px={4} py="12px" borderColor={palette.lightBorder}>
+                          <Text fontSize="10px" fontWeight="800" color={palette.mutedText} textTransform="uppercase">
+                            {column.replaceAll('_', ' ')}
+                          </Text>
+                        </Table.ColumnHeader>
+                      ))}
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {rows.slice(0, 8).map((row: any, rowIndex: number) => (
+                      <Table.Row key={row.id ?? `${key}-${rowIndex}`} _hover={{ bg: 'rgba(250,251,253,0.72)' }}>
+                        {columns.map((column: string) => (
+                          <Table.Cell key={`${rowIndex}-${column}`} px={4} py="12px" borderColor={palette.lightBorder} fontSize="12px" fontWeight="700" verticalAlign="top">
+                            <DataValue value={row[column]} />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
               </Box>
             ) : (
               <Box p={4}>
@@ -297,6 +304,7 @@ export default function ChatPage() {
     return embedParam === 'true' || inIframe;
   });
   const [hasStartedChat, setHasStartedChat] = React.useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = React.useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
@@ -401,101 +409,102 @@ export default function ChatPage() {
       {!isEmbedded && (
         <Flex
           as="aside"
-          w={{ base: '72px', md: '96px' }}
+          w={isSidebarExpanded ? { base: '280px', lg: '320px' } : { base: '72px', md: '96px' }}
           h="calc(100vh - 32px)"
           m={{ base: 2, md: 4 }}
           mr={0}
-          px={{ base: 2, md: 3 }}
-          py={4}
+          px={isSidebarExpanded ? 0 : { base: 2, md: 3 }}
+          py={isSidebarExpanded ? 0 : 4}
           direction="column"
-          align="center"
+          align={isSidebarExpanded ? 'stretch' : 'center'}
           justify="space-between"
-          bg="rgba(255,255,255,0.88)"
+          bg={isSidebarExpanded ? 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,251,253,0.92))' : 'rgba(255,255,255,0.88)'}
           border="1px solid rgba(230,234,240,0.9)"
           borderRadius="24px"
           boxShadow="0 20px 70px rgba(11, 12, 28, 0.07)"
-          zIndex={2}
-        >
-          <VStack gap={8}>
-            <Flex
-              w="54px"
-              h="54px"
-              align="center"
-              justify="center"
-              borderRadius="18px"
-              bg="linear-gradient(135deg, #FFFFFF 0%, #E7F0FC 100%)"
-              border="1px solid"
-              borderColor={palette.border}
-              boxShadow="0 12px 28px rgba(29, 127, 227, 0.1)"
-            >
-              <Bot size={25} color={palette.primary} />
-            </Flex>
-
-            <VStack gap={3}>
-              <SidebarButton label="Assistant" icon={<Sparkles size={20} />} isActive />
-              <SidebarButton label="Conversations" icon={<MessageSquare size={20} />} />
-              <SidebarButton label="Settings" icon={<Settings size={20} />} />
-            </VStack>
-          </VStack>
-
-          <SidebarButton label="Back" icon={<LogOut size={19} />} onClick={() => router.push('/')} />
-        </Flex>
-      )}
-
-      <Box flex="1" p={isEmbedded ? 0 : { base: 2, md: 4 }} minW={0}>
-        <Flex
-          h="100%"
-          borderRadius={isEmbedded ? 0 : '28px'}
           overflow="hidden"
-          position="relative"
-          bg="linear-gradient(135deg, rgba(255,247,238,0.88) 0%, rgba(255,255,255,0.9) 43%, rgba(231,240,252,0.95) 100%)"
-          border={isEmbedded ? 'none' : '1px solid rgba(230,234,240,0.95)'}
-          boxShadow={isEmbedded ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 24px 70px rgba(11, 12, 28, 0.075)'}
+          zIndex={2}
+          display="flex"
         >
-          <Box
-            position="absolute"
-            inset={0}
-            opacity={0.32}
-            bgImage="linear-gradient(rgba(113,128,155,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(113,128,155,0.09) 1px, transparent 1px)"
-            bgSize="32px 32px"
-            maskImage="radial-gradient(circle at 50% 42%, black 0%, transparent 46%)"
-            pointerEvents="none"
-          />
+          {isSidebarExpanded ? (
+            <>
+              <Box px={4} py={4} borderBottom="1px solid" borderColor="rgba(230,234,240,0.76)">
+                <HStack justify="space-between" align="start" gap={3}>
+                  <HStack gap={3} minW={0}>
+                    <Flex
+                      w="42px"
+                      h="42px"
+                      align="center"
+                      justify="center"
+                      borderRadius="14px"
+                      bg="linear-gradient(135deg, #FFFFFF 0%, #E7F0FC 100%)"
+                      border="1px solid"
+                      borderColor={palette.border}
+                      boxShadow="0 12px 28px rgba(29, 127, 227, 0.1)"
+                      flexShrink={0}
+                    >
+                      <Bot size={20} color={palette.primary} />
+                    </Flex>
+                    <Box minW={0}>
+                      <Text fontSize="15px" fontWeight="800" color={palette.primaryText} lineHeight="1.2">
+                        Chat History
+                      </Text>
+                      <Text fontSize="12px" fontWeight="700" color={palette.mutedText}>
+                        {String(conversations.length).padStart(2, '0')} conversations
+                      </Text>
+                    </Box>
+                  </HStack>
 
-          {!isEmbedded && (
-            <Box
-              w={{ base: '0', lg: '300px' }}
-              display={{ base: 'none', lg: 'flex' }}
-              flexDirection="column"
-              bg="rgba(255,255,255,0.68)"
-              borderRight="1px solid rgba(230,234,240,0.76)"
-              backdropFilter="blur(20px)"
-              zIndex={1}
-            >
-              <HStack justify="space-between" px={5} py={5} borderBottom="1px solid" borderColor="rgba(230,234,240,0.76)">
-                <Box>
-                  <Text fontSize="15px" fontWeight="800" color={palette.primaryText}>
-                    Chat History
-                  </Text>
-                  <Text fontSize="12px" fontWeight="700" color={palette.mutedText}>
-                    {String(conversations.length).padStart(2, '0')} conversations
-                  </Text>
-                </Box>
-                <HStack gap={1}>
-                  <IconButton aria-label="New chat" size="sm" variant="ghost" onClick={handleNewChat} color={palette.secondaryText}>
-                    <Edit2 size={16} />
+                  <IconButton
+                    aria-label="Collapse sidebar"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsSidebarExpanded(false)}
+                    color={palette.secondaryText}
+                    borderRadius="12px"
+                    _hover={{ bg: palette.primarySoft, color: palette.primary }}
+                  >
+                    <ChevronLeft size={17} />
                   </IconButton>
-                  <IconButton aria-label="Clear history" size="sm" variant="ghost" onClick={handleClearChat} color={palette.secondaryText}>
+                </HStack>
+
+                <HStack gap={2} mt={4}>
+                  <Button
+                    h="34px"
+                    flex="1"
+                    borderRadius="12px"
+                    bg={palette.primary}
+                    color="white"
+                    fontSize="12px"
+                    fontWeight="800"
+                    _hover={{ bg: '#176FC7' }}
+                    onClick={handleNewChat}
+                  >
+                    <Edit2 size={16} />
+                    New Chat
+                  </Button>
+                  <IconButton
+                    aria-label="Clear history"
+                    h="34px"
+                    minW="34px"
+                    borderRadius="12px"
+                    bg="rgba(255,255,255,0.78)"
+                    border="1px solid"
+                    borderColor={palette.border}
+                    onClick={handleClearChat}
+                    color={palette.secondaryText}
+                    _hover={{ color: palette.danger, bg: '#FDEDEA', borderColor: '#F7C9C3' }}
+                  >
                     <Trash2 size={16} />
                   </IconButton>
                 </HStack>
-              </HStack>
+              </Box>
 
               <Box
                 flex="1"
                 overflowY="auto"
-                px={3}
-                py={3}
+                px={4}
+                py={4}
                 css={{
                   '&::-webkit-scrollbar': { width: '6px' },
                   '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' },
@@ -517,14 +526,15 @@ export default function ChatPage() {
                       return (
                         <Box
                           key={conversation.id}
-                          p={3}
-                          borderRadius="16px"
+                          p={4}
+                          borderRadius="18px"
                           cursor="pointer"
-                          bg={isActive ? 'rgba(231,240,252,0.96)' : 'transparent'}
+                          bg={isActive ? 'linear-gradient(135deg, rgba(231,240,252,0.98), rgba(255,255,255,0.92))' : 'rgba(255,255,255,0.74)'}
                           border="1px solid"
-                          borderColor={isActive ? '#D5E5FA' : 'transparent'}
+                          borderColor={isActive ? '#D5E5FA' : 'rgba(230,234,240,0.82)'}
+                          boxShadow={isActive ? '0 14px 32px rgba(29,127,227,0.08)' : '0 12px 28px rgba(11,12,28,0.035)'}
                           transition="all 0.15s ease"
-                          _hover={{ bg: isActive ? 'rgba(231,240,252,0.96)' : 'rgba(255,255,255,0.72)', borderColor: palette.border }}
+                          _hover={{ transform: 'translateY(-1px)', bg: isActive ? 'linear-gradient(135deg, rgba(231,240,252,0.98), rgba(255,255,255,0.92))' : 'rgba(255,255,255,0.92)', borderColor: '#D5E5FA' }}
                           onClick={() => {
                             loadConversation(conversation.id);
                             setHasStartedChat(true);
@@ -565,8 +575,73 @@ export default function ChatPage() {
                   </VStack>
                 )}
               </Box>
-            </Box>
+            </>
+          ) : (
+            <>
+              <VStack gap={8}>
+                <IconButton
+                  aria-label="Expand sidebar"
+                  title="Expand sidebar"
+                  w="52px"
+                  h="52px"
+                  minW="52px"
+                  borderRadius="18px"
+                  bg="linear-gradient(135deg, rgba(255,255,255,0.96), rgba(231,240,252,0.96))"
+                  color={palette.primary}
+                  border="1px solid rgba(255,255,255,0.9)"
+                  boxShadow="0 12px 28px rgba(29, 127, 227, 0.12)"
+                  _hover={{ bg: palette.primarySoft }}
+                  onClick={() => setIsSidebarExpanded(true)}
+                >
+                  <ChevronRight size={20} />
+                </IconButton>
+
+                <Flex
+                  w="54px"
+                  h="54px"
+                  align="center"
+                  justify="center"
+                  borderRadius="18px"
+                  bg="linear-gradient(135deg, #FFFFFF 0%, #E7F0FC 100%)"
+                  border="1px solid"
+                  borderColor={palette.border}
+                  boxShadow="0 12px 28px rgba(29, 127, 227, 0.1)"
+                >
+                  <Bot size={25} color={palette.primary} />
+                </Flex>
+
+                <VStack gap={3}>
+                  <SidebarButton label="Assistant" icon={<Sparkles size={20} />} isActive />
+                  <SidebarButton label="Conversations" icon={<MessageSquare size={20} />} onClick={() => setIsSidebarExpanded(true)} />
+                  <SidebarButton label="Settings" icon={<Settings size={20} />} />
+                </VStack>
+              </VStack>
+
+              <SidebarButton label="Back" icon={<LogOut size={19} />} onClick={() => router.push('/')} />
+            </>
           )}
+        </Flex>
+      )}
+
+      <Box flex="1" p={isEmbedded ? 0 : { base: 2, md: 4 }} minW={0}>
+        <Flex
+          h="100%"
+          borderRadius={isEmbedded ? 0 : '28px'}
+          overflow="hidden"
+          position="relative"
+          bg="linear-gradient(135deg, rgba(250,251,253,0.96) 0%, rgba(255,255,255,0.92) 48%, rgba(231,240,252,0.95) 100%)"
+          border={isEmbedded ? 'none' : '1px solid rgba(230,234,240,0.95)'}
+          boxShadow={isEmbedded ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 24px 70px rgba(11, 12, 28, 0.075)'}
+        >
+          <Box
+            position="absolute"
+            inset={0}
+            opacity={0.32}
+            bgImage="linear-gradient(rgba(113,128,155,0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(113,128,155,0.09) 1px, transparent 1px)"
+            bgSize="32px 32px"
+            maskImage="radial-gradient(circle at 50% 42%, black 0%, transparent 46%)"
+            pointerEvents="none"
+          />
 
           <Flex flex="1" direction="column" minW={0} position="relative" zIndex={1}>
             {!isEmbedded && (
@@ -616,9 +691,10 @@ export default function ChatPage() {
 
             <Box
               flex="1"
-              overflowY="auto"
+              minH={0}
+              overflowY={showWelcome ? 'hidden' : 'auto'}
               px={isEmbedded ? 4 : { base: 4, md: 8 }}
-              py={isEmbedded ? 6 : 2}
+              py={isEmbedded ? 4 : { base: 2, md: 2 }}
               css={{
                 '&::-webkit-scrollbar': { width: '7px' },
                 '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' },
@@ -627,22 +703,53 @@ export default function ChatPage() {
             >
               {showWelcome ? (
                 <Flex
-                  minH={isEmbedded ? 'calc(100vh - 150px)' : 'calc(100vh - 268px)'}
+                  h="100%"
+                  minH={0}
                   align="center"
                   justify="center"
                   direction="column"
                   textAlign="center"
-                  px={{ base: 2, md: 6 }}
-                  pt={{ base: 6, md: 0 }}
+                  px={{ base: 1, md: 4, xl: 6 }}
+                  py={{ base: 2, md: 3, xl: 4 }}
+                  overflow="hidden"
+                  css={{
+                    '@media (max-height: 760px)': {
+                      '.welcome-title': {
+                        fontSize: '28px',
+                        marginBottom: '18px',
+                      },
+                      '.assistant-orb': {
+                        width: '160px',
+                        height: '160px',
+                      },
+                      '.quick-actions': {
+                        marginTop: '20px',
+                      },
+                    },
+                    '@media (max-height: 660px)': {
+                      '.welcome-title': {
+                        fontSize: '24px',
+                        marginBottom: '14px',
+                      },
+                      '.assistant-orb': {
+                        width: '132px',
+                        height: '132px',
+                      },
+                      '.quick-actions': {
+                        marginTop: '14px',
+                      },
+                    },
+                  }}
                 >
                   <Text
-                    maxW="760px"
-                    fontSize={{ base: '30px', md: '46px' }}
-                    lineHeight="1.08"
+                    className="welcome-title"
+                    maxW={{ base: '100%', md: '640px', xl: '760px' }}
+                    fontSize={{ base: '24px', md: '32px', xl: '40px', '2xl': '46px' }}
+                    lineHeight={{ base: '1.16', md: '1.1' }}
                     fontWeight="800"
                     color={palette.primaryText}
                     letterSpacing="0"
-                    mb={{ base: 7, md: 10 }}
+                    mb={{ base: 4, md: 6, xl: 8, '2xl': 10 }}
                   >
                     <Text as="span" color="rgba(11, 12, 28, 0.16)">
                       AI Powers
@@ -652,21 +759,30 @@ export default function ChatPage() {
 
                   <AssistantOrb compact={isEmbedded} />
 
-                  <HStack gap={2} mt={{ base: 10, md: 14 }} mb={5} flexWrap="wrap" justify="center" maxW="780px">
+                  <HStack
+                    className="quick-actions"
+                    gap={{ base: 2, md: 2.5 }}
+                    mt={{ base: 4, md: 5, xl: 7, '2xl': 9 }}
+                    mb={0}
+                    flexWrap="wrap"
+                    justify="center"
+                    maxW={{ base: '100%', md: '680px', xl: '780px' }}
+                  >
                     {promptChips.map((chip) => {
                       const Icon = chip.icon;
                       return (
                         <Button
                           key={chip.prompt}
-                          h="36px"
+                          h={{ base: '34px', md: '36px' }}
                           borderRadius="999px"
                           bg="rgba(255,255,255,0.82)"
                           border="1px solid"
                           borderColor={palette.border}
                           color={palette.secondaryText}
-                          fontSize="13px"
+                          fontSize={{ base: '12px', md: '13px' }}
                           fontWeight="700"
-                          px={4}
+                          px={{ base: 3, md: 4 }}
+                          flexShrink={0}
                           _hover={{ bg: palette.surface, color: palette.primary, borderColor: '#D5E5FA' }}
                           onClick={() => handleSendMessage(chip.prompt)}
                         >
@@ -691,14 +807,14 @@ export default function ChatPage() {
                   </HStack>
                 </Flex>
               ) : (
-                <VStack gap={5} align="stretch" maxW="980px" mx="auto" pb={8}>
+                <VStack gap={4} align="stretch" maxW="980px" mx="auto" pb={8}>
                   {currentMessages.map((message) => (
                     <Flex key={message.id} justify={message.type === 'user' ? 'flex-end' : 'flex-start'} align="flex-start" gap={3}>
                       {message.type === 'assistant' && (
                         <Flex
-                          w="36px"
-                          h="36px"
-                          borderRadius="14px"
+                          w="34px"
+                          h="34px"
+                          borderRadius="12px"
                           bg="linear-gradient(135deg, #E7F0FC, #FFFFFF)"
                           border="1px solid"
                           borderColor={palette.border}
@@ -711,19 +827,19 @@ export default function ChatPage() {
                       )}
 
                       <Box
-                        maxW={{ base: '86%', md: message.type === 'assistant' ? '78%' : '66%' }}
-                        bg={message.type === 'user' ? palette.primary : 'rgba(255,255,255,0.9)'}
+                        maxW={{ base: '86%', md: message.type === 'assistant' ? '760px' : '56%' }}
+                        bg={message.type === 'user' ? 'linear-gradient(135deg, #1D7FE3, #2F8BEC)' : 'rgba(255,255,255,0.94)'}
                         color={message.type === 'user' ? 'white' : palette.primaryText}
-                        px={4}
-                        py={3}
-                        borderRadius={message.type === 'user' ? '20px 20px 6px 20px' : '20px 20px 20px 6px'}
+                        px={message.type === 'user' ? 4 : 5}
+                        py={message.type === 'user' ? 3 : 4}
+                        borderRadius={message.type === 'user' ? '18px 18px 6px 18px' : '18px'}
                         border="1px solid"
-                        borderColor={message.type === 'user' ? 'rgba(29,127,227,0.1)' : palette.border}
-                        boxShadow={message.type === 'user' ? '0 14px 32px rgba(29,127,227,0.2)' : '0 14px 34px rgba(11,12,28,0.055)'}
+                        borderColor={message.type === 'user' ? 'rgba(29,127,227,0.18)' : 'rgba(230,234,240,0.92)'}
+                        boxShadow={message.type === 'user' ? '0 12px 26px rgba(29,127,227,0.18)' : '0 16px 34px rgba(11,12,28,0.055)'}
                         position="relative"
                         _hover={{ '& .message-actions': { opacity: 1 } }}
                       >
-                        <Text fontSize="13px" lineHeight="1.65" whiteSpace="pre-wrap" fontWeight="600">
+                        <Text fontSize="13px" lineHeight="1.55" whiteSpace="pre-wrap" fontWeight={message.type === 'user' ? '800' : '700'}>
                           {message.content}
                         </Text>
 
@@ -763,10 +879,10 @@ export default function ChatPage() {
 
                       {message.type === 'user' && (
                         <Flex
-                          w="36px"
-                          h="36px"
-                          borderRadius="14px"
-                          bg="rgba(255,255,255,0.86)"
+                          w="34px"
+                          h="34px"
+                          borderRadius="12px"
+                          bg="rgba(255,255,255,0.92)"
                           border="1px solid"
                           borderColor={palette.border}
                           align="center"
@@ -813,11 +929,11 @@ export default function ChatPage() {
               <Box
                 maxW={showWelcome ? '680px' : '980px'}
                 mx="auto"
-                bg="linear-gradient(135deg, rgba(255,248,216,0.85), rgba(255,255,255,0.92) 35%, rgba(213,229,250,0.96))"
+                bg="linear-gradient(135deg, rgba(231,240,252,0.95), rgba(255,255,255,0.94) 38%, rgba(213,229,250,0.98))"
                 border="1px solid rgba(230,234,240,0.95)"
                 borderRadius="24px"
                 p="8px"
-                boxShadow="0 20px 54px rgba(29, 127, 227, 0.13), 0 12px 36px rgba(253,184,63,0.08)"
+                boxShadow="0 20px 54px rgba(29, 127, 227, 0.13), 0 12px 36px rgba(110,160,230,0.12)"
               >
                 <Box bg="rgba(255,255,255,0.94)" borderRadius="19px" border="1px solid rgba(255,255,255,0.85)" p={3}>
                   <Textarea
