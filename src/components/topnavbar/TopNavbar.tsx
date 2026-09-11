@@ -5,21 +5,34 @@ import { Box, Button, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
+import type { UserRole } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { logout as logoutFromApi } from "@/lib/apis/auth";
+import { getUserRole } from "@/utils/rbac";
 import { LogoMark } from "../manager-overview/shared";
 import { colors } from "../../types/styles";
 import { NotificationBell, type NavbarNotification } from "./NotificationBell";
 
-const navItems = [
-  { label: "Overview", href: "/manager-overview" },
-  { label: "Team", href: "/teams-info" },
-  { label: "Projects", href: "/projects-info" },
-  { label: "Talent", href: "/talent-management" },
-  { label: "Organization", href: "/organization-info" },
-  { label: "Analytics", href: "/talent-analytics" },
-  { label: "Survey", href: "/action-survey" },
-  { label: "Action Items", href: "/action-item" },
+type TopNavItem = {
+  label: string;
+  href: string;
+  roles: readonly UserRole[];
+};
+
+const topNavItems: readonly TopNavItem[] = [
+  { label: "Overview", href: "/manager-overview", roles: ["Manager"] },
+  { label: "Team", href: "/teams-info", roles: ["Manager"] },
+  { label: "Projects", href: "/projects-info", roles: ["Manager"] },
+  { label: "Talent", href: "/talent-management", roles: ["Manager"] },
+  { label: "Organization", href: "/organization-info", roles: ["Manager"] },
+  { label: "Analytics", href: "/talent-analytics", roles: ["Manager"] },
+  { label: "Survey", href: "/action-survey", roles: ["Manager"] },
+  { label: "Action Items", href: "/action-item", roles: ["Manager"] },
+  { label: "Overview", href: "/associate-profile", roles: ["Associate"] },
+  { label: "Projects", href: "/projects", roles: ["Associate"] },
+  { label: "Surveys", href: "/surveys", roles: ["Associate"] },
+  { label: "Survey Responses", href: "/survey-responses", roles: ["Associate"] },
+  { label: "Action Items", href: "/action-items", roles: ["Associate"] },
 ] as const;
 
 const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -165,7 +178,13 @@ function getCalendarDays(monthDate: Date) {
 export function TopNavbar() {
   const NotificationBellRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const { logout: clearAuthContext } = useAuth();
+  const { user, logout: clearAuthContext } = useAuth();
+  const userRole = useMemo<UserRole>(() => (user ? getUserRole(user) : "Manager"), [user]);
+  const navItems = useMemo(
+    () => topNavItems.filter((item) => item.roles.includes(userRole)),
+    [userRole],
+  );
+  const homeHref = userRole === "Associate" ? "/associate-profile" : "/manager-overview";
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selectedDate, setSelectedDate] = useState(() => toDateInputValue(today));
   const selectedDateObject = useMemo(() => parseDateValue(selectedDate), [selectedDate]);
@@ -180,8 +199,7 @@ export function TopNavbar() {
     [],
   );
   const canGoNextMonth = addMonths(calendarMonth, 1).getTime() <= startOfMonth(today).getTime();
-  const isActivePath = (href: string) =>
-    pathname === href || (href !== "/manager-overview" && pathname.startsWith(`${href}/`));
+  const isActivePath = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
   const handleLogout = async () => {
     setIsUserMenuOpen(false);
     clearAuthContext();
@@ -221,7 +239,7 @@ export function TopNavbar() {
         gap={{ base: 4, xl: 8 }}
         flexWrap={{ base: "wrap", "2xl": "nowrap" }}
       >
-        <NextLink href="/manager-overview" aria-label="Go to overview" style={{ textDecoration: "none", flexShrink: 0 }}>
+        <NextLink href={homeHref} aria-label="Go to overview" style={{ textDecoration: "none", flexShrink: 0 }}>
           <HStack gap={{ base: 3, md: 4 }}>
             <LogoMark />
             <Text
