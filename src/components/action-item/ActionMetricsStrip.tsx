@@ -2,10 +2,10 @@
 
 import { Box, Flex, Grid, HStack, Text, VStack } from "@chakra-ui/react";
 import { colors } from "@/types/styles";
-import { actionItemMetrics } from "./actionItemData";
+import type { ActionItemMetric } from "./actionItemData";
 import { ActionCard, IconTile } from "./shared";
 
-export function ActionMetricsStrip() {
+export function ActionMetricsStrip({ metrics }: { metrics: readonly ActionItemMetric[] }) {
   return (
     <ActionCard minH={{ base: "auto", xl: "104px" }} px={{ base: "18px", md: "26px" }} py="20px">
       <Grid
@@ -13,9 +13,9 @@ export function ActionMetricsStrip() {
         gap={{ base: "18px", xl: "0" }}
         alignItems="center"
       >
-        {actionItemMetrics.map((metric, index) => {
+        {metrics.map((metric, index) => {
           const Icon = metric.icon;
-          const isLast = index === actionItemMetrics.length - 1;
+          const isLast = index === metrics.length - 1;
 
           return (
             <Flex
