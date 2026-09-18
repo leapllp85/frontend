@@ -17,6 +17,17 @@ type ActionTimelineProps = {
   onPageChange: (page: number) => void;
 };
 
+function buildActionSummary(item: ActionItemTimelineEntry) {
+  const priorityContext =
+    item.priority === "High"
+      ? "high-priority follow-up"
+      : item.priority === "Medium"
+        ? "standard-priority follow-up"
+        : "lower-priority follow-up";
+
+  return `${item.owner} owns this ${priorityContext} from ${item.source.toLowerCase()}. Current status is ${item.status.toLowerCase()}, with timing marked as ${item.dueLabel.toLowerCase()}.`;
+}
+
 export function ActionTimeline({
   currentPage,
   items,
@@ -153,16 +164,40 @@ export function ActionTimeline({
                 <Box
                   ml={{ base: "0", xl: "64px" }}
                   mt="8px"
-                  px="16px"
-                  py="12px"
+                  px="18px"
+                  py="14px"
                   bg="#FBFCFE"
                   border="1px solid"
                   borderColor={colors.lightBorder}
                   borderRadius="8px"
                 >
-                  <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" lineHeight="1.5">
-                    Mock detail: owner, source, priority, and due date are local-only for this prototype.
-                  </Text>
+                  <VStack align="stretch" gap="8px">
+                    <Text color={colors.primaryText} fontSize="12px" fontWeight="800" lineHeight="1">
+                      Summary
+                    </Text>
+                    <Text color={colors.secondaryText} fontSize="12px" fontWeight="600" lineHeight="1.55">
+                      {buildActionSummary(item)}
+                    </Text>
+                    <HStack gap="8px" flexWrap="wrap">
+                      {[item.owner, item.source, item.priority, item.dueLabel].map((detail) => (
+                        <Box
+                          key={detail}
+                          px="10px"
+                          py="5px"
+                          bg={colors.surface}
+                          border="1px solid"
+                          borderColor={colors.lightBorder}
+                          borderRadius="6px"
+                          color={colors.secondaryText}
+                          fontSize="11px"
+                          fontWeight="800"
+                          lineHeight="1"
+                        >
+                          {detail}
+                        </Box>
+                      ))}
+                    </HStack>
+                  </VStack>
                 </Box>
               )}
             </Box>
