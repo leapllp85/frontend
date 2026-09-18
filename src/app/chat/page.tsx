@@ -181,6 +181,25 @@ function DataValue({ value }: { value: unknown }) {
   );
 }
 
+function getInsightTitle(item: unknown, fallback: string) {
+  if (typeof item === 'string') return item;
+  if (!item || typeof item !== 'object') return fallback;
+
+  const insight = item as Record<string, unknown>;
+  return String(insight.reason ?? insight.title ?? insight.action ?? insight.description ?? fallback);
+}
+
+function getInsightDetail(item: unknown) {
+  if (!item || typeof item !== 'object') return '';
+
+  const insight = item as Record<string, unknown>;
+  if (typeof insight.percentage === 'number' || typeof insight.percentage === 'string') {
+    return `${insight.percentage}%`;
+  }
+
+  return String(insight.trend ?? insight.status ?? '');
+}
+
 function StructuredResponse({ response }: { response: RAGApiResponse }) {
   const dataSets = response.dataset ? Object.entries(response.dataset as Record<string, any>) : [];
   const insights = response.insights as any;
@@ -207,7 +226,7 @@ function StructuredResponse({ response }: { response: RAGApiResponse }) {
           </Text>
           <VStack align="stretch" gap={2}>
             {insights.key_findings.map((finding: any, index: number) => (
-              <HStack key={`${finding.reason ?? finding.title ?? index}`} align="start" gap={3}>
+              <HStack key={`${getInsightTitle(finding, "Finding")}-${index}`} align="start" gap={3}>
                 <Flex
                   w="24px"
                   h="24px"
@@ -224,11 +243,13 @@ function StructuredResponse({ response }: { response: RAGApiResponse }) {
                 </Flex>
                 <Box flex="1">
                   <Text fontSize="13px" fontWeight="800" color={palette.primaryText}>
-                    {finding.reason ?? finding.title ?? 'Finding'}
+                    {getInsightTitle(finding, "Finding")}
                   </Text>
-                  <Text fontSize="12px" color={palette.mutedText}>
-                    {finding.percentage ? `${finding.percentage}%` : finding.trend ?? finding.description ?? ''}
-                  </Text>
+                  {getInsightDetail(finding) && (
+                    <Text fontSize="12px" color={palette.mutedText}>
+                      {getInsightDetail(finding)}
+                    </Text>
+                  )}
                 </Box>
               </HStack>
             ))}
