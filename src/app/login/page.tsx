@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Toaster, toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/AuthContext";
-import { loginWithProfile } from "@/lib/apis/auth";
+import type { User } from "@/types";
 import { getUserRole } from "@/utils/rbac";
 
 type FormValues = {
@@ -30,6 +30,65 @@ const brandBlue = "#1D7FE3";
 const deepBlue = "#08265F";
 const mutedBlue = "#6D82AE";
 const borderBlue = "#D9E7F8";
+
+const mockProfiles: Array<{ username: string; password: string; user: User }> = [
+  {
+    username: "manager",
+    password: "manager123",
+    user: {
+      id: 1,
+      username: "manager",
+      email: "manager@clyra.local",
+      first_name: "Maya",
+      last_name: "Kapoor",
+      role: "Manager",
+      is_manager: true,
+      permissions: [
+        "chat",
+        "profile",
+        "surveys",
+        "my_projects",
+        "team_dashboard",
+        "team_projects",
+        "my_team",
+        "survey_management",
+      ],
+    },
+  },
+  {
+    username: "associate",
+    password: "associate123",
+    user: {
+      id: 2,
+      username: "associate",
+      email: "associate@clyra.local",
+      first_name: "Aarav",
+      last_name: "Mehta",
+      role: "Associate",
+      is_manager: false,
+      permissions: ["chat", "profile", "surveys", "my_projects"],
+    },
+  },
+];
+
+function createMockAccessToken() {
+  const payload = {
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24,
+    token_type: "mock",
+  };
+
+  return `mock.${btoa(JSON.stringify(payload))}.signature`;
+}
+
+function findMockProfile(usernameOrEmail: string, password: string) {
+  const normalizedLogin = usernameOrEmail.trim().toLowerCase();
+
+  return mockProfiles.find(
+    (profile) =>
+      password === profile.password &&
+      (normalizedLogin === profile.username || normalizedLogin === profile.user.email.toLowerCase())
+  );
+}
 
 function BrandMark() {
   return (
@@ -209,24 +268,30 @@ export default function LoginPage() {
       return;
     }
 
-    try {
-      const loginResponse = await loginWithProfile(username, password);
-      localStorage.setItem("userData", JSON.stringify(loginResponse.user));
-      authLogin(loginResponse.user);
-      toaster.success({
-        title: "Login successful",
-        duration: 3000,
-      });
+    const mockProfile = findMockProfile(username, password);
 
-      const userRole = getUserRole(loginResponse.user);
-      router.push(userRole === "Manager" ? "/manager-overview" : "/associate-profile");
-    } catch (error: any) {
+    if (!mockProfile) {
       toaster.error({
         title: "Login failed",
-        description: error.message,
+        description: "Invalid Credentials. Please check your username and password.",
         duration: 3000,
       });
+      return;
     }
+
+    localStorage.setItem("accessToken", createMockAccessToken());
+    localStorage.setItem("userData", JSON.stringify(mockProfile.user));
+    if (getUserRole(mockProfile.user) === "Manager") {
+      localStorage.removeItem("managerWellnessDashboardShown");
+    }
+    authLogin(mockProfile.user);
+    toaster.success({
+      title: "Login successful",
+      duration: 3000,
+    });
+
+    const userRole = getUserRole(mockProfile.user);
+    router.push(userRole === "Manager" ? "/manager-overview" : "/associate-profile");
   });
 
   return (

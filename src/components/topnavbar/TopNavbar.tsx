@@ -4,10 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Box, Button, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import NextLink from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { UserRole } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { logout as logoutFromApi } from "@/lib/apis/auth";
 import { getUserRole } from "@/utils/rbac";
 import { LogoMark } from "../manager-overview/shared";
 import { colors } from "../../types/styles";
@@ -203,6 +202,7 @@ export function TopNavbar({
 }: TopNavbarProps = {}) {
   const NotificationBellRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout: clearAuthContext } = useAuth();
   const userRole = useMemo<UserRole>(() => (user ? getUserRole(user) : "Associate"), [user]);
   const navItems = useMemo(
@@ -229,10 +229,10 @@ export function TopNavbar({
   );
   const canGoNextMonth = addMonths(calendarMonth, 1).getTime() <= startOfMonth(today).getTime();
   const isActivePath = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setIsUserMenuOpen(false);
     clearAuthContext();
-    await logoutFromApi();
+    router.replace("/login");
   };
   const getModalHref = (modal: AssociateNavbarModal) => `/associate-profile?modal=${modal}`;
   const closeOpenMenus = () => {

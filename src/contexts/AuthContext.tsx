@@ -43,18 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const initializeAuth = async () => {
             try {
-                const token = localStorage.getItem('accessToken');
-                if (token) {
-                    // Try to get user data from localStorage or fetch from API
-                    const storedUser = localStorage.getItem('userData');
-                    if (storedUser) {
-                        const userData = JSON.parse(storedUser);
-                        setUser(userData);
-                    } else {
-                        // If no stored user data, we might need to fetch it
-                        // For now, we'll handle this in the login flow
-                        console.log('Token exists but no user data found');
-                    }
+                const storedUser = localStorage.getItem('userData');
+                if (storedUser) {
+                    const userData = JSON.parse(storedUser);
+                    setUser(userData);
                 }
             } catch (error) {
                 console.error('Error initializing auth:', error);
