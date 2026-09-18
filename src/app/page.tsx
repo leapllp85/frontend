@@ -359,6 +359,7 @@ export default function Home() {
           const today = new Date().toDateString();
           localStorage.setItem('managerWellnessDashboardShown', today);
           console.log('Dashboard marked as shown for today:', today);
+          router.push('/manager-overview');
         }}
       />
     </>

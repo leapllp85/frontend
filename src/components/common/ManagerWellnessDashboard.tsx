@@ -8,10 +8,9 @@ import {
     Text,
     Heading,
     Grid,
-    Badge,
     Spinner
 } from '@chakra-ui/react';
-import { X, TrendingUp, Users, AlertTriangle, CheckCircle, ExternalLink, Check, MessageCircle, LayoutDashboard } from 'lucide-react';
+import { X, Users, AlertTriangle, CheckCircle, MessageCircle, LayoutDashboard } from 'lucide-react';
 
 interface EmployeeCheckIn {
     employeeId: string;
@@ -47,6 +46,23 @@ interface ManagerWellnessDashboardProps {
     onClose: () => void;
     standalone?: boolean;
 }
+
+const theme = {
+    surface: '#FFFFFF',
+    page: '#FAFBFD',
+    primary: '#1D7FE3',
+    primarySoft: '#E7F0FC',
+    primaryText: '#0B0C1C',
+    secondaryText: '#3D4B68',
+    mutedText: '#71809B',
+    border: '#E6EAF0',
+    lightBorder: '#EEF1F5',
+    success: '#39BA85',
+    danger: '#E2493A',
+    warning: '#FDB83F',
+};
+
+const cardBorder = '1px solid #E6EAF0';
 
 export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> = ({ isOpen, onClose, standalone = false }) => {
     const [aggregatedData, setAggregatedData] = useState<AggregatedData | null>(null);
@@ -253,12 +269,13 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
             left={standalone ? 0 : 0}
             right={standalone ? 0 : 0}
             bottom={standalone ? 0 : 0}
-            bg={standalone ? "white" : "rgba(0, 0, 0, 0.4)"}
-            backdropFilter={standalone ? "none" : "blur(4px)"}
+            bg={standalone ? theme.page : "rgba(15, 27, 46, 0.58)"}
+            backdropFilter={standalone ? "none" : "blur(8px)"}
             zIndex={standalone ? 1 : 9999}
             display="flex"
             alignItems={standalone ? "flex-start" : "center"}
             justifyContent="center"
+            p={standalone ? 0 : { base: "12px", md: "24px" }}
             onClick={(e) => {
                 if (!standalone && e.target === e.currentTarget) {
                     onClose();
@@ -266,94 +283,131 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
             }}
         >
             <Box
-                bg={standalone ? "white" : "white"}
-                borderRadius={standalone ? "none" : "xl"}
-                shadow={standalone ? "none" : "xl"}
-                maxW={standalone ? "100%" : "1000px"}
-                w={standalone ? "100%" : "95%"}
+                bg={theme.surface}
+                borderRadius={standalone ? "none" : { base: "18px", md: "20px" }}
+                border={standalone ? "0" : cardBorder}
+                boxShadow={standalone ? "none" : "0 24px 70px rgba(11, 12, 28, 0.14)"}
+                maxW={standalone ? "100%" : "1180px"}
+                w={standalone ? "100%" : "100%"}
                 h={showChat ? "100vh" : standalone ? "100vh" : "auto"}
-                maxH={showChat ? "100vh" : standalone ? "100vh" : "90vh"}
-                p={showChat ? 0 : standalone ? 4 : 6}
+                maxH={showChat ? "100vh" : standalone ? "100vh" : "calc(100vh - 48px)"}
+                p={showChat ? 0 : { base: "18px", md: "22px", xl: "26px" }}
                 position="relative"
                 overflow="hidden"
                 display={showChat ? "flex" : "block"}
                 flexDirection={showChat ? "column" : undefined}
             >
-                {/* Action Buttons */}
-                <HStack
-                    position="absolute"
-                    top={4}
-                    right={4}
-                    gap={2}
-                    zIndex={10}
-                >
-                    <Box
-                        cursor="pointer"
-                        onClick={() => setShowChat(!showChat)}
-                        w="40px"
-                        h="40px"
-                        borderRadius="full"
-                        bg={showChat ? "linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)" : "linear-gradient(135deg, #c4b5fd 0%, #a855f7 100%)"}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        boxShadow={showChat ? "0 4px 12px rgba(20, 184, 166, 0.35)" : "0 4px 12px rgba(168, 85, 247, 0.3)"}
-                        _hover={{ transform: "translateY(-2px)", boxShadow: showChat ? "0 6px 16px rgba(20, 184, 166, 0.5)" : "0 6px 16px rgba(168, 85, 247, 0.45)" }}
-                        transition="all 0.2s"
-                        title={showChat ? "Back to Wellness Dashboard" : "Open AI Chat Assistant"}
-                    >
-                        {showChat ? <LayoutDashboard size={20} color="white" /> : <MessageCircle size={20} color="white" />}
-                    </Box>
-                    
-                    <Box
-                        cursor="pointer"
-                        onClick={() => {
-                            const baseUrl = window.location.origin;
-                            window.open(baseUrl + '/', '_blank');
-                        }}
-                        w="40px"
-                        h="40px"
-                        borderRadius="full"
-                        bg="linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        boxShadow="0 4px 12px rgba(37, 99, 235, 0.3)"
-                        _hover={{ transform: "translateY(-2px)", boxShadow: "0 6px 16px rgba(37, 99, 235, 0.45)" }}
-                        transition="all 0.2s"
-                        title="Open Full Application"
-                    >
-                        <ExternalLink size={20} color="white" />
-                    </Box>
-                    
-                    <Box
-                        cursor="pointer"
-                        onClick={onClose}
-                        p={2}
-                        borderRadius="md"
-                        _hover={{ bg: 'gray.100' }}
-                        transition="all 0.2s"
-                        title="Close Dashboard"
-                    >
-                        <X size={20} color="#6b7280" />
-                    </Box>
-                </HStack>
-
                 {/* Header */}
                 {!showChat && (
-                    <VStack gap={0} mb={5} align="start">
-                        <Heading size="lg" color="gray.800" fontWeight="600">
-                            Team Wellness Dashboard
-                        </Heading>
-                        <Text color="gray.500" fontSize="sm">
-                            Real-time insights into your team's wellbeing
-                        </Text>
-                    </VStack>
+                    <HStack justify="space-between" align="start" gap={4} mb={{ base: "18px", md: "22px" }}>
+                        <HStack gap={3} minW={0} align="start">
+                            <Box
+                                w={{ base: "42px", md: "48px" }}
+                                h={{ base: "42px", md: "48px" }}
+                                borderRadius="14px"
+                                bg={theme.primarySoft}
+                                color={theme.primary}
+                                border={cardBorder}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                flexShrink={0}
+                            >
+                                <MessageCircle size={22} />
+                            </Box>
+                            <Box minW={0}>
+                                <Heading fontSize={{ base: "20px", md: "24px" }} lineHeight="1.15" color={theme.primaryText} fontWeight="800" letterSpacing="0">
+                                    Team Wellness Dashboard
+                                </Heading>
+                                <Text color={theme.mutedText} fontSize={{ base: "13px", md: "14px" }} fontWeight="600" mt="4px">
+                                    Real-time insights into your team's wellbeing
+                                </Text>
+                            </Box>
+                        </HStack>
+
+                        <HStack gap={2} flexShrink={0}>
+                            <Box
+                                as="button"
+                                cursor="pointer"
+                                onClick={() => setShowChat(!showChat)}
+                                w="40px"
+                                h="40px"
+                                borderRadius="10px"
+                                bg={showChat ? theme.primarySoft : theme.primary}
+                                color={showChat ? theme.primary : theme.surface}
+                                border={cardBorder}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                boxShadow={showChat ? "none" : "0 12px 24px rgba(29,127,227,0.18)"}
+                                _hover={{ bg: showChat ? "#D9E9FB" : "#176FC7" }}
+                                transition="all 0.2s"
+                                title={showChat ? "Back to Wellness Dashboard" : "Open AI Chat Assistant"}
+                            >
+                                {showChat ? <LayoutDashboard size={19} /> : <MessageCircle size={19} />}
+                            </Box>
+                            <Box
+                                as="button"
+                                cursor="pointer"
+                                onClick={onClose}
+                                w="40px"
+                                h="40px"
+                                borderRadius="10px"
+                                color={theme.secondaryText}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                _hover={{ bg: "#F3F7FD", color: theme.primary }}
+                                transition="all 0.2s"
+                                title="Close Dashboard"
+                            >
+                                <X size={21} />
+                            </Box>
+                        </HStack>
+                    </HStack>
                 )}
 
                 {/* Chat Interface */}
                 {showChat && (
                     <Box position="absolute" top={0} left={0} right={0} bottom={0} overflow="hidden" m={0} p={0} zIndex={5}>
+                        <HStack position="absolute" top="14px" right="14px" zIndex={6} gap={2}>
+                            <Box
+                                as="button"
+                                onClick={() => setShowChat(false)}
+                                w="40px"
+                                h="40px"
+                                borderRadius="10px"
+                                bg={theme.surface}
+                                color={theme.primary}
+                                border={cardBorder}
+                                boxShadow="0 12px 28px rgba(11,12,28,0.10)"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                _hover={{ bg: theme.primarySoft }}
+                                title="Back to wellness dashboard"
+                            >
+                                <LayoutDashboard size={19} />
+                            </Box>
+                            <Box
+                                as="button"
+                                onClick={onClose}
+                                w="40px"
+                                h="40px"
+                                borderRadius="10px"
+                                bg={theme.surface}
+                                color={theme.secondaryText}
+                                border={cardBorder}
+                                boxShadow="0 12px 28px rgba(11,12,28,0.10)"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                _hover={{ bg: "#F3F7FD", color: theme.primary }}
+                                title="Close Dashboard"
+                            >
+                                <X size={20} />
+                            </Box>
+                        </HStack>
                         <iframe
                             src="/chat?embed=true"
                             width="100%"
@@ -386,75 +440,78 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
 
                 {/* Content */}
                 {!showChat && !isLoading && aggregatedData && (
-                    <VStack gap={4} align="stretch" h="calc(100vh - 120px)">
+                    <VStack gap={{ base: 3, md: 4 }} align="stretch" maxH={standalone ? "calc(100vh - 118px)" : "calc(100vh - 158px)"} overflow="hidden">
                         {/* Top Metrics */}
-                        <Grid templateColumns="repeat(3, 1fr)" gap={4}>
+                        <Grid templateColumns={{ base: "1fr", sm: "repeat(3, 1fr)" }} gap={{ base: 3, md: 4 }} flexShrink={0}>
                             {/* Total Team */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(59, 130, 246, 0.08), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(59, 130, 246, 0.12), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Total Team</Text>
-                                    <Users size={18} color="#6b7280" />
+                            <Box bg={theme.surface} borderRadius="12px" p={{ base: 4, md: 5 }} border={cardBorder} boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+                                <HStack justify="space-between" mb={3}>
+                                    <Text fontSize="13px" color={theme.secondaryText} fontWeight="800">Total Team</Text>
+                                    <Box w="34px" h="34px" borderRadius="10px" bg={theme.primarySoft} color={theme.primary} display="flex" alignItems="center" justifyContent="center">
+                                        <Users size={18} />
+                                    </Box>
                                 </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                <Text fontSize={{ base: "28px", md: "34px" }} lineHeight="1" fontWeight="800" color={theme.primaryText} mb={2}>
                                     {aggregatedData.totalEmployees}
                                 </Text>
-                                <Text fontSize="xs" color="gray.500">employees</Text>
+                                <Text fontSize="12px" color={theme.mutedText} fontWeight="700">employees</Text>
                             </Box>
 
                             {/* Response */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(16, 185, 129, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(16, 185, 129, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">Response</Text>
-                                    <CheckCircle size={18} color="#10b981" />
+                            <Box bg={theme.surface} borderRadius="12px" p={{ base: 4, md: 5 }} border={cardBorder} boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+                                <HStack justify="space-between" mb={3}>
+                                    <Text fontSize="13px" color={theme.secondaryText} fontWeight="800">Response</Text>
+                                    <Box w="34px" h="34px" borderRadius="10px" bg="#E8F8F0" color={theme.success} display="flex" alignItems="center" justifyContent="center">
+                                        <CheckCircle size={18} />
+                                    </Box>
                                 </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                <Text fontSize={{ base: "28px", md: "34px" }} lineHeight="1" fontWeight="800" color={theme.primaryText} mb={2}>
                                     {responseRate}%
                                 </Text>
-                                <Text fontSize="xs" color="gray.500">
+                                <Text fontSize="12px" color={theme.mutedText} fontWeight="700">
                                     {aggregatedData.respondedToday} of {aggregatedData.totalEmployees} responded
                                 </Text>
                             </Box>
 
                             {/* At Risk */}
-                            <Box bg="white" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" boxShadow="0 4px 12px rgba(239, 68, 68, 0.10), 0 2px 4px rgba(0,0,0,0.04)" transition="all 0.2s" _hover={{ transform: "translateY(-2px)", boxShadow: "0 8px 20px rgba(239, 68, 68, 0.15), 0 3px 6px rgba(0,0,0,0.06)" }}>
-                                <HStack justify="space-between" mb={2}>
-                                    <Text fontSize="sm" color="gray.600" fontWeight="500">At Risk</Text>
-                                    <AlertTriangle size={18} color="#ef4444" />
+                            <Box bg={theme.surface} borderRadius="12px" p={{ base: 4, md: 5 }} border={cardBorder} boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)">
+                                <HStack justify="space-between" mb={3}>
+                                    <Text fontSize="13px" color={theme.secondaryText} fontWeight="800">At Risk</Text>
+                                    <Box w="34px" h="34px" borderRadius="10px" bg="#FDEDEA" color={theme.danger} display="flex" alignItems="center" justifyContent="center">
+                                        <AlertTriangle size={18} />
+                                    </Box>
                                 </HStack>
-                                <Text fontSize="3xl" fontWeight="700" color="gray.900" mb={1}>
+                                <Text fontSize={{ base: "28px", md: "34px" }} lineHeight="1" fontWeight="800" color={theme.primaryText} mb={2}>
                                     {aggregatedData.atRiskEmployees.length}
                                 </Text>
-                                <Text fontSize="xs" color="gray.500">need attention</Text>
+                                <Text fontSize="12px" color={theme.mutedText} fontWeight="700">need attention</Text>
                             </Box>
                         </Grid>
 
                         {/* Today's Status Row - Employees on left, Projects at Risk on right */}
-                        <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={4} flex="1" minH={0}>
+                        <Grid templateColumns={{ base: "1fr", lg: "1fr 1fr" }} gap={{ base: 3, md: 4 }} flex="1" minH={0} overflow={{ base: "auto", lg: "hidden" }} css={{ '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' } }}>
                             {/* Employees Requiring Attention - LEFT */}
-                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
-                                <HStack gap={2} mb={3} flexShrink={0}>
-                                    <AlertTriangle size={16} color="#ef4444" />
-                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Employees Requiring Attention</Text>
+                            <Box bg={theme.surface} borderRadius="12px" p={{ base: 4, md: 5 }} border={cardBorder} boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)" display="flex" flexDirection="column" minH={{ base: "360px", lg: 0 }} overflow="hidden">
+                                <HStack gap={3} mb={4} flexShrink={0}>
+                                    <Box w="32px" h="32px" borderRadius="10px" bg="#FDEDEA" color={theme.danger} display="flex" alignItems="center" justifyContent="center">
+                                        <AlertTriangle size={16} />
+                                    </Box>
+                                    <Text fontSize="15px" color={theme.primaryText} fontWeight="800">Employees Requiring Attention</Text>
                                 </HStack>
                                 {aggregatedData.atRiskEmployees.length > 0 ? (
                                     <Box
                                         flex="1"
                                         overflowY="auto"
                                         css={{
-                                            scrollbarWidth: 'none',
-                                            msOverflowStyle: 'none',
-                                            '&::-webkit-scrollbar': {
-                                                display: 'none',
-                                                width: 0,
-                                                height: 0,
-                                            },
+                                            '&::-webkit-scrollbar': { width: '6px' },
+                                            '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' },
+                                            '&::-webkit-scrollbar-track': { background: 'transparent' },
                                         }}
                                     >
                                         <Grid
-                                            templateColumns="repeat(2, 1fr)"
-                                            gap={3}
-                                            h="100%"
-                                            style={{ gridAutoRows: 'calc((100% - 0.75rem) / 2)' }}
+                                            templateColumns={{ base: "1fr", sm: "repeat(2, minmax(0, 1fr))" }}
+                                            gap="12px"
+                                            pr="2px"
                                         >
                                             {aggregatedData.atRiskEmployees.map((emp, index) => {
                                                 const initials = emp.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
@@ -464,22 +521,21 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                                                 return (
                                                     <Box
                                                         key={index}
-                                                        bg="white"
-                                                        borderRadius="lg"
-                                                        p={3}
-                                                        border="1px solid"
-                                                        borderColor="gray.200"
-                                                        boxShadow="0 1px 3px rgba(0,0,0,0.04)"
+                                                        bg="#FAFBFD"
+                                                        borderRadius="10px"
+                                                        p="14px"
+                                                        border={cardBorder}
                                                         transition="all 0.2s"
                                                         display="flex"
                                                         flexDirection="column"
                                                         justifyContent="center"
-                                                        _hover={{ borderColor: "blue.300", boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}
+                                                        minH="148px"
+                                                        _hover={{ borderColor: "#CFE0F7", boxShadow: "0 10px 24px rgba(29,127,227,0.08)" }}
                                                     >
-                                                        <VStack gap={2} align="center" textAlign="center">
+                                                        <VStack gap={2.5} align="center" textAlign="center">
                                                             <Box
-                                                                w="56px"
-                                                                h="56px"
+                                                                w="50px"
+                                                                h="50px"
                                                                 borderRadius="full"
                                                                 overflow="hidden"
                                                                 flexShrink={0}
@@ -490,9 +546,9 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                                                                 position="relative"
                                                                 border="2px solid"
                                                                 borderColor="white"
-                                                                boxShadow="0 2px 6px rgba(0,0,0,0.1)"
+                                                                boxShadow="0 8px 18px rgba(11,12,28,0.12)"
                                                             >
-                                                                <Text fontSize="md" fontWeight="700" color="white" position="absolute">
+                                                                <Text fontSize="14px" fontWeight="800" color="white" position="absolute">
                                                                     {initials}
                                                                 </Text>
                                                                 <img
@@ -509,13 +565,13 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                                                                 />
                                                             </Box>
                                                             <Box w="full" minW={0}>
-                                                                <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>
+                                                                <Text fontSize="13px" fontWeight="800" color={theme.primaryText} lineClamp={1}>
                                                                     {emp.name}
                                                                 </Text>
-                                                                <Text fontSize="xs" color="gray.600" lineClamp={1}>
+                                                                <Text fontSize="12px" color={theme.secondaryText} fontWeight="600" lineClamp={1}>
                                                                     {emp.reason} · {emp.daysAffected}d
                                                                 </Text>
-                                                                <Text fontSize="xs" color="blue.600" fontWeight="500" lineClamp={1}>
+                                                                <Text fontSize="12px" color={theme.primary} fontWeight="800" lineClamp={1}>
                                                                     {emp.reason === 'Low energy' ? 'Recommend recovery' : 'Assist workload'}
                                                                 </Text>
                                                             </Box>
@@ -531,10 +587,12 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                             </Box>
 
                             {/* Right column: Projects at Risk */}
-                            <Box bg="gray.50" borderRadius="lg" p={4} border="1px solid" borderColor="gray.200" display="flex" flexDirection="column" minH={0} overflow="hidden">
-                                <HStack gap={2} mb={3} flexShrink={0}>
-                                    <AlertTriangle size={16} color="#ef4444" />
-                                    <Text fontSize="sm" color="gray.700" fontWeight="600">Projects at Risk</Text>
+                            <Box bg={theme.surface} borderRadius="12px" p={{ base: 4, md: 5 }} border={cardBorder} boxShadow="0 10px 30px rgba(11, 12, 28, 0.035)" display="flex" flexDirection="column" minH={{ base: "360px", lg: 0 }} overflow="hidden">
+                                <HStack gap={3} mb={4} flexShrink={0}>
+                                    <Box w="32px" h="32px" borderRadius="10px" bg="#FDEDEA" color={theme.danger} display="flex" alignItems="center" justifyContent="center">
+                                        <AlertTriangle size={16} />
+                                    </Box>
+                                    <Text fontSize="15px" color={theme.primaryText} fontWeight="800">Projects at Risk</Text>
                                 </HStack>
                                 {(() => {
                                     const projectsAtRisk = [
@@ -546,43 +604,41 @@ export const ManagerWellnessDashboard: React.FC<ManagerWellnessDashboardProps> =
                                         { project: 'Vega Reporting Refresh', client: 'Umbrella Group', risk: 'Low', associate: 'Meera Iyer', role: 'Frontend Engineer', note: 'Stable; involve in design system to retain.' },
                                     ];
                                     return (
-                                        <Box flex="1" overflowY="auto" css={{ scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
-                                            <VStack gap={2} align="stretch">
+                                        <Box flex="1" overflowY="auto" pr="2px" css={{ '&::-webkit-scrollbar': { width: '6px' }, '&::-webkit-scrollbar-thumb': { background: '#D8DEE9', borderRadius: '999px' }, '&::-webkit-scrollbar-track': { background: 'transparent' } }}>
+                                            <VStack gap="12px" align="stretch">
                                                 {projectsAtRisk.map((p, idx) => {
-                                                    const riskMap: Record<string, { bg: string; color: string; border: string }> = {
-                                                        High: { bg: 'red.50', color: 'red.700', border: 'red.200' },
-                                                        Medium: { bg: 'orange.50', color: 'orange.700', border: 'orange.200' },
-                                                        Low: { bg: 'yellow.50', color: 'yellow.700', border: 'yellow.200' },
+                                                    const riskMap: Record<string, { bg: string; color: string; border: string; dot: string }> = {
+                                                        High: { bg: '#FDEDEA', color: '#B42318', border: '#F7C9C3', dot: theme.danger },
+                                                        Medium: { bg: '#FFF3DE', color: '#9A4B0B', border: '#FFD7A8', dot: theme.warning },
+                                                        Low: { bg: '#E8F8F0', color: '#247A5B', border: '#BFEBD7', dot: theme.success },
                                                     };
                                                     const c = riskMap[p.risk];
                                                     return (
                                                         <Box
                                                             key={idx}
-                                                            bg="white"
-                                                            borderRadius="lg"
-                                                            p={3}
-                                                            border="1px solid"
-                                                            borderColor="gray.200"
-                                                            boxShadow="0 1px 3px rgba(0,0,0,0.04)"
+                                                            bg="#FAFBFD"
+                                                            borderRadius="10px"
+                                                            p="14px"
+                                                            border={cardBorder}
                                                             transition="all 0.2s"
-                                                            _hover={{ borderColor: 'blue.300', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+                                                            _hover={{ borderColor: '#CFE0F7', boxShadow: '0 10px 24px rgba(29,127,227,0.08)' }}
                                                         >
-                                                            <HStack justify="space-between" align="start" mb={1.5} gap={2}>
+                                                            <HStack justify="space-between" align="start" mb="8px" gap={3}>
                                                                 <Box flex="1" minW={0}>
-                                                                    <Text fontSize="sm" fontWeight="600" color="gray.900" lineClamp={1}>{p.project}</Text>
-                                                                    <Text fontSize="xs" color="gray.500" lineClamp={1}>{p.client}</Text>
+                                                                    <Text fontSize="14px" fontWeight="800" color={theme.primaryText} lineClamp={1}>{p.project}</Text>
+                                                                    <Text fontSize="12px" color={theme.mutedText} fontWeight="700" lineClamp={1}>{p.client}</Text>
                                                                 </Box>
-                                                                <Box px={2} py={0.5} borderRadius="md" bg={c.bg} border="1px solid" borderColor={c.border} flexShrink={0}>
-                                                                    <Text fontSize="2xs" fontWeight="700" color={c.color} textTransform="uppercase">{p.risk}</Text>
+                                                                <Box px="10px" py="4px" borderRadius="8px" bg={c.bg} border="1px solid" borderColor={c.border} flexShrink={0}>
+                                                                    <Text fontSize="10px" fontWeight="800" color={c.color} textTransform="uppercase">{p.risk}</Text>
                                                                 </Box>
                                                             </HStack>
-                                                            <HStack gap={2} align="center" mb={1}>
-                                                                <Box w="6px" h="6px" borderRadius="full" bg="red.400" />
-                                                                <Text fontSize="xs" color="gray.700" fontWeight="500">{p.associate}</Text>
-                                                                <Text fontSize="xs" color="gray.400">·</Text>
-                                                                <Text fontSize="xs" color="gray.500">{p.role}</Text>
+                                                            <HStack gap={2} align="center" mb="6px" flexWrap="wrap">
+                                                                <Box w="6px" h="6px" borderRadius="full" bg={c.dot} />
+                                                                <Text fontSize="12px" color={theme.secondaryText} fontWeight="800">{p.associate}</Text>
+                                                                <Text fontSize="12px" color={theme.mutedText}>·</Text>
+                                                                <Text fontSize="12px" color={theme.mutedText} fontWeight="700">{p.role}</Text>
                                                             </HStack>
-                                                            <Text fontSize="xs" color="gray.600" lineClamp={2}>{p.note}</Text>
+                                                            <Text fontSize="12px" color={theme.secondaryText} fontWeight="600" lineClamp={2}>{p.note}</Text>
                                                         </Box>
                                                     );
                                                 })}
