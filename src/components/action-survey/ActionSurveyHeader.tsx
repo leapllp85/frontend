@@ -4,11 +4,11 @@ import { Button, HStack, Text, VStack } from "@chakra-ui/react";
 import { Download, RefreshCw, Settings } from "lucide-react";
 import { colors } from "@/types/styles";
 import { actionSurveyCopy } from "./actionSurveyData";
+import { downloadActionSurveyWorkbook } from "./exportActionSurveyWorkbook";
 
 const headerActions = [
-  { label: "Refresh", icon: RefreshCw },
-  { label: "Export", icon: Download },
-  { label: "Settings", icon: Settings },
+  // { label: "Refresh", icon: RefreshCw },
+  { label: "Export", icon: Download }
 ] as const;
 
 export function ActionSurveyHeader() {
@@ -27,7 +27,7 @@ export function ActionSurveyHeader() {
         {headerActions.map((action) => {
           const Icon = action.icon;
           return (
-            <Button key={action.label} h="42px" px="20px" bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="6px" color={colors.primaryText} fontSize="13px" fontWeight="800" _hover={{ bg: "#F8FAFD" }}>
+            <Button key={action.label} h="42px" px="20px" bg={colors.surface} border="1px solid" borderColor={colors.border} borderRadius="6px" color={colors.primaryText} fontSize="13px" fontWeight="800" _hover={{ bg: "#F8FAFD" }} onClick={action.label === "Export" ? downloadActionSurveyWorkbook : undefined}>
               <HStack gap="9px">
                 <Icon size={16} strokeWidth={2.2} />
                 <Text>{action.label}</Text>

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { ChatMessage, ChatConversation, RAGApiResponse } from '../types/ragApi';
+import { COST_OPTIMIZATION_PROMPTS } from '@/constants/mockData/chatCostOptimization';
 // import { asyncChatApi, AsyncChatOptions } from '../services/asyncChatApi';
 
 interface ChatContextType {
@@ -28,6 +29,60 @@ interface ChatContextType {
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
+
+const chatStopWords = new Set([
+  'show',
+  'list',
+  'with',
+  'their',
+  'from',
+  'this',
+  'that',
+  'what',
+  'which',
+  'should',
+  'employees',
+  'employee',
+]);
+
+function normalizePrompt(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function findCostOptimizationMockResponse(content: string) {
+  const normalizedContent = normalizePrompt(content);
+  if (!normalizedContent) return null;
+
+  const exactMatch = COST_OPTIMIZATION_PROMPTS.find((mockPrompt) => {
+    const normalizedPrompt = normalizePrompt(mockPrompt.prompt);
+    return normalizedContent === normalizedPrompt || normalizedContent.includes(normalizedPrompt) || normalizedPrompt.includes(normalizedContent);
+  });
+
+  if (exactMatch) return exactMatch;
+
+  const contentTerms = new Set(
+    normalizedContent
+      .split(' ')
+      .filter((term) => term.length > 3 && !chatStopWords.has(term)),
+  );
+
+  let bestMatch: { prompt: typeof COST_OPTIMIZATION_PROMPTS[number]; score: number } | null = null;
+
+  COST_OPTIMIZATION_PROMPTS.forEach((mockPrompt) => {
+    const promptTerms = normalizePrompt(mockPrompt.prompt)
+      .split(' ')
+      .filter((term) => term.length > 3 && !chatStopWords.has(term));
+
+    const matchedTerms = promptTerms.filter((term) => contentTerms.has(term));
+    const score = matchedTerms.length / Math.max(promptTerms.length, 1);
+
+    if (score >= 0.45 && (!bestMatch || score > bestMatch.score)) {
+      bestMatch = { prompt: mockPrompt, score };
+    }
+  });
+
+  return bestMatch?.prompt ?? null;
+}
 
 export const useChatContext = () => {
   const context = useContext(ChatContext);
@@ -163,6 +218,20 @@ export const ChatProvider: React.FC<ChatProviderProps> = ({ children }): React.R
     try {
       // Static mock response - LLM Integration disabled
       await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const costOptimizationMock = findCostOptimizationMockResponse(content);
+      if (costOptimizationMock) {
+        addMessage(
+          `Here is the prepared dashboard response for: ${costOptimizationMock.prompt}`,
+          'assistant',
+          {
+            ...costOptimizationMock.response,
+            raw_response: `Here is the prepared dashboard response for: ${costOptimizationMock.prompt}`,
+          } as RAGApiResponse,
+        );
+        hasCompleted = true;
+        return;
+      }
       
       // Check if the query is about attrition trend
       if (content.toLowerCase().includes('attrition trend') || content.toLowerCase().includes('last 6 months')) {

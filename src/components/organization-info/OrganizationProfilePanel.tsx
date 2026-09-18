@@ -379,7 +379,7 @@ export function OrganizationProfilePanel({ employee, root, onClose }: Organizati
           </HStack>
         </Box>
 
-        <HStack
+        {/* <HStack
           as="nav"
           aria-label="Organization profile sections"
           h="58px"
@@ -420,7 +420,7 @@ export function OrganizationProfilePanel({ employee, root, onClose }: Organizati
               </Box>
             );
           })}
-        </HStack>
+        </HStack> */}
 
         <VStack align="stretch" gap="12px" p="14px" flex="1" minH={0} overflowY="auto">
           <ReportsToSection reportsTo={reportsTo} />
@@ -428,7 +428,7 @@ export function OrganizationProfilePanel({ employee, root, onClose }: Organizati
           <AboutSection employee={employee} details={details} />
           <DirectReportsSection reports={directReports} />
 
-          <Button
+          {/* <Button
             h="50px"
             mt="8px"
             bg={colors.surface}
@@ -445,7 +445,7 @@ export function OrganizationProfilePanel({ employee, root, onClose }: Organizati
               <UserRound size={16} />
               <Text>View Full Profile</Text>
             </HStack>
-          </Button>
+          </Button> */}
         </VStack>
       </VStack>
     </Box>

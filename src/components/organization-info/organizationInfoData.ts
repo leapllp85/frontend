@@ -346,7 +346,7 @@ export const organizationChartRoot: OrganizationPerson = {
       role: "QA Lead",
       riskLevel: "low",
       avatarUrl: "https://i.pravatar.cc/160?img=45",
-      hasCollapsedReports: true,
+      hasCollapsedReports: false,
     },
     {
       id: "michael-brown",

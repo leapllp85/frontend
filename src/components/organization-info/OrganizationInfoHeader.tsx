@@ -54,7 +54,7 @@ export function OrganizationInfoHeader() {
       </HStack>
 
       <HStack gap={{ base: "10px", md: "12px" }} flexShrink={0}>
-        <Button
+        {/* <Button
           h="44px"
           px="18px"
           bg={colors.surface}
@@ -71,7 +71,7 @@ export function OrganizationInfoHeader() {
             <Filter size={16} color={colors.secondaryText} />
             <Text>Filters</Text>
           </HStack>
-        </Button>
+        </Button> */}
 
         <Button
           h="44px"
