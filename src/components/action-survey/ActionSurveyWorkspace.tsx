@@ -207,12 +207,12 @@ function TemplateControls({
         <SelectControl label="Type" value={type} options={typeOptions} onChange={onTypeChange} />
         <SelectControl label="Sort" value={sort} options={sortOptions} onChange={onSortChange} />
       </HStack>
-      <Button h="42px" px="20px" bg={colors.primary} color={colors.surface} borderRadius="6px" fontSize="13px" fontWeight="800" _hover={{ bg: "#1668BA" }}>
+      {/* <Button h="42px" px="20px" bg={colors.primary} color={colors.surface} borderRadius="6px" fontSize="13px" fontWeight="800" _hover={{ bg: "#1668BA" }}>
         <HStack gap="9px">
           <Plus size={17} strokeWidth={2.3} />
           <Text>Create Survey</Text>
         </HStack>
-      </Button>
+      </Button> */}
     </HStack>
   );
 }
@@ -310,10 +310,10 @@ export function ActionSurveyWorkspace() {
         <>
           <TemplateControls search={search} status={status} type={type} sort={sort} onSearchChange={setSearch} onStatusChange={setStatus} onTypeChange={setType} onSortChange={setSort} />
           <Grid px="16px" templateColumns={{ base: "1fr", md: "repeat(2, minmax(0, 1fr))", xl: "repeat(4, minmax(0, 1fr))" }} gap="14px">
+            {<CreateSurveyCard />}
             {pageTemplates.map((template) => (
               <SurveyTemplateCard key={template.id} template={template} />
             ))}
-            {currentPage === 1 && <CreateSurveyCard />}
           </Grid>
           {filteredTemplates.length === 0 && (
             <VStack minH="180px" justify="center" px="16px">
