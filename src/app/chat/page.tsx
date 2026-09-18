@@ -276,11 +276,11 @@ function StructuredResponse({ response }: { response: RAGApiResponse }) {
             </Box>
             {rows.length > 0 ? (
               <Box overflowX="auto">
-                <Table.Root minW="680px" size="sm" variant="line">
-                  <Table.Header bg="rgba(250,251,253,0.74)">
-                    <Table.Row>
+                <Table.Root minW="680px" size="sm" variant="line" bg={palette.surface} color={palette.primaryText}>
+                  <Table.Header bg="#FAFBFD">
+                    <Table.Row bg="#FAFBFD">
                       {columns.map((column: string) => (
-                        <Table.ColumnHeader key={column} px={4} py="12px" borderColor={palette.lightBorder}>
+                        <Table.ColumnHeader key={column} px={4} py="12px" bg="#FAFBFD" color={palette.mutedText} borderColor={palette.lightBorder}>
                           <Text fontSize="10px" fontWeight="800" color={palette.mutedText} textTransform="uppercase">
                             {column.replaceAll('_', ' ')}
                           </Text>
@@ -290,9 +290,9 @@ function StructuredResponse({ response }: { response: RAGApiResponse }) {
                   </Table.Header>
                   <Table.Body>
                     {rows.slice(0, 8).map((row: any, rowIndex: number) => (
-                      <Table.Row key={row.id ?? `${key}-${rowIndex}`} _hover={{ bg: 'rgba(250,251,253,0.72)' }}>
+                      <Table.Row key={row.id ?? `${key}-${rowIndex}`} bg={palette.surface} color={palette.primaryText} _hover={{ bg: 'rgba(250,251,253,0.72)' }}>
                         {columns.map((column: string) => (
-                          <Table.Cell key={`${rowIndex}-${column}`} px={4} py="12px" borderColor={palette.lightBorder} fontSize="12px" fontWeight="700" verticalAlign="top">
+                          <Table.Cell key={`${rowIndex}-${column}`} px={4} py="12px" bg="transparent" color={palette.primaryText} borderColor={palette.lightBorder} fontSize="12px" fontWeight="700" verticalAlign="top">
                             <DataValue value={row[column]} />
                           </Table.Cell>
                         ))}
