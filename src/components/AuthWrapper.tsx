@@ -12,16 +12,63 @@ interface AuthWrapperProps {
     children: React.ReactNode;
 }
 
+const temporaryAuthBypassExactPaths = new Set([
+    "/",
+    "/associate-profile",
+    "/action-items",
+    "/chat",
+    "/manager-dashboard",
+    "/manager-overview",
+    "/my-space",
+    "/organization",
+    "/organization-info",
+    "/project-info",
+    "/projects",
+    "/projects-info",
+    "/survey-responses",
+    "/surveys",
+    "/talent-analytics",
+    "/team-member-view",
+    "/talent-management",
+    "/survey-info",
+    "/teams",
+    "/teams-info",
+    "/action-item",
+    "/action-survey"
+]);
+
+const temporaryAuthBypassRoutePrefixes = [
+    "/projects",
+    "/surveys",
+    "/team-member-view",
+];
+
+function hasTemporaryAuthBypass(pathname: string) {
+    return (
+        temporaryAuthBypassExactPaths.has(pathname) ||
+        temporaryAuthBypassRoutePrefixes.some((prefix) => pathname.startsWith(`${prefix}/`))
+    );
+}
+
 export default function AuthWrapper({ children }: AuthWrapperProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
     const { user, isLoading: authLoading } = useAuth();
+    // TEMP: allow sidebar routes and isolated Attribution Hub prototypes to be viewed without login.
+    // Remove these route exceptions before shipping the dashboards.
+    const isTemporaryAttributionHubBypass = hasTemporaryAuthBypass(pathname);
 
     useEffect(() => {
         // Check authentication status
         const checkAuth = () => {
+            if (isTemporaryAttributionHubBypass) {
+                setIsAuthenticated(true);
+                setIsLoading(false);
+                return;
+            }
+
             const token = localStorage.getItem("accessToken");
             if (!token) {
                 setIsAuthenticated(false);
@@ -62,7 +109,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
                 } else {
                     // Token removed - user logged out
                     setIsAuthenticated(false);
-                    if (pathname !== "/login") {
+                    if (pathname !== "/login" && !isTemporaryAttributionHubBypass) {
                         router.push("/login");
                     }
                 }
@@ -74,7 +121,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
         // Set up interval to check token expiry periodically
         const interval = setInterval(() => {
-            if (pathname !== "/login") {
+            if (pathname !== "/login" && !isTemporaryAttributionHubBypass) {
                 const isValid = checkTokenAndRedirect();
                 if (!isValid) {
                     setIsAuthenticated(false);
@@ -87,7 +134,7 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
             clearInterval(interval);
             window.removeEventListener("storage", handleStorageChange);
         };
-    }, [pathname, router]);
+    }, [pathname, router, isTemporaryAttributionHubBypass]);
 
     // Show loading state
     if (isLoading || authLoading) {
@@ -100,6 +147,10 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
 
     // For login page, don't show header
     if (pathname === "/login") {
+        return <>{children}</>;
+    }
+
+    if (isTemporaryAttributionHubBypass) {
         return <>{children}</>;
     }
 
